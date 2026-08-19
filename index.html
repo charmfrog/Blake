@@ -220,18 +220,18 @@
         main.main-body {
             max-width: var(--content-max-width);
             margin: 0 auto;
-            padding: 20px 20px 60px 20px;
+            padding: 16px 20px 60px 20px;
             width: 100%;
         }
 
         /* ------------------------------------------------------------- */
-        /* 상단 공통 핵심 요약 카드 (소프트 옐로우)                      */
+        /* [01. Blake의 꿈 전용] 상단 핵심 요약 카드                    */
         /* ------------------------------------------------------------- */
         .summary-hero-card {
             background: #FEFCE8;
-            padding: 22px 28px;
+            padding: 22px 26px;
             border-radius: 14px;
-            margin-bottom: 30px;
+            margin-bottom: 28px;
             border: 2px solid #F59E0B;
             box-shadow: 0 4px 16px rgba(245, 158, 11, 0.12);
             text-align: left;
@@ -240,7 +240,7 @@
         .summary-hero-title {
             margin-top: 0;
             color: #92400E;
-            font-size: 1.2rem;
+            font-size: 1.18rem;
             font-weight: 900;
             margin-bottom: 12px;
             display: flex;
@@ -254,7 +254,7 @@
             margin: 0;
             color: #1F2937;
             line-height: 1.8;
-            font-size: 0.95rem;
+            font-size: 0.94rem;
         }
 
         .summary-hero-list li {
@@ -272,13 +272,14 @@
         }
 
         /* ------------------------------------------------------------- */
-        /* [01. Blake의 꿈 탭 전용] 한 줄 방명록                        */
+        /* [01. Blake의 꿈 맨 하단 전용] 한 줄 방명록                  */
         /* ------------------------------------------------------------- */
         .guestbook-card {
             background: #F8FAFC;
             padding: 22px 26px;
             border-radius: 14px;
-            margin-bottom: 40px;
+            margin-top: 36px;
+            margin-bottom: 10px;
             border: 1.5px solid var(--border-light);
             box-shadow: var(--card-shadow);
             text-align: left;
@@ -377,7 +378,7 @@
         }
 
         .content-section {
-            margin-top: 10px;
+            margin-top: 6px;
             margin-bottom: 40px;
         }
 
@@ -708,9 +709,9 @@
             .nav-main-label { font-size: 0.82rem; }
             .nav-sub-label { font-size: 0.56rem; }
 
-            main.main-body { padding: 16px 12px 40px 12px; }
-            .summary-hero-card { padding: 18px 16px; margin-bottom: 24px; }
-            .guestbook-card { padding: 18px 16px; margin-bottom: 30px; }
+            main.main-body { padding: 14px 12px 40px 12px; }
+            .summary-hero-card { padding: 18px 16px; margin-bottom: 22px; }
+            .guestbook-card { padding: 18px 16px; margin-top: 28px; }
             .guestbook-form { flex-direction: column; }
             .guest-input-name { width: 100%; }
             .journey-card { padding: 16px 14px; }
@@ -767,41 +768,22 @@
     <!-- 3. Main Full-Width Body Container -->
     <main class="main-body">
 
-        <!-- [상단 공통] 핵심 요약 카드 -->
-        <div class="summary-hero-card">
-            <h3 class="summary-hero-title">💡 Blake 3초 만에 이해하기</h3>
-            <ul class="summary-hero-list">
-                <li>✅ <strong>영상 메모장:</strong> 이미지·영상을 넣으면 AI 음성과 자막이 얹어진 영상 다큐가 뚝딱 만들어집니다.</li>
-                <li>✅ <strong>무설치 혁신:</strong> "파일 자체가 앱"입니다. 별도 설치 없이 폰·PC 어디서든 즉시 작동하고 완벽하게 호환됩니다.</li>
-                <li>✅ <strong>오픈 프로젝트:</strong> 누구나 무료로 배포받고, 내 입맛대로 뜯어고쳐 '나만의 도구'로 키울 수 있습니다.</li>
-            </ul>
-            <p class="summary-hero-footer">
-                🚀 <strong>시작하기:</strong> 상단 '무설치 바로 쓰기'를 통해 웹에서 즉시 작업하거나, '소장용 다운로드'로 기기에 담아두고 사용하세요.
-            </p>
-        </div>
-
-
         <!-- ==========================================
              [TAB 1] 01. Blake의 꿈 (DREAM)
              ========================================== -->
         <section id="intro" class="content-section tab-pane active-tab">
             
-            <!-- [01. Blake의 꿈 탭 전용] 한 줄 소감 및 응원 방명록 -->
-            <div class="guestbook-card">
-                <h3 class="guestbook-title">💬 방문객 한 줄 응원 & 소감</h3>
-                <p class="guestbook-desc">Blake와 함께한 첫인상이나 따뜻한 응원의 한마디를 남겨주세요!</p>
-                
-                <!-- 입력 폼 -->
-                <div class="guestbook-form">
-                    <input type="text" id="guestName" class="guest-input-name" placeholder="닉네임" maxlength="20">
-                    <input type="text" id="guestMessage" class="guest-input-msg" placeholder="따뜻한 응원이나 소감을 남겨주세요 (예: 무설치라 너무 신기하고 편리해요!)" maxlength="150" onkeypress="if(event.key === 'Enter') addGuestMessage()">
-                    <button type="button" onclick="addGuestMessage()" class="btn-guest-submit">남기기</button>
-                </div>
-
-                <!-- 방명록 리스트 출력 영역 -->
-                <div id="guestbookList" class="guestbook-list">
-                    <!-- 자바스크립트에 의해 동적으로 렌더링됩니다 -->
-                </div>
+            <!-- [01. Blake의 꿈 맨 위] 핵심 요약 카드 -->
+            <div class="summary-hero-card">
+                <h3 class="summary-hero-title">💡 Blake 3초 만에 이해하기</h3>
+                <ul class="summary-hero-list">
+                    <li>✅ <strong>영상 메모장:</strong> 이미지·영상을 넣으면 AI 음성과 자막이 얹어진 영상 다큐가 뚝딱 만들어집니다.</li>
+                    <li>✅ <strong>무설치 혁신:</strong> "파일 자체가 앱"입니다. 별도 설치 없이 폰·PC 어디서든 즉시 작동하고 완벽하게 호환됩니다.</li>
+                    <li>✅ <strong>오픈 프로젝트:</strong> 누구나 무료로 배포받고, 내 입맛대로 뜯어고쳐 '나만의 도구'로 키울 수 있습니다.</li>
+                </ul>
+                <p class="summary-hero-footer">
+                    🚀 <strong>시작하기:</strong> 상단 '무설치 바로 쓰기'를 통해 웹에서 즉시 작업하거나, '소장용 다운로드'로 기기에 담아두고 사용하세요.
+                </p>
             </div>
 
             <h2 class="section-header">
@@ -922,6 +904,25 @@
                 </details>
 
             </div>
+
+            <!-- [01. Blake의 꿈 맨 아래] 한 줄 소감 및 응원 방명록 -->
+            <div class="guestbook-card">
+                <h3 class="guestbook-title">💬 방문객 한 줄 응원 & 소감</h3>
+                <p class="guestbook-desc">Blake와 함께한 첫인상이나 따뜻한 응원의 한마디를 남겨주세요!</p>
+                
+                <!-- 입력 폼 -->
+                <div class="guestbook-form">
+                    <input type="text" id="guestName" class="guest-input-name" placeholder="닉네임" maxlength="20">
+                    <input type="text" id="guestMessage" class="guest-input-msg" placeholder="따뜻한 응원이나 소감을 남겨주세요 (예: 무설치라 너무 신기하고 편리해요!)" maxlength="150" onkeypress="if(event.key === 'Enter') addGuestMessage()">
+                    <button type="button" onclick="addGuestMessage()" class="btn-guest-submit">남기기</button>
+                </div>
+
+                <!-- 방명록 리스트 출력 영역 -->
+                <div id="guestbookList" class="guestbook-list">
+                    <!-- 자바스크립트에 의해 동적으로 렌더링됩니다 -->
+                </div>
+            </div>
+
         </section>
 
 
@@ -1621,7 +1622,7 @@
             
             if (!entries || !entries.length) {
                 entries = [
-                    { name: "지나가던 시민개발자", message: "설치 없이 바로 실행된다는 점이 정말 혁신적이네요. 응원합니다!", date: "2026-08-19" },
+                    { name: "지нага던 시민개발자", message: "설치 없이 바로 실행된다는 점이 정말 혁신적이네요. 응원합니다!", date: "2026-08-19" },
                     { name: "여행자", message: "시적 감성과 실용성이 공존하는 멋진 노트네요. 잘 쓰겠습니다!", date: "2026-08-19" }
                 ];
                 try {
