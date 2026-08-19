@@ -229,9 +229,9 @@
         /* ------------------------------------------------------------- */
         .summary-hero-card {
             background: #FEFCE8;
-            padding: 24px 28px;
+            padding: 22px 28px;
             border-radius: 14px;
-            margin-bottom: 24px;
+            margin-bottom: 30px;
             border: 2px solid #F59E0B;
             box-shadow: 0 4px 16px rgba(245, 158, 11, 0.12);
             text-align: left;
@@ -262,7 +262,7 @@
         }
 
         .summary-hero-footer {
-            margin-top: 14px;
+            margin-top: 12px;
             margin-bottom: 0;
             font-size: 0.88rem;
             color: #78350F;
@@ -272,13 +272,13 @@
         }
 
         /* ------------------------------------------------------------- */
-        /* [신설] 한 줄 소감 및 응원 방명록 (GUESTBOOK)                */
+        /* [01. Blake의 꿈 탭 전용] 한 줄 방명록                        */
         /* ------------------------------------------------------------- */
         .guestbook-card {
             background: #F8FAFC;
-            padding: 24px 28px;
+            padding: 22px 26px;
             border-radius: 14px;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
             border: 1.5px solid var(--border-light);
             box-shadow: var(--card-shadow);
             text-align: left;
@@ -298,13 +298,13 @@
         .guestbook-desc {
             font-size: 0.88rem;
             color: var(--text-sub);
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         .guestbook-form {
             display: flex;
             gap: 8px;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         .guest-input-name {
@@ -351,7 +351,7 @@
         }
 
         .guestbook-list {
-            max-height: 190px;
+            max-height: 180px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -377,7 +377,7 @@
         }
 
         .content-section {
-            margin-top: 16px;
+            margin-top: 10px;
             margin-bottom: 40px;
         }
 
@@ -709,8 +709,8 @@
             .nav-sub-label { font-size: 0.56rem; }
 
             main.main-body { padding: 16px 12px 40px 12px; }
-            .summary-hero-card { padding: 18px 16px; margin-bottom: 20px; }
-            .guestbook-card { padding: 18px 16px; margin-bottom: 36px; }
+            .summary-hero-card { padding: 18px 16px; margin-bottom: 24px; }
+            .guestbook-card { padding: 18px 16px; margin-bottom: 30px; }
             .guestbook-form { flex-direction: column; }
             .guest-input-name { width: 100%; }
             .journey-card { padding: 16px 14px; }
@@ -767,7 +767,7 @@
     <!-- 3. Main Full-Width Body Container -->
     <main class="main-body">
 
-        <!-- [상단 1] 핵심 요약 카드 -->
+        <!-- [상단 공통] 핵심 요약 카드 -->
         <div class="summary-hero-card">
             <h3 class="summary-hero-title">💡 Blake 3초 만에 이해하기</h3>
             <ul class="summary-hero-list">
@@ -780,30 +780,30 @@
             </p>
         </div>
 
-        <!-- [상단 2] 한 줄 소감 및 응원 방명록 (로컬 스토리지 기반, 0-Server) -->
-        <div class="guestbook-card">
-            <h3 class="guestbook-title">💬 방문객 한 줄 응원 & 소감</h3>
-            <p class="guestbook-desc">Blake와 함께한 첫인상이나 따뜻한 응원의 한마디를 남겨주세요!</p>
-            
-            <!-- 입력 폼 -->
-            <div class="guestbook-form">
-                <input type="text" id="guestName" class="guest-input-name" placeholder="닉네임" maxlength="20">
-                <input type="text" id="guestMessage" class="guest-input-msg" placeholder="따뜻한 응원이나 소감을 남겨주세요 (예: 무설치라 너무 신기하고 편리해요!)" maxlength="150" onkeypress="if(event.key === 'Enter') addGuestMessage()">
-                <button type="button" onclick="addGuestMessage()" class="btn-guest-submit">남기기</button>
-            </div>
-
-            <!-- 방명록 리스트 출력 영역 -->
-            <div id="guestbookList" class="guestbook-list">
-                <!-- 자바스크립트에 의해 동적으로 렌더링됩니다 -->
-            </div>
-        </div>
-
 
         <!-- ==========================================
              [TAB 1] 01. Blake의 꿈 (DREAM)
              ========================================== -->
         <section id="intro" class="content-section tab-pane active-tab">
             
+            <!-- [01. Blake의 꿈 탭 전용] 한 줄 소감 및 응원 방명록 -->
+            <div class="guestbook-card">
+                <h3 class="guestbook-title">💬 방문객 한 줄 응원 & 소감</h3>
+                <p class="guestbook-desc">Blake와 함께한 첫인상이나 따뜻한 응원의 한마디를 남겨주세요!</p>
+                
+                <!-- 입력 폼 -->
+                <div class="guestbook-form">
+                    <input type="text" id="guestName" class="guest-input-name" placeholder="닉네임" maxlength="20">
+                    <input type="text" id="guestMessage" class="guest-input-msg" placeholder="따뜻한 응원이나 소감을 남겨주세요 (예: 무설치라 너무 신기하고 편리해요!)" maxlength="150" onkeypress="if(event.key === 'Enter') addGuestMessage()">
+                    <button type="button" onclick="addGuestMessage()" class="btn-guest-submit">남기기</button>
+                </div>
+
+                <!-- 방명록 리스트 출력 영역 -->
+                <div id="guestbookList" class="guestbook-list">
+                    <!-- 자바스크립트에 의해 동적으로 렌더링됩니다 -->
+                </div>
+            </div>
+
             <h2 class="section-header">
                 <span>01. Blake의 꿈</span>
             </h2>
