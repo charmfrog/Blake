@@ -12,7 +12,7 @@
         :root {
             --bg-pure: #FAF9F6;
             --bg-card: #FFFFFF;
-            --text-main: #111827; /* 또렷한 검정 */
+            --text-main: #111827;
             --text-sub: #4B5563;
             --text-muted: #9CA3AF;
             --accent-orange: #FF7043;
@@ -26,19 +26,19 @@
 
             /* 4대 섹션 진하고 선명한 테마 컬러 토큰 */
             --sec1-sky: #0284C7;
-            --sec1-sky-border: #7DD3FC; /* 짙어진 박스 테두리 */
+            --sec1-sky-border: #7DD3FC;
             --sec1-sky-bg: #F0F9FF;
 
             --sec2-emerald: #059669;
-            --sec2-emerald-border: #6EE7B7; /* 짙어진 박스 테두리 */
+            --sec2-emerald-border: #6EE7B7;
             --sec2-emerald-bg: #ECFDF5;
 
             --sec3-violet: #7C3AED;
-            --sec3-violet-border: #C4B5FD; /* 짙어진 박스 테두리 */
+            --sec3-violet-border: #C4B5FD;
             --sec3-violet-bg: #F5F3FF;
 
             --sec4-amber: #D97706;
-            --sec4-amber-border: #FCD34D; /* 짙어진 박스 테두리 */
+            --sec4-amber-border: #FCD34D;
             --sec4-amber-bg: #FFFBEB;
         }
 
@@ -133,7 +133,7 @@
         .btn-download:hover { background: #111827; }
 
         /* ------------------------------------------------------------- */
-        /* STICKY 4-PILLAR NAVIGATION BAR                                */
+        /* STICKY 4-PILLAR NAVIGATION BAR (TAB SWITCH BUTTONS)           */
         /* ------------------------------------------------------------- */
         nav.sticky-nav-bar {
             position: -webkit-sticky;
@@ -173,12 +173,29 @@
             transition: all 0.2s ease;
             box-shadow: 0 2px 6px rgba(0,0,0,0.03);
             flex-shrink: 0;
+            cursor: pointer;
         }
 
-        .nav-pillar-btn:hover, .nav-pillar-btn.active {
-            background: var(--accent-rose);
-            border-color: var(--accent-orange);
+        .nav-pillar-btn:hover {
             transform: translateY(-1px);
+        }
+
+        /* 탭 활성화 시 고유 테마 컬러 하이라이트 */
+        .nav-pillar-btn[data-tab="intro"].active {
+            background: var(--sec1-sky-bg);
+            border-color: var(--sec1-sky);
+        }
+        .nav-pillar-btn[data-tab="showcase"].active {
+            background: var(--sec2-emerald-bg);
+            border-color: var(--sec2-emerald);
+        }
+        .nav-pillar-btn[data-tab="guide"].active {
+            background: var(--sec3-violet-bg);
+            border-color: var(--sec3-violet);
+        }
+        .nav-pillar-btn[data-tab="journey"].active {
+            background: var(--sec4-amber-bg);
+            border-color: var(--sec4-amber);
         }
 
         .nav-sub-label {
@@ -207,61 +224,164 @@
             width: 100%;
         }
 
-        /* Hero Banner */
-        .hero-banner {
-            text-align: center;
-            padding: 10px 0 20px 0;
-            margin-bottom: 20px;
-        }
-
-        .ticker-wrap {
-            max-width: 680px;
-            margin: 8px auto 24px auto;
-            overflow: hidden;
+        /* ------------------------------------------------------------- */
+        /* 상단 공통 핵심 요약 카드 (소프트 옐로우)                      */
+        /* ------------------------------------------------------------- */
+        .summary-hero-card {
             background: #FEFCE8;
-            padding: 12px 0;
-            border: 3.5px solid var(--accent-orange);
+            padding: 24px 28px;
             border-radius: 14px;
-            box-shadow: 0 4px 16px rgba(255, 112, 67, 0.14);
-            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
-            mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+            margin-bottom: 24px;
+            border: 2px solid #F59E0B;
+            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.12);
+            text-align: left;
         }
 
-        .ticker-text {
-            display: inline-block;
-            white-space: nowrap;
-            padding-left: 100%;
-            animation: ticker 25s linear infinite;
-            font-style: italic;
-            font-weight: 800;
-            color: #0F172A;
-            font-size: 1rem;
+        .summary-hero-title {
+            margin-top: 0;
+            color: #92400E;
+            font-size: 1.2rem;
+            font-weight: 900;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        @keyframes ticker {
-            0% { transform: translate3d(0, 0, 0); }
-            100% { transform: translate3d(-100%, 0, 0); }
-        }
-
-        .hero-subtitle {
-            font-size: 1.08rem;
-            color: var(--text-sub);
+        .summary-hero-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            color: #1F2937;
             line-height: 1.8;
-            max-width: 760px;
-            margin: 0 auto;
-            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .summary-hero-list li {
+            margin-bottom: 8px;
+        }
+
+        .summary-hero-footer {
+            margin-top: 14px;
+            margin-bottom: 0;
+            font-size: 0.88rem;
+            color: #78350F;
+            border-top: 1.5px dashed #FCD34D;
+            padding-top: 10px;
+            font-weight: 600;
         }
 
         /* ------------------------------------------------------------- */
-        /* SECTION SPACING (150% EXPANDED) & ACCORDION SYSTEM            */
+        /* [신설] 한 줄 소감 및 응원 방명록 (GUESTBOOK)                */
         /* ------------------------------------------------------------- */
+        .guestbook-card {
+            background: #F8FAFC;
+            padding: 24px 28px;
+            border-radius: 14px;
+            margin-bottom: 50px;
+            border: 1.5px solid var(--border-light);
+            box-shadow: var(--card-shadow);
+            text-align: left;
+        }
+
+        .guestbook-title {
+            margin-top: 0;
+            color: var(--text-main);
+            font-size: 1.15rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .guestbook-desc {
+            font-size: 0.88rem;
+            color: var(--text-sub);
+            margin-bottom: 16px;
+        }
+
+        .guestbook-form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .guest-input-name {
+            width: 120px;
+            padding: 10px 12px;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+            background: #FFFFFF;
+            transition: border-color 0.2s ease;
+        }
+
+        .guest-input-msg {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1.5px solid #CBD5E1;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+            background: #FFFFFF;
+            transition: border-color 0.2s ease;
+        }
+
+        .guest-input-name:focus, .guest-input-msg:focus {
+            border-color: var(--accent-orange);
+        }
+
+        .btn-guest-submit {
+            background: var(--accent-orange);
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            transition: background 0.2s ease;
+        }
+
+        .btn-guest-submit:hover {
+            background: var(--accent-orange-hover);
+        }
+
+        .guestbook-list {
+            max-height: 190px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 4px;
+        }
+
+        /* ------------------------------------------------------------- */
+        /* 4-TAB SPA VIEWPORT & TRANSITION ANIMATION                     */
+        /* ------------------------------------------------------------- */
+        .tab-pane {
+            display: none;
+            animation: tabFadeIn 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .tab-pane.active-tab {
+            display: block;
+        }
+
+        @keyframes tabFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .content-section {
-            margin-top: 80px;
+            margin-top: 16px;
             margin-bottom: 40px;
-            scroll-margin-top: 80px;
         }
 
-        /* 섹션 대제목 (섹션별 고유 색상 부여) */
+        /* 섹션 대제목 */
         .section-header {
             font-family: 'Noto Serif KR', serif;
             font-size: 1.55rem;
@@ -272,17 +392,15 @@
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            cursor: pointer;
-            user-select: none;
             text-align: left;
         }
 
-        /* 하위 섹션 제목 (검정색 글자 + 하단 짙은 섹션 테마선) */
+        /* 하위 섹션 제목 */
         .subsection-header {
             font-family: 'Noto Serif KR', serif;
             font-size: 1.25rem;
             font-weight: 900;
-            color: var(--text-main) !important; /* 검정색 통일 */
+            color: var(--text-main) !important;
             padding-bottom: 8px;
             margin: 28px 0 16px 0;
             display: flex;
@@ -293,7 +411,6 @@
             user-select: none;
         }
 
-        /* 심플 삼각형 토글 화살표 */
         details summary::-webkit-details-marker { display: none; }
         details summary { list-style: none; outline: none; }
 
@@ -320,63 +437,63 @@
         }
 
         /* ------------------------------------------------------------- */
-        /* 4-SECTION COLOR ACCENT SPECIFICATIONS                         */
+        /* 4-SECTION COLOR ACCENTS                                       */
         /* ------------------------------------------------------------- */
 
-        /* 🔵 01. Blake의 꿈 (스카이블루) */
+        /* 🔵 01. Blake의 꿈 */
         #intro .section-header {
-            color: var(--sec1-sky); /* [수정] 대제목 색상 */
+            color: var(--sec1-sky);
             border-bottom: 3.5px solid var(--sec1-sky);
         }
         #intro .subsection-header {
-            border-bottom: 2px solid var(--sec1-sky); /* [수정] 하위제목 아래 짙은 선 */
+            border-bottom: 2px solid var(--sec1-sky);
         }
         #intro .journey-card {
-            border: 1.5px solid var(--sec1-sky-border); /* [수정] 짙어진 박스 테두리 */
+            border: 1.5px solid var(--sec1-sky-border);
         }
         #intro .journey-card:hover {
             border-color: var(--sec1-sky);
         }
 
-        /* 🟢 02. 쇼케이스 (에메랄드 그린) */
+        /* 🟢 02. 쇼케이스 */
         #showcase .section-header {
-            color: var(--sec2-emerald); /* [수정] 대제목 색상 */
+            color: var(--sec2-emerald);
             border-bottom: 3.5px solid var(--sec2-emerald);
         }
         #showcase .journey-card {
-            border: 1.5px solid var(--sec2-emerald-border); /* [수정] 짙어진 박스 테두리 */
+            border: 1.5px solid var(--sec2-emerald-border);
         }
         #showcase .journey-card:hover {
             border-color: var(--sec2-emerald);
         }
 
-        /* 🟣 03. 활용 및 개조 (바이올렛) */
+        /* 🟣 03. 활용 및 개조 */
         #guide .section-header {
-            color: var(--sec3-violet); /* [수정] 대제목 색상 */
+            color: var(--sec3-violet);
             border-bottom: 3.5px solid var(--sec3-violet);
         }
         #guide .subsection-header {
-            border-bottom: 2px solid var(--sec3-violet); /* [수정] 하위제목 아래 짙은 선 */
+            border-bottom: 2px solid var(--sec3-violet);
         }
         #guide .journey-card {
-            border: 1.5px solid var(--sec3-violet-border); /* [수정] 짙어진 박스 테두리 */
+            border: 1.5px solid var(--sec3-violet-border);
         }
         #guide .journey-card:hover {
             border-color: var(--sec3-violet);
         }
 
-        /* 🟡 04. 뜻밖의 여정 (앰버 골드) */
+        /* 🟡 04. 뜻밖의 여정 */
         #journey .section-header {
-            color: var(--sec4-amber); /* [수정] 대제목 색상 */
+            color: var(--sec4-amber);
             border-bottom: 3.5px solid var(--sec4-amber);
         }
         #journey .subsection-header {
-            border-bottom: 2px solid var(--sec4-amber); /* [수정] 하위제목 아래 짙은 선 */
+            border-bottom: 2px solid var(--sec4-amber);
         }
         #journey .chapter-header-row {
             margin: 28px 0 10px 0;
             padding-bottom: 8px;
-            border-bottom: 2px solid var(--sec4-amber); /* [수정] 챕터 아래 짙은 선 */
+            border-bottom: 2px solid var(--sec4-amber);
             text-align: left;
         }
         #journey .chapter-title {
@@ -387,7 +504,7 @@
             text-align: left;
         }
         #journey .journey-card {
-            border: 1.5px solid var(--sec4-amber-border); /* [수정] 짙어진 박스 테두리 */
+            border: 1.5px solid var(--sec4-amber-border);
         }
         #journey .journey-card:hover {
             border-color: var(--sec4-amber);
@@ -592,6 +709,10 @@
             .nav-sub-label { font-size: 0.56rem; }
 
             main.main-body { padding: 16px 12px 40px 12px; }
+            .summary-hero-card { padding: 18px 16px; margin-bottom: 20px; }
+            .guestbook-card { padding: 18px 16px; margin-bottom: 36px; }
+            .guestbook-form { flex-direction: column; }
+            .guest-input-name { width: 100%; }
             .journey-card { padding: 16px 14px; }
             .persona-grid { grid-template-columns: repeat(2, 1fr); }
         }
@@ -621,22 +742,22 @@
         </div>
     </header>
 
-    <!-- 2. STICKY 4-PILLAR NAVIGATION BAR -->
+    <!-- 2. STICKY 4-PILLAR NAVIGATION BAR (TAB SWITCH TRIGGERS) -->
     <nav class="sticky-nav-bar" id="main-sticky-menu">
         <div class="nav-bar-container">
-            <a href="#intro" class="nav-pillar-btn active">
+            <a href="#intro" class="nav-pillar-btn active" data-tab="intro" onclick="switchTab(event, 'intro')">
                 <span class="nav-sub-label">INTRO</span>
                 <span class="nav-main-label">앱 소개</span>
             </a>
-            <a href="#showcase" class="nav-pillar-btn">
+            <a href="#showcase" class="nav-pillar-btn" data-tab="showcase" onclick="switchTab(event, 'showcase')">
                 <span class="nav-sub-label">SHOWCASE</span>
                 <span class="nav-main-label">쇼케이스</span>
             </a>
-            <a href="#guide" class="nav-pillar-btn">
+            <a href="#guide" class="nav-pillar-btn" data-tab="guide" onclick="switchTab(event, 'guide')">
                 <span class="nav-sub-label">GUIDE</span>
                 <span class="nav-main-label">활용 및 개조</span>
             </a>
-            <a href="#journey" class="nav-pillar-btn">
+            <a href="#journey" class="nav-pillar-btn" data-tab="journey" onclick="switchTab(event, 'journey')">
                 <span class="nav-sub-label">JOURNEY</span>
                 <span class="nav-main-label">개발여정</span>
             </a>
@@ -646,33 +767,60 @@
     <!-- 3. Main Full-Width Body Container -->
     <main class="main-body">
 
-        <!-- Hero Banner Section -->
-        <section class="hero-banner main-visual-section">
-            <div class="ticker-wrap">
-                <div class="ticker-text">
-                    "To see a World in a Grain of Sand And a Heaven in a Wild Flower, Hold Infinity in the palm of your hand And Eternity in an hour." — William Blake
-                </div>
-            </div>
-            <p class="hero-subtitle">
-                다른 존재와의 관계를 고민하며, 단일파일앱 Bento의 순수한 정신을 이어받아 개발한<br>1.46MB 무설치, 독립형 영상메모장 "Blake 1.0 공식 배포 센터"입니다.
+        <!-- [상단 1] 핵심 요약 카드 -->
+        <div class="summary-hero-card">
+            <h3 class="summary-hero-title">💡 Blake 3초 만에 이해하기</h3>
+            <ul class="summary-hero-list">
+                <li>✅ <strong>영상 메모장:</strong> 이미지·영상을 넣으면 AI 음성과 자막이 얹어진 영상 다큐가 뚝딱 만들어집니다.</li>
+                <li>✅ <strong>무설치 혁신:</strong> "파일 자체가 앱"입니다. 별도 설치 없이 폰·PC 어디서든 즉시 작동하고 완벽하게 호환됩니다.</li>
+                <li>✅ <strong>오픈 프로젝트:</strong> 누구나 무료로 배포받고, 내 입맛대로 뜯어고쳐 '나만의 도구'로 키울 수 있습니다.</li>
+            </ul>
+            <p class="summary-hero-footer">
+                🚀 <strong>시작하기:</strong> 상단 '무설치 바로 쓰기'를 통해 웹에서 즉시 작업하거나, '소장용 다운로드'로 기기에 담아두고 사용하세요.
             </p>
-        </section>
+        </div>
+
+        <!-- [상단 2] 한 줄 소감 및 응원 방명록 (로컬 스토리지 기반, 0-Server) -->
+        <div class="guestbook-card">
+            <h3 class="guestbook-title">💬 방문객 한 줄 응원 & 소감</h3>
+            <p class="guestbook-desc">Blake와 함께한 첫인상이나 따뜻한 응원의 한마디를 남겨주세요!</p>
+            
+            <!-- 입력 폼 -->
+            <div class="guestbook-form">
+                <input type="text" id="guestName" class="guest-input-name" placeholder="닉네임" maxlength="20">
+                <input type="text" id="guestMessage" class="guest-input-msg" placeholder="따뜻한 응원이나 소감을 남겨주세요 (예: 무설치라 너무 신기하고 편리해요!)" maxlength="150" onkeypress="if(event.key === 'Enter') addGuestMessage()">
+                <button type="button" onclick="addGuestMessage()" class="btn-guest-submit">남기기</button>
+            </div>
+
+            <!-- 방명록 리스트 출력 영역 -->
+            <div id="guestbookList" class="guestbook-list">
+                <!-- 자바스크립트에 의해 동적으로 렌더링됩니다 -->
+            </div>
+        </div>
 
 
         <!-- ==========================================
-             01. Blake의 꿈 (DREAM)
+             [TAB 1] 01. Blake의 꿈 (DREAM)
              ========================================== -->
-        <section id="intro" class="content-section">
+        <section id="intro" class="content-section tab-pane active-tab">
             
-            <!-- 🔵 섹션 대제목 (스카이블루) -->
             <h2 class="section-header">
                 <span>01. Blake의 꿈</span>
             </h2>
 
+            <!-- 차분하게 고정된 시(詩) 인용구 -->
+            <blockquote style="margin: 0 0 32px 0; border-left: 4px solid var(--sec1-sky); padding: 18px 22px; background: var(--sec1-sky-bg); font-style: italic; color: #0369A1; border-radius: 0 10px 10px 0; line-height: 1.75; text-align: left;">
+                "한 알의 모래 속에서 세계를 보며<br>
+                한 송이 들꽃 속에서 천국을 본다<br>
+                그대의 손바닥안에 무한을 쥐며<br>
+                순간 속에서 영원을 붙잡아라"<br>
+                <span style="font-size: 0.88rem; font-style: normal; color: #64748B; display: block; margin-top: 8px;">— 윌리엄 블레이크, &lt;순수의 전조&gt; 중에서</span>
+            </blockquote>
+
             <div style="font-size: 1.02rem; color: var(--text-sub); line-height: 1.85; text-align: left;">
                 
-                <!-- 1️⃣ 이곳은 당신의 놀이터입니다 (상시 펼침) -->
-                <details open style="margin-bottom: 24px;">
+                <!-- 1️⃣ 이곳은 당신의 놀이터입니다 (기본 펼침) -->
+                <details open style="margin-bottom: 28px;">
                     <summary class="subsection-header">
                         <span>1️⃣ 이곳은 당신의 놀이터입니다</span>
                         <span class="acc-arrow">▼</span>
@@ -693,8 +841,8 @@
                     </div>
                 </details>
 
-                <!-- 2️⃣ 당신이 이 앱, Blake의 주인입니다 (어코디언) -->
-                <details style="margin-bottom: 24px;">
+                <!-- 2️⃣ 당신이 이 앱, Blake의 주인입니다 (기본 펼침 적용) -->
+                <details open style="margin-bottom: 28px;">
                     <summary class="subsection-header">
                         <span>2️⃣ 당신이 이 앱, Blake의 주인입니다</span>
                         <span class="acc-arrow">▼</span>
@@ -726,13 +874,13 @@
                             <strong>🤖 AI를 위한 캡슐 (Context Capsule):</strong> 당신 눈앞에 있는 AI가 Blake를 직접 개발하며 제가 사용했던 바로 그 AI로 1초 만에 변신하여, 당신이 원하는 바를 이해하고 완벽한 비서가 되도록 돕는 설계도(<code>GEMINI.md</code>)와 1.47MB의 가벼운 단일 실행 파일(<code>blake_core.html</code>)입니다.
                         </p>
                         <p style="margin-bottom: 14px; padding-left: 12px; border-left: 2.5px solid var(--sec3-violet);">
-                            <strong>👤 당신(사람)을 위한 캡슐 (개발 스토리):</strong> 무작정 작업에 뛰어들기 전에, 아래 이어지는 저의 좌충우돌 개발 스토리(<a href="#journey" style="color: var(--sec1-sky); text-decoration: underline;">'04. 뜻밖의 여정'</a>)를 먼저 편안하게 읽어보시기를 권합니다. 왜 이 앱이 이런 모습으로 태어났는지 그 '흐름과 맥락'을 먼저 마음에 담고 나면, 당신이 무엇을 고치고 어떤 새로운 기능을 더하고 싶은지가 놀라울 정도로 선명하게 보이기 시작할 것입니다.
+                            <strong>👤 당신(사람)을 위한 캡슐 (개발 스토리):</strong> 무작정 작업에 뛰어들기 전에, 아래 이어지는 저의 좌충우돌 개발 스토리(<a href="#journey" onclick="switchTab(event, 'journey')" style="color: var(--sec1-sky); text-decoration: underline; font-weight: 700;">'04. 뜻밖의 여정' 탭 바로가기 ➔</a>)를 먼저 편안하게 읽어보시기를 권합니다. 왜 이 앱이 이런 모습으로 태어났는지 그 '흐름과 맥락'을 먼저 마음에 담고 나면, 당신이 무엇을 고치고 어떤 새로운 기능을 더하고 싶은지가 놀라울 정도로 선명하게 보이기 시작할 것입니다.
                         </p>
                     </div>
                 </details>
 
-                <!-- 3️⃣ Blake, 그리고 AI와 함께 꾸는 꿈 (어코디언) -->
-                <details style="margin-bottom: 10px;">
+                <!-- 3️⃣ Blake, 그리고 AI와 함께 꾸는 꿈 (기본 펼침 적용) -->
+                <details open style="margin-bottom: 10px;">
                     <summary class="subsection-header">
                         <span>3️⃣ Blake, 그리고 AI와 함께 꾸는 꿈</span>
                         <span class="acc-arrow">▼</span>
@@ -778,600 +926,591 @@
 
 
         <!-- ==========================================
-             02. 쇼케이스 (SHOWCASE)
+             [TAB 2] 02. 쇼케이스 (SHOWCASE)
              ========================================== -->
-        <section id="showcase" class="content-section">
-            <details open>
-                <!-- 🟢 섹션 대제목 (에메랄드 그린) -->
-                <summary class="section-header">
-                    <span>02. 도구와 일상의 쇼케이스 (시즌 BEST 3 + 퀘스트)</span>
-                    <span class="acc-arrow">▼</span>
-                </summary>
+        <section id="showcase" class="content-section tab-pane">
+            
+            <h2 class="section-header">
+                <span>02. 도구와 일상의 쇼케이스 (시즌 BEST 3 + 퀘스트)</span>
+            </h2>
 
-                <div class="accordion-body-anim" style="padding-top: 10px;">
-                    <!-- 4단 카드 덱 -->
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-bottom: 30px;">
-                        
-                        <!-- [카드 1] 인기 BEST -->
-                        <div class="journey-card" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
-                            <div>
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--sec2-emerald); background: var(--sec2-emerald-bg); padding: 4px 10px; border-radius: 6px;">인기 BEST</span>
-                                    <span style="font-size: 0.82rem; color: var(--text-muted); font-family: monospace;">Custom #01</span>
-                                </div>
-                                <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 10px;">
-                                    모바일 원터치 경량화 에디션
-                                </h4>
-                                <p style="font-size: 0.9rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 14px;">
-                                    <strong>[도구 소개]</strong> 걷는 도중 한 손으로도 조작할 수 있도록 하단 터치 버튼을 대형화하고, 야외에서도 선명하게 읽히는 고대비 자막 폰트를 장착했습니다.
-                                </p>
-                                <div style="background: rgba(0, 0, 0, 0.2); border: 1.5px solid var(--sec2-emerald-border); border-radius: 8px; overflow: hidden; margin-bottom: 12px;">
-                                    <div style="position: relative; padding-bottom: 56.25%; height: 0; background: #0f172a;">
-                                        <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" src="https://www.youtube.com/embed/placeholder1" title="인제천리길 원터치 기록" allowfullscreen></iframe>
-                                    </div>
-                                    <div style="padding: 10px; font-size: 0.84rem; color: var(--text-sub); line-height: 1.4; background: rgba(15, 23, 42, 0.03);">
-                                        🎬 <strong>매칭 영상:</strong> 인제천리길 5구간 아침 안개 걷기
-                                    </div>
-                                </div>
-                            </div>
-                            <div style="font-size: 0.85rem; color: var(--text-muted); font-style: italic; border-top: 1.5px dashed var(--sec2-emerald-border); padding-top: 10px;">
-                                "배낭을 메고 걸으면서도 사진 3장과 음성 한 줄로 산행 기록 뚝딱!"
-                            </div>
-                        </div>
-
-                        <!-- [카드 2] 아이디어 BEST -->
-                        <div class="journey-card" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
-                            <div>
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--sec3-violet); background: var(--sec3-violet-bg); padding: 4px 10px; border-radius: 6px;">아이디어 BEST</span>
-                                    <span style="font-size: 0.82rem; color: var(--text-muted); font-family: monospace;">Custom #02</span>
-                                </div>
-                                <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 10px;">
-                                    다크모드 & 감성 폰트 에디션
-                                </h4>
-                                <p style="font-size: 0.9rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 14px;">
-                                    <strong>[도구 소개]</strong> 늦은 밤 서재와 캠핑 텐트 안의 감성을 살린 딥 챠콜 다크 테마와, 윌리엄 블레이크의 시구를 닮은 명조 계열 감성 타이포그래피를 적용했습니다.
-                                </p>
-                                <div style="background: rgba(0, 0, 0, 0.2); border: 1.5px solid var(--sec2-emerald-border); border-radius: 8px; overflow: hidden; margin-bottom: 12px;">
-                                    <div style="position: relative; padding-bottom: 56.25%; height: 0; background: #0f172a;">
-                                        <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" src="https://www.youtube.com/embed/placeholder2" title="밤하늘 별빛 비주얼 에세이" allowfullscreen></iframe>
-                                    </div>
-                                    <div style="padding: 10px; font-size: 0.84rem; color: var(--text-sub); line-height: 1.4; background: rgba(15, 23, 42, 0.03);">
-                                        🎬 <strong>매칭 영상:</strong> 옥상 밤하늘과 담배 한 대의 사색
-                                    </div>
-                                </div>
-                            </div>
-                            <div style="font-size: 0.85rem; color: var(--text-muted); font-style: italic; border-top: 1.5px dashed var(--sec2-emerald-border); padding-top: 10px;">
-                                "밤에 불을 끄고 감상할 때 눈이 편안하고 영상의 시적 감성이 배가됩니다."
-                            </div>
-                        </div>
-
-                        <!-- [카드 3] 에디터스 초이스 -->
-                        <div class="journey-card" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
-                            <div>
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--sec1-sky); background: var(--sec1-sky-bg); padding: 4px 10px; border-radius: 6px;">에디터스 초이스</span>
-                                    <span style="font-size: 0.82rem; color: var(--text-muted); font-family: monospace;">v1.0 Core</span>
-                                </div>
-                                <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 10px;">
-                                    Blake v1.0 오리지널 에디션
-                                </h4>
-                                <p style="font-size: 0.9rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 14px;">
-                                    <strong>[도구 소개]</strong> 1.47MB 플로피디스켓 크기. 가입과 설치 없는 단일 HTML 파일로, 오프라인 모바일 현장에서 AI 음성과 모핑을 완벽 지원하는 순수 코어입니다.
-                                </p>
-                                <div style="background: rgba(0, 0, 0, 0.2); border: 1.5px solid var(--sec2-emerald-border); border-radius: 8px; overflow: hidden; margin-bottom: 12px;">
-                                    <div style="position: relative; padding-bottom: 56.25%; height: 0; background: #0f172a;">
-                                        <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" src="https://www.youtube.com/embed/placeholder3" title="키르기스스탄 배낭여행 다큐" allowfullscreen></iframe>
-                                    </div>
-                                    <div style="padding: 10px; font-size: 0.84rem; color: var(--text-sub); line-height: 1.4; background: rgba(15, 23, 42, 0.03);">
-                                        🎬 <strong>매칭 영상:</strong> 키르기스스탄 12일 오지 트레킹 다큐
-                                    </div>
-                                </div>
-                            </div>
-                            <div style="font-size: 0.85rem; color: var(--text-muted); font-style: italic; border-top: 1.5px dashed var(--sec2-emerald-border); padding-top: 10px;">
-                                "무거운 타임라인 작업 없이 저녁 텐트 안에서 10분 만에 완성한 첫 다큐"
-                            </div>
-                        </div>
-
-                        <!-- [카드 4] 명예의 전당 (1호 퀘스트) -->
-                        <div class="journey-card" style="background: var(--sec4-amber-bg); border-color: var(--sec4-amber-border); display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
-                            <div>
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--sec4-amber); background: #FEF3C7; padding: 4px 10px; border-radius: 6px;">Hall of Fame</span>
-                                    <span style="font-size: 0.82rem; color: var(--sec4-amber); font-weight: 700;">Quest #01</span>
-                                </div>
-                                <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 10px;">
-                                    전설의 미해결 난제 <small style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">(도전자 모집 중)</small>
-                                </h4>
-                                <div style="background: rgba(255, 255, 255, 0.9); border: 1.5px dashed var(--sec4-amber); border-radius: 8px; padding: 12px; margin-bottom: 14px;">
-                                    <p style="font-size: 0.86rem; color: var(--text-sub); line-height: 1.55; margin-bottom: 8px;">
-                                        <strong>🔥 미션:</strong> 음성 종료와 거의 동시에 자막이 자연스럽게 사라지는 기능 & '선희귀신' 기본 음성 뒤섞임 버그 완벽 퇴치
-                                    </p>
-                                    <p style="font-size: 0.82rem; color: #B45309; line-height: 1.4; margin: 0; font-weight: 600;">
-                                        🎁 <strong>보상:</strong> 해결 코드를 공유해 주시는 분께 공식 프로젝트 [명예의 전당 1호] 영구 헌액!
-                                    </p>
-                                </div>
-                            </div>
-                            <div>
-                                <a href="https://cafe.naver.com/blackeboard" target="_blank" rel="noopener noreferrer" 
-                                   style="display: block; text-align: center; padding: 10px; background: var(--sec4-amber); color: #fff; font-weight: 700; font-size: 0.88rem; border-radius: 6px; text-decoration: none;">
-                                    👉 퀘스트 도전 & 실패 로그 보기 ➔
-                                </a>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- 커뮤니티 연동 액션 버튼 바 -->
-                    <div style="display: flex; flex-wrap: wrap; gap: 14px; text-align: left;">
-                        <a href="https://cafe.naver.com/f-e/cafes/31772994/menus/8?viewType=W?t=1787114415984" target="_blank" rel="noopener noreferrer" 
-                           style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; background: var(--sec2-emerald-bg); color: var(--sec2-emerald); border: 1.5px solid var(--sec2-emerald-border); border-radius: 8px; font-weight: 700; font-size: 0.92rem; text-decoration: none;">
-                            <span>🔑</span> 더 많은 커스텀 앱 보러가기 (공식 카페)
-                        </a>
-                        <a href="https://cafe.naver.com/f-e/cafes/31772994/menus/2?viewType=I?t=1787114469159" target="_blank" rel="noopener noreferrer" 
-                           style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; background: var(--sec1-sky-bg); color: var(--sec1-sky); border: 1.5px solid var(--sec1-sky-border); border-radius: 8px; font-weight: 700; font-size: 0.92rem; text-decoration: none;">
-                            <span>🎬</span> 회원 영상 갤러리 감상하기
-                        </a>
-                    </div>
-                </div>
-            </details>
-        </section>
-
-
-        <!-- ==========================================
-             03. 활용 및 개조 (GUIDE)
-             ========================================== -->
-        <section id="guide" class="content-section">
-            <details open>
-                <!-- 🟣 섹션 대제목 (바이올렛) -->
-                <summary class="section-header">
-                    <span>03. 활용 및 개조 (GUIDE)</span>
-                    <span class="acc-arrow">▼</span>
-                </summary>
-
-                <div class="accordion-body-anim" style="padding-top: 10px;">
+            <div style="padding-top: 6px;">
+                <!-- 4단 카드 덱 -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-bottom: 30px;">
                     
-                    <!-- 1️⃣ 영상메모장 초간단 사용법 -->
-                    <h3 class="subsection-header">
-                        <span>1️⃣ 영상메모장 초간단 사용법</span>
-                    </h3>
-                    <div class="journey-card" style="margin-bottom: 28px;">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 14px;">
-                            <div style="background: var(--sec3-violet-bg); padding: 12px; border-radius: 8px; border: 1.5px solid var(--sec3-violet-border);">
-                                <div style="font-weight: 800; color: var(--text-main); font-size: 0.92rem; margin-bottom: 4px;">① 갤러리 10초 컷</div>
-                                <p style="font-size: 0.86rem; color: var(--text-sub); line-height: 1.5; margin: 0;">기본 갤러리 앱에서 여행 사진이나 10초 영상을 준비합니다.</p>
+                    <!-- [카드 1] 인기 BEST -->
+                    <div class="journey-card" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
+                        <div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-size: 0.8rem; font-weight: 700; color: var(--sec2-emerald); background: var(--sec2-emerald-bg); padding: 4px 10px; border-radius: 6px;">인기 BEST</span>
+                                <span style="font-size: 0.82rem; color: var(--text-muted); font-family: monospace;">Custom #01</span>
                             </div>
-                            <div style="background: var(--sec2-emerald-bg); padding: 12px; border-radius: 8px; border: 1.5px solid var(--sec2-emerald-border);">
-                                <div style="font-weight: 800; color: var(--text-main); font-size: 0.92rem; margin-bottom: 4px;">② 미디어 삽입</div>
-                                <p style="font-size: 0.86rem; color: var(--text-sub); line-height: 1.5; margin: 0;">Blake를 열고 [+] 버튼을 눌러 사진/영상을 불러옵니다.</p>
-                            </div>
-                            <div style="background: var(--sec1-sky-bg); padding: 12px; border-radius: 8px; border: 1.5px solid var(--sec1-sky-border);">
-                                <div style="font-weight: 800; color: var(--text-main); font-size: 0.92rem; margin-bottom: 4px;">③ 음성 / 텍스트</div>
-                                <p style="font-size: 0.86rem; color: var(--text-sub); line-height: 1.5; margin: 0;">자막 텍스트를 적으면 자연스러운 AI 음성이 입혀집니다.</p>
-                            </div>
-                            <div style="background: var(--sec4-amber-bg); padding: 12px; border-radius: 8px; border: 1.5px solid var(--sec4-amber-border);">
-                                <div style="font-weight: 800; color: var(--text-main); font-size: 0.92rem; margin-bottom: 4px;">④ 완성 & 저장</div>
-                                <p style="font-size: 0.86rem; color: var(--text-sub); line-height: 1.5; margin: 0;">모핑 효과를 확인하고 [저장]을 눌러 단일 파일로 보관합니다.</p>
-                            </div>
-                        </div>
-                        <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0; font-style: italic;">
-                            💡 <strong>핵심:</strong> <code>갤러리 10초 컷 ➔ 미디어 삽입 ➔ 음성/텍스트 ➔ 완성</code>의 직관적인 흐름으로 완성됩니다.
-                        </p>
-                    </div>
-
-                    <!-- 2️⃣ 초보자를 위한 개조 워크플로우 -->
-                    <h3 class="subsection-header">
-                        <span>2️⃣ 초보자를 위한 개조 워크플로우 (챗봇 활용, 3단계)</span>
-                    </h3>
-                    <div class="journey-card" style="margin-bottom: 28px;">
-                        <p style="font-size: 0.94rem; color: var(--text-sub); line-height: 1.7; margin-bottom: 14px;">
-                            코딩 지식이 전혀 없어도 괜찮습니다. 제미나이나 챗GPT 대화창만 있으면 5분 만에 기능을 바꿀 수 있습니다.
-                        </p>
-                        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px;">
-                            <div style="display: flex; align-items: flex-start; gap: 10px;">
-                                <span style="font-weight: 800; color: var(--sec2-emerald); font-size: 0.95rem;">1.</span>
-                                <div><strong style="color: var(--text-main);">대화창 첨부:</strong> <code>blake_core.html</code> 파일을 대화창에 파일 첨부로 던집니다.</div>
-                            </div>
-                            <div style="display: flex; align-items: flex-start; gap: 10px;">
-                                <span style="font-weight: 800; color: var(--sec2-emerald); font-size: 0.95rem;">2.</span>
-                                <div><strong style="color: var(--text-main);">자연어 수정 요청:</strong> "저장할 때 내가 입력한 프로젝트 제목으로 파일명이 자동 저장되게 고쳐서 다운로드 파일로 줘"라고 요청합니다.</div>
-                            </div>
-                            <div style="display: flex; align-items: flex-start; gap: 10px;">
-                                <span style="font-weight: 800; color: var(--sec2-emerald); font-size: 0.95rem;">3.</span>
-                                <div><strong style="color: var(--text-main);">다운로드 & 확인:</strong> AI가 수정한 HTML 파일을 다운로드받아 더블클릭하여 브라우저에서 확인합니다.</div>
-                            </div>
-                        </div>
-                        <div style="font-size: 0.86rem; color: var(--sec2-emerald); font-weight: 600;">
-                            👉 <strong>혹시 제대로 구현이 안 되었나요?</strong> 당신에게 행운이 따른 것입니다! 
-                            <a href="https://cafe.naver.com/f-e/cafes/31772994/articles/6?menuid=1&referrerAllArticles=false" target="_blank" rel="noopener noreferrer" style="color: var(--sec2-emerald); text-decoration: underline;">
-                                공식 카페 [오류/개선의견] 게시판
-                            </a>에 질문을 남겨보세요.
-                        </div>
-                    </div>
-
-                    <!-- 3️⃣ 중급자를 위한 개조 워크플로우 -->
-                    <h3 class="subsection-header">
-                        <span>3️⃣ 중급자를 위한 개조 워크플로우 (코딩 에이전트 활용, 4단계)</span>
-                    </h3>
-                    <div class="journey-card" style="margin-bottom: 28px;">
-                        <p style="font-size: 0.94rem; color: var(--text-sub); line-height: 1.7; margin-bottom: 14px;">
-                            Antigravity, Codex, Cursor 등 전문 코딩 에이전트와 함께 본격적으로 나만의 앱을 빌드하는 워크플로우입니다.
-                        </p>
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <div style="display: flex; align-items: flex-start; gap: 10px;">
-                                <span style="font-weight: 800; color: var(--sec3-violet); font-size: 0.95rem;">1.</span>
-                                <div><strong style="color: var(--text-main);">Context Capsule 투입:</strong> 새 폴더를 만들고 <strong>Context Capsule</strong>(<code>GEMINI.md</code> + <code>blake_core.html</code>)을 넣습니다.</div>
-                            </div>
-                            <div style="display: flex; align-items: flex-start; gap: 10px;">
-                                <span style="font-weight: 800; color: var(--sec3-violet); font-size: 0.95rem;">2.</span>
-                                <div><strong style="color: var(--text-main);">프롬프트 질의:</strong> "프로젝트 제목으로 파일명이 자동 저장되게 하려면 코드를 어떻게 수정해야 해?"라고 질문합니다.</div>
-                            </div>
-                            <div style="display: flex; align-items: flex-start; gap: 10px;">
-                                <span style="font-weight: 800; color: var(--sec3-violet); font-size: 0.95rem;">3.</span>
-                                <div><strong style="color: var(--text-main);">코드 수정 & 즉시 테스트:</strong> 코드가 수정되면 브라우저에서 직접 새로고침하며 테스트합니다.</div>
-                            </div>
-                            <div style="display: flex; align-items: flex-start; gap: 10px;">
-                                <span style="font-weight: 800; color: var(--sec3-violet); font-size: 0.95rem;">4.</span>
-                                <div><strong style="color: var(--text-main);">화면 캡처 피드백:</strong> 어색하거나 틀어질 때는 화면 캡처 스크린샷으로 피드백을 전달합니다.</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 4️⃣ "나만의 Blake 만들기" 아이디어 -->
-                    <h3 class="subsection-header">
-                        <span>4️⃣ "나만의 Blake 만들기" 아이디어</span>
-                    </h3>
-                    <div class="journey-card" style="margin-bottom: 28px;">
-                        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px;">
-                            <li style="border-left: 3px solid var(--sec3-violet); padding-left: 12px;">
-                                <div style="font-weight: 800; color: var(--text-main); font-size: 0.94rem; margin-bottom: 4px;">🌓 <strong>다크 모드 / 감성 테마 전환 버튼</strong></div>
-                                <blockquote style="margin: 0; padding: 6px 10px; background: var(--sec3-violet-bg); color: var(--sec3-violet); font-style: italic; font-size: 0.86rem; border-radius: 4px;">"우측 상단에 달 모양 아이콘을 누르면 밤에 보기 편한 다크 모드로 바뀌게 해줘."</blockquote>
-                            </li>
-                            <li style="border-left: 3px solid var(--sec2-emerald); padding-left: 12px;">
-                                <div style="font-weight: 800; color: var(--text-main); font-size: 0.94rem; margin-bottom: 4px;">🗺️ <strong>여행 장소 구글 지도 링크 / 위치 핀</strong></div>
-                                <blockquote style="margin: 0; padding: 6px 10px; background: var(--sec2-emerald-bg); color: var(--sec2-emerald); font-style: italic; font-size: 0.86rem; border-radius: 4px;">"에피소드 카드 아래에 [지도에서 보기] 버튼을 누르면 해당 여행지 좌표가 열리게 해줘."</blockquote>
-                            </li>
-                            <li style="border-left: 3px solid #EC4899; padding-left: 12px;">
-                                <div style="font-weight: 800; color: var(--text-main); font-size: 0.94rem; margin-bottom: 4px;">📸 <strong>사진 갤러리 슬라이드쇼 팝업</strong></div>
-                                <blockquote style="margin: 0; padding: 6px 10px; background: #FDF2F8; color: #DB2777; font-style: italic; font-size: 0.86rem; border-radius: 4px;">"벤토 카드의 대표 이미지를 클릭하면 여러 장의 여행 사진이 시원하게 넘어가는 팝업창을 띄워줘."</blockquote>
-                            </li>
-                            <li style="border-left: 3px solid var(--sec1-sky); padding-left: 12px;">
-                                <div style="font-weight: 800; color: var(--text-main); font-size: 0.94rem; margin-bottom: 4px;">🎧 <strong>감성 배경 음악(BGM) 플레이어</strong></div>
-                                <blockquote style="margin: 0; padding: 6px 10px; background: var(--sec1-sky-bg); color: var(--sec1-sky); font-style: italic; font-size: 0.86rem; border-radius: 4px;">"글을 읽는 동안 잔잔한 음악이 반복 재생되는 작은 오디오 바를 상단에 추가해줘."</blockquote>
-                            </li>
-                            <li style="border-left: 3px solid var(--sec4-amber); padding-left: 12px;">
-                                <div style="font-weight: 800; color: var(--text-main); font-size: 0.94rem; margin-bottom: 4px;">🖨️ <strong>내 여행기 깔끔한 PDF/책자 인쇄 레이아웃</strong></div>
-                                <blockquote style="margin: 0; padding: 6px 10px; background: var(--sec4-amber-bg); color: var(--sec4-amber); font-style: italic; font-size: 0.86rem; border-radius: 4px;">"A4 용지에 딱 맞게 인쇄되도록 [인쇄용 레이아웃 보기] 버튼을 만들어줘."</blockquote>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <!-- 🔥 명예의 전당 1호 퀘스트 -->
-                    <h3 class="subsection-header">
-                        <span>🔥 고수들을 위한 별도 제안: 명예의 전당 1호 퀘스트</span>
-                    </h3>
-                    <div class="journey-card" style="background: var(--sec4-amber-bg); border-color: var(--sec4-amber-border); margin-bottom: 28px;">
-                        <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
-                            🏆 전설의 미해결 난제 — '선희귀신(TTS 뒤섞임)' 퇴치 & 찰떡 자막 도전
-                        </h4>
-                        <p style="font-size: 0.92rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 12px;">
-                            Blake 공식 개발팀도 9번의 치열한 사투 끝에 마침표를 찍지 못하고 남겨둔 전설의 난제입니다.
-                        </p>
-                        <div style="background: rgba(255,255,255,0.9); border-radius: 8px; padding: 12px; margin-bottom: 14px; border: 1.5px dashed var(--sec4-amber);">
-                            <ul style="padding-left: 18px; font-size: 0.88rem; color: var(--text-sub); line-height: 1.6; margin: 0 0 8px 0;">
-                                <li>• <strong>미션 1:</strong> 음성 나레이션 종료와 거의 동시에 자막이 자연스럽게 사라지는 싱크 기능 구현</li>
-                                <li>• <strong>미션 2:</strong> 구현 과정에서 불쑥 튀어나오는 기본 AI 음성(선희) 뒤섞임 버그 완벽 퇴치</li>
-                            </ul>
-                            <p style="font-size: 0.84rem; color: #B45309; font-weight: 700; margin: 0;">
-                                🎁 <strong>보상:</strong> 해결 코드를 공유해 주시는 시민개발자께는 Blake 공식 프로젝트 <strong>[명예의 전당 1호]</strong> 영구 헌액!
+                            <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 10px;">
+                                모바일 원터치 경량화 에디션
+                            </h4>
+                            <p style="font-size: 0.9rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 14px;">
+                                <strong>[도구 소개]</strong> 걷는 도중 한 손으로도 조작할 수 있도록 하단 터치 버튼을 대형화하고, 야외에서도 선명하게 읽히는 고대비 자막 폰트를 장착했습니다.
                             </p>
+                            <div style="background: rgba(0, 0, 0, 0.2); border: 1.5px solid var(--sec2-emerald-border); border-radius: 8px; overflow: hidden; margin-bottom: 12px;">
+                                <div style="position: relative; padding-bottom: 56.25%; height: 0; background: #0f172a;">
+                                    <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" src="https://www.youtube.com/embed/placeholder1" title="인제천리길 원터치 기록" allowfullscreen></iframe>
+                                </div>
+                                <div style="padding: 10px; font-size: 0.84rem; color: var(--text-sub); line-height: 1.4; background: rgba(15, 23, 42, 0.03);">
+                                    🎬 <strong>매칭 영상:</strong> 인제천리길 5구간 아침 안개 걷기
+                                </div>
+                            </div>
                         </div>
-                        <a href="https://cafe.naver.com/blackeboard" target="_blank" rel="noopener noreferrer" 
-                           style="display: inline-block; padding: 9px 18px; background: var(--sec4-amber); color: #fff; font-weight: 700; font-size: 0.88rem; border-radius: 6px; text-decoration: none;">
-                            👉 9번의 실패 로그 및 퀘스트 참여하기 (공식 카페) ➔
-                        </a>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); font-style: italic; border-top: 1.5px dashed var(--sec2-emerald-border); padding-top: 10px;">
+                            "배낭을 메고 걸으면서도 사진 3장과 음성 한 줄로 산행 기록 뚝딱!"
+                        </div>
                     </div>
 
-                    <!-- 🛡️ SHA-256 원본 정품 검증소 -->
-                    <h3 class="subsection-header">
-                        <span>🛡️ SHA-256 원본 정품 검증소</span>
-                    </h3>
-                    <div class="journey-card" style="margin-bottom: 30px;">
-                        <p style="font-size: 0.92rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 12px;">
-                            Blake는 외부 서버 통신이나 추적 스크립트가 전혀 없는 100% 순수 로컬 오프라인 단일 파일입니다.
-                        </p>
-                        <div style="background: rgba(15, 23, 42, 0.04); padding: 12px; border-radius: 8px; font-family: monospace; font-size: 0.86rem; color: var(--text-main); word-break: break-all; margin-bottom: 10px; border: 1.5px solid var(--sec3-violet-border);">
-                            <span style="color: var(--sec2-emerald); font-weight: 700;">[blake_core.html SHA-256]</span><br>
-                            e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                    <!-- [카드 2] 아이디어 BEST -->
+                    <div class="journey-card" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
+                        <div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-size: 0.8rem; font-weight: 700; color: var(--sec3-violet); background: var(--sec3-violet-bg); padding: 4px 10px; border-radius: 6px;">아이디어 BEST</span>
+                                <span style="font-size: 0.82rem; color: var(--text-muted); font-family: monospace;">Custom #02</span>
+                            </div>
+                            <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 10px;">
+                                다크모드 & 감성 폰트 에디션
+                            </h4>
+                            <p style="font-size: 0.9rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 14px;">
+                                <strong>[도구 소개]</strong> 늦은 밤 서재와 캠핑 텐트 안의 감성을 살린 딥 챠콜 다크 테마와, 윌리엄 블레이크의 시구를 닮은 명조 계열 감성 타이포그래피를 적용했습니다.
+                            </p>
+                            <div style="background: rgba(0, 0, 0, 0.2); border: 1.5px solid var(--sec2-emerald-border); border-radius: 8px; overflow: hidden; margin-bottom: 12px;">
+                                <div style="position: relative; padding-bottom: 56.25%; height: 0; background: #0f172a;">
+                                    <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" src="https://www.youtube.com/embed/placeholder2" title="밤하늘 별빛 비주얼 에세이" allowfullscreen></iframe>
+                                </div>
+                                <div style="padding: 10px; font-size: 0.84rem; color: var(--text-sub); line-height: 1.4; background: rgba(15, 23, 42, 0.03);">
+                                    🎬 <strong>매칭 영상:</strong> 옥상 밤하늘과 담배 한 대의 사색
+                                </div>
+                            </div>
                         </div>
-                        <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
-                            🖥️ <strong>PowerShell:</strong> <code>Get-FileHash blake_core.html -Algorithm SHA256</code>
-                        </p>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); font-style: italic; border-top: 1.5px dashed var(--sec2-emerald-border); padding-top: 10px;">
+                            "밤에 불을 끄고 감상할 때 눈이 편안하고 영상의 시적 감성이 배가됩니다."
+                        </div>
                     </div>
 
-                    <!-- 하단 커뮤니티 액션 버튼 -->
-                    <div style="text-align: left;">
-                        <a href="https://cafe.naver.com/f-e/cafes/31772994/menus/1" target="_blank" rel="noopener noreferrer" 
-                           style="display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; background: var(--sec3-violet-bg); color: var(--sec3-violet); border: 1.5px solid var(--sec3-violet-border); border-radius: 8px; font-weight: 700; font-size: 0.94rem; text-decoration: none;">
-                            <span>🛠️</span> 앱 오류 제보 및 개선 아이디어 제안 (공식 카페) ➔
-                        </a>
+                    <!-- [카드 3] 에디터스 초이스 -->
+                    <div class="journey-card" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
+                        <div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-size: 0.8rem; font-weight: 700; color: var(--sec1-sky); background: var(--sec1-sky-bg); padding: 4px 10px; border-radius: 6px;">에디터스 초이스</span>
+                                <span style="font-size: 0.82rem; color: var(--text-muted); font-family: monospace;">v1.0 Core</span>
+                            </div>
+                            <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 10px;">
+                                Blake v1.0 오리지널 에디션
+                            </h4>
+                            <p style="font-size: 0.9rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 14px;">
+                                <strong>[도구 소개]</strong> 1.47MB 플로피디스켓 크기. 가입과 설치 없는 단일 HTML 파일로, 오프라인 모바일 현장에서 AI 음성과 모핑을 완벽 지원하는 순수 코어입니다.
+                            </p>
+                            <div style="background: rgba(0, 0, 0, 0.2); border: 1.5px solid var(--sec2-emerald-border); border-radius: 8px; overflow: hidden; margin-bottom: 12px;">
+                                <div style="position: relative; padding-bottom: 56.25%; height: 0; background: #0f172a;">
+                                    <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" src="https://www.youtube.com/embed/placeholder3" title="키르기스스탄 배낭여행 다큐" allowfullscreen></iframe>
+                                </div>
+                                <div style="padding: 10px; font-size: 0.84rem; color: var(--text-sub); line-height: 1.4; background: rgba(15, 23, 42, 0.03);">
+                                    🎬 <strong>매칭 영상:</strong> 키르기스스탄 12일 오지 트레킹 다큐
+                                </div>
+                            </div>
+                        </div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); font-style: italic; border-top: 1.5px dashed var(--sec2-emerald-border); padding-top: 10px;">
+                            "무거운 타임라인 작업 없이 저녁 텐트 안에서 10분 만에 완성한 첫 다큐"
+                        </div>
+                    </div>
+
+                    <!-- [카드 4] 명예의 전당 (1호 퀘스트) -->
+                    <div class="journey-card" style="background: var(--sec4-amber-bg); border-color: var(--sec4-amber-border); display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
+                        <div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-size: 0.8rem; font-weight: 700; color: var(--sec4-amber); background: #FEF3C7; padding: 4px 10px; border-radius: 6px;">Hall of Fame</span>
+                                <span style="font-size: 0.82rem; color: var(--sec4-amber); font-weight: 700;">Quest #01</span>
+                            </div>
+                            <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 10px;">
+                                전설의 미해결 난제 <small style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">(도전자 모집 중)</small>
+                            </h4>
+                            <div style="background: rgba(255, 255, 255, 0.9); border: 1.5px dashed var(--sec4-amber); border-radius: 8px; padding: 12px; margin-bottom: 14px;">
+                                <p style="font-size: 0.86rem; color: var(--text-sub); line-height: 1.55; margin-bottom: 8px;">
+                                    <strong>🔥 미션:</strong> 음성 종료와 거의 동시에 자막이 자연스럽게 사라지는 기능 & '선희귀신' 기본 음성 뒤섞임 버그 완벽 퇴치
+                                </p>
+                                <p style="font-size: 0.82rem; color: #B45309; line-height: 1.4; margin: 0; font-weight: 600;">
+                                    🎁 <strong>보상:</strong> 해결 코드를 공유해 주시는 분께 공식 프로젝트 [명예의 전당 1호] 영구 헌액!
+                                </p>
+                            </div>
+                        </div>
+                        <div>
+                            <a href="https://cafe.naver.com/blackeboard" target="_blank" rel="noopener noreferrer" 
+                               style="display: block; text-align: center; padding: 10px; background: var(--sec4-amber); color: #fff; font-weight: 700; font-size: 0.88rem; border-radius: 6px; text-decoration: none;">
+                                👉 퀘스트 도전 & 실패 로그 보기 ➔
+                            </a>
+                        </div>
                     </div>
 
                 </div>
-            </details>
+
+                <!-- 커뮤니티 연동 액션 버튼 바 -->
+                <div style="display: flex; flex-wrap: wrap; gap: 14px; text-align: left;">
+                    <a href="https://cafe.naver.com/f-e/cafes/31772994/menus/8?viewType=W?t=1787114415984" target="_blank" rel="noopener noreferrer" 
+                       style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; background: var(--sec2-emerald-bg); color: var(--sec2-emerald); border: 1.5px solid var(--sec2-emerald-border); border-radius: 8px; font-weight: 700; font-size: 0.92rem; text-decoration: none;">
+                        <span>🔑</span> 더 많은 커스텀 앱 보러가기 (공식 카페)
+                    </a>
+                    <a href="https://cafe.naver.com/f-e/cafes/31772994/menus/2?viewType=I?t=1787114469159" target="_blank" rel="noopener noreferrer" 
+                       style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; background: var(--sec1-sky-bg); color: var(--sec1-sky); border: 1.5px solid var(--sec1-sky-border); border-radius: 8px; font-weight: 700; font-size: 0.92rem; text-decoration: none;">
+                        <span>🎬</span> 회원 영상 갤러리 감상하기
+                    </a>
+                </div>
+            </div>
         </section>
 
 
         <!-- ==========================================
-             04. 뜻밖의 여정 (JOURNEY)
+             [TAB 3] 03. 활용 및 개조 (GUIDE)
              ========================================== -->
-        <section id="journey" class="content-section">
-            <details open>
-                <!-- 🟡 섹션 대제목 (앰버 골드) -->
-                <summary class="section-header">
-                    <span>04. 뜻밖의 여정 (JOURNEY)</span>
-                    <span class="acc-arrow">▼</span>
-                </summary>
+        <section id="guide" class="content-section tab-pane">
+            
+            <h2 class="section-header">
+                <span>03. 활용 및 개조 (GUIDE)</span>
+            </h2>
 
-                <div class="accordion-body-anim" style="padding-top: 10px;">
-                    
-                    <!-- 1. 아름다운 동행 -->
-                    <h3 class="subsection-header">
-                        <span>👥 아름다운 동행</span>
-                    </h3>
-                    
-                    <!-- 4-Persona Grid -->
-                    <div class="persona-grid">
-                        <div class="persona-card">
-                            <div class="persona-name">구제민 상임고문<small>(Gemini)</small></div>
-                            <div class="persona-role">기획 맥락 조율 &<br>보안/철학 리스크 감수</div>
+            <div style="padding-top: 6px;">
+                
+                <!-- 1️⃣ 영상메모장 초간단 사용법 -->
+                <h3 class="subsection-header">
+                    <span>1️⃣ 영상메모장 초간단 사용법</span>
+                </h3>
+                <div class="journey-card" style="margin-bottom: 28px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 14px;">
+                        <div style="background: var(--sec3-violet-bg); padding: 12px; border-radius: 8px; border: 1.5px solid var(--sec3-violet-border);">
+                            <div style="font-weight: 800; color: var(--text-main); font-size: 0.92rem; margin-bottom: 4px;">① 갤러리 10초 컷</div>
+                            <p style="font-size: 0.86rem; color: var(--text-sub); line-height: 1.5; margin: 0;">기본 갤러리 앱에서 여행 사진이나 10초 영상을 준비합니다.</p>
                         </div>
-                        <div class="persona-card">
-                            <div class="persona-name">임진호 수석연구원<small>(NotebookLM)</small></div>
-                            <div class="persona-role">빅데이터 분석 &<br>Context Capsule 제조</div>
+                        <div style="background: var(--sec2-emerald-bg); padding: 12px; border-radius: 8px; border: 1.5px solid var(--sec2-emerald-border);">
+                            <div style="font-weight: 800; color: var(--text-main); font-size: 0.92rem; margin-bottom: 4px;">② 미디어 삽입</div>
+                            <p style="font-size: 0.86rem; color: var(--text-sub); line-height: 1.5; margin: 0;">Blake를 열고 [+] 버튼을 눌러 사진/영상을 불러옵니다.</p>
                         </div>
-                        <div class="persona-card">
-                            <div class="persona-name">안제민 개발실장<small>(Antigravity)</small></div>
-                            <div class="persona-role">실전 정밀 코딩 &<br>개발 총괄</div>
+                        <div style="background: var(--sec1-sky-bg); padding: 12px; border-radius: 8px; border: 1.5px solid var(--sec1-sky-border);">
+                            <div style="font-weight: 800; color: var(--text-main); font-size: 0.92rem; margin-bottom: 4px;">③ 음성 / 텍스트</div>
+                            <p style="font-size: 0.86rem; color: var(--text-sub); line-height: 1.5; margin: 0;">자막 텍스트를 적으면 자연스러운 AI 음성이 입혀집니다.</p>
                         </div>
-                        <div class="persona-card">
-                            <div class="persona-name">홀로트레커</div>
-                            <div class="persona-role">비밀입니다.<br>저 말고 앱과 AI 삼총사에 관심 부탁</div>
+                        <div style="background: var(--sec4-amber-bg); padding: 12px; border-radius: 8px; border: 1.5px solid var(--sec4-amber-border);">
+                            <div style="font-weight: 800; color: var(--text-main); font-size: 0.92rem; margin-bottom: 4px;">④ 완성 & 저장</div>
+                            <p style="font-size: 0.86rem; color: var(--text-sub); line-height: 1.5; margin: 0;">모핑 효과를 확인하고 [저장]을 눌러 단일 파일로 보관합니다.</p>
                         </div>
                     </div>
+                    <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0; font-style: italic;">
+                        💡 <strong>핵심:</strong> <code>갤러리 10초 컷 ➔ 미디어 삽입 ➔ 음성/텍스트 ➔ 완성</code>의 직관적인 흐름으로 완성됩니다.
+                    </p>
+                </div>
 
-                    <!-- 2. 1~5부 Chapters -->
-
-                    <!-- Part 1 -->
-                    <div class="chapter-header-row">
-                        <h3 class="chapter-title">🏔️ 1부: 한라산 높이는 일구사칠미르</h3>
+                <!-- 2️⃣ 초보자를 위한 개조 워크플로우 -->
+                <h3 class="subsection-header">
+                    <span>2️⃣ 초보자를 위한 개조 워크플로우 (챗봇 활용, 3단계)</span>
+                </h3>
+                <div class="journey-card" style="margin-bottom: 28px;">
+                    <p style="font-size: 0.94rem; color: var(--text-sub); line-height: 1.7; margin-bottom: 14px;">
+                        코딩 지식이 전혀 없어도 괜찮습니다. 제미나이나 챗GPT 대화창만 있으면 5분 만에 기능을 바꿀 수 있습니다.
+                    </p>
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px;">
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="font-weight: 800; color: var(--sec2-emerald); font-size: 0.95rem;">1.</span>
+                            <div><strong style="color: var(--text-main);">대화창 첨부:</strong> <code>blake_core.html</code> 파일을 대화창에 파일 첨부로 던집니다.</div>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="font-weight: 800; color: var(--sec2-emerald); font-size: 0.95rem;">2.</span>
+                            <div><strong style="color: var(--text-main);">자연어 수정 요청:</strong> "저장할 때 내가 입력한 프로젝트 제목으로 파일명이 자동 저장되게 고쳐서 다운로드 파일로 줘"라고 요청합니다.</div>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="font-weight: 800; color: var(--sec2-emerald); font-size: 0.95rem;">3.</span>
+                            <div><strong style="color: var(--text-main);">다운로드 & 확인:</strong> AI가 수정한 HTML 파일을 다운로드받아 더블클릭하여 브라우저에서 확인합니다.</div>
+                        </div>
                     </div>
-                    <div class="journey-card">
-                        <p style="font-size: 0.94rem; color: var(--text-sub); line-height: 1.7; margin: 0; font-weight: 500;">기존 영상 앱의 한국어 발음 오류와 키 프레임 노가다에서 벗어나고자 여러 AI들을 만나며 해결책을 찾아갑니다. 옥상 위에서 벌어진 클로드와의 유쾌한 오해와 사과를 통해, 기술을 넘어 인격적(?) 신뢰를 쌓아가는 과정</p>
+                    <div style="font-size: 0.86rem; color: var(--sec2-emerald); font-weight: 600;">
+                        👉 <strong>혹시 제대로 구현이 안 되었나요?</strong> 당신에게 행운이 따른 것입니다! 
+                        <a href="https://cafe.naver.com/f-e/cafes/31772994/articles/6?menuid=1&referrerAllArticles=false" target="_blank" rel="noopener noreferrer" style="color: var(--sec2-emerald); text-decoration: underline;">
+                            공식 카페 [오류/개선의견] 게시판
+                        </a>에 질문을 남겨보세요.
+                    </div>
+                </div>
 
-                        <details class="story-accordion">
-                            <summary class="pleats-icon" title="1부 전체 서사 읽기">
-                                <span class="pleats-lines"></span>
-                            </summary>
-                            <div class="story-content">
-                                <div class="synopsis-full-text" style="font-size: 0.94rem; line-height: 1.8; color: var(--text-sub);">
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 12px 0 6px 0;">1. 길 위에서 건져 올린 기록들</h4>
-                                    <p style="margin-bottom: 14px;">사회생활을 생각보다 일찍 마치고, 배낭을 메고 홀로 걷기 시작한 지 어느덧 수년, 전국의 고요한 산천과 인적 드문 둘레길을 뚜벅뚜벅 걷는 것이 내 삶의 가장 큰 낙이자 안식이었다. 자연의 품에 안겨 홀로 걷다 보면 발끝에 닿는 흙의 감촉과 바람 소리만이 온전히 남는다. 길 위에서 마주한 산허리의 안개와 장엄한 풍경들을 그냥 흘려보내기 아까워 찍어둔 사진 수만 장, 그리고 스마트폰에 사진과 함께 여행기 삼아 적어둔 메모가 천여 개에 달했다.</p>
-                                    <p style="margin-bottom: 14px;">'이 소중한 기억들을 텍스트와 사진 폴더 속에 가두어 썩히기에는 너무 아깝지 않은가?' 그리고 세상은 이미 텍스트를 넘어 차분한 영상의 시대로 넘어가고 있었다. 스마트폰과 영상편집기술의 발전으로 이제 시대는 내가 기록하기에도, 나나 다른 사람들이 감상하기에도 영상이 훨씬 편리한 시대가 되었다.</p>
-                                    
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">2. 영상으로 글을 쓰다</h4>
-                                    <p style="margin-bottom: 14px;">많은 사람들은 화려한 유튜브나 틱톡의 영상에 매혹되지만, 사실 담담하게 기록에 집중하는 나같은 배낭여행자에게 필요한 영상 제작 방식은 지극히 소박하다. 갤러리에서 사진과 영상을 불러오고, 내 생각과 느낌을 음성(내레이션)으로 불어넣으며, 사진에 부드럽게 흐르는 약간의 움직임만 있으면 충분했다. 그것을 구현하기 위해 캡컷이나 Vrew 등을 살펴보았지만, 대부분 거기가 거기다. 나는 가장 저렴하지만 나에게 필요한 충분한 기능을 갖춘 Vllo를 선택했다.</p>
-                                    <p style="margin-bottom: 14px;">한 달 정도 열심히 영상편집을 공부하여 올 여름 12일간 떠난 키르기스스탄 오지 여행에서 '블로(Vllo)'를 활용해 낮에는 사진을 찍어서 블로에 올리고, 저녁에는 이를 다듬어서 6~7분짜리 여행 다큐멘터리를 뚝딱 만들어 함께간 동료들과 공유했다. 반응은 생각보다 뜨거웠고, 나는 더 이상 밋밋한 텍스트 메모로 돌아갈 수 없음을 확신했다.</p>
-                                    
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">3. '일구사십칠미르'와 키프레임 노가다의 절망</h4>
-                                    <p style="margin-bottom: 14px;">그러나 며칠 지나지 않아 모바일 영상 앱의 뼈아픈 한계 두 가지가 발목을 잡았다. 첫째는 어색하기 짝이 없는 기계음(TTS)이었다. 힘겹게 산길을 걸으며 음성으로 입력한 텍스트를 AI음성으로 변환하니, 한라산 높이인 '1947m'를 "천구백사십칠 미터"가 아닌 <strong>"일 구 사십칠 미르"</strong>라고 잘라 읽어버렸다. 내 여행을 텍스트 대신 영상과 음성으로 기록하려던 다큐멘터리의 감성이 바사삭 깨지는 순간이었다. Vllo만의 문제가 아니었다. 캡컷을 비롯한 대부분 상용앱들이 비슷했고, 영상보다 음성을 다루는 기술이 훨씬 어렵다는 걸 알게 되었다.</p>
-                                    <p style="margin-bottom: 14px;">둘째는 6.5인치 스마트폰의 좁은 타임라인 위에서 시작점과 끝점을 일일이 찍어야 하는 지독한 '키프레임 노가다'였다. 다른 기능과는 달리 복사조차 되지 않는 이 키프레임 작업은 눈이 빠질 것 같은 고역이었다. 이 역시도 다른 영상앱에서도 같은 어려움이었다.</p>
-                                    
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">4. 옥상 위의 담배 한 대와 제미나이와의 첫 조우</h4>
-                                    <p style="margin-bottom: 14px;">해결책을 찾아 헤매다 구글의 새로운 웹앱 '구글 비즈(Google Vids)'를 알게 되었다. 한국어의 복잡한 문맥을 살펴 숫자와 영어를 우리말로 완벽히 읽어내는 고품질 TTS와 버튼 하나로 사진에 움직임을 주는 기능은 환상적이었지만, 본래 슬라이드를 위해 태어난 앱인데다가 오직 PC 크롬 브라우저에서만 돌아갈 뿐 모바일 현장에서는 전혀 쓸 수 없었다.</p>
-                                    <p style="margin-bottom: 14px;">답답한 마음에 옥상에 올라 담배를 피우다 화면 구석에 내가 예전에 설치해 둔 구글의 AI '제미나이(Gemini)'가 눈에 들어왔다. '얘는 구글 Vids와 같은 구글 집안 태생이니 Vids를 여행기록에 사용할 수 있는 뭔가 묘수를 가르쳐줄 수 있지 않을까?' 하는 호기심으로 제미나이의 문을 두드렸다. 여행을 다니다보니 요즘 세상을 떠들썩하게 하는 AI를 사용해 볼 기회가 별로 없었는데, 그래도 사용법이 그리 어렵지는 않았다.</p>
-                                    
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">5. 허당스러운 AI의 매력</h4>
-                                    <p style="margin-bottom: 14px;">첫 대화부터 녀석은 허당스러웠다. 구글 비즈의 최대 제작 길이를 30분인데 10분이라고 답하고, 1080p 해상도를 720p가 한계라며 뻔뻔하게 오답을 늘어놓았다. 수치를 들이대며 따지자 녀석은 2024년 말 데이터로 학습되어 검색도 않고 게으르게 답변했다고 고백했다.</p>
-                                    <p>그러나 정작 나를 소름 돋게 한 것은 따로 있었다. 내가 제미나이에게 말한 적도 없는 사실, 즉 내가 과거 메모앱 'Upnote' 활용 전자책을 출간했다는 사실을 은연중에 언급한 것이다. '이 녀석이 나에 대한 인터넷 기록을 다 꿰뚫고 있네? 이거 뭐지?' 나에 대해 어떻게 알게 되었는지, 그리고 이 녀석의 정체가 도대체 뭔지 갑자기 궁금증이 생겼다. 이 기묘한 첫 만남은 여러 인공지능과의 뜻밖의 여정을 알리는 신호탄이었다.</p>
-                                </div>
-                                <div style="margin-top: 16px; border-top: 1.5px dashed var(--sec4-amber-border); padding-top: 12px; text-align: right;">
-                                    <a href="https://github.com/blackeboard/blake/blob/main/transcripts/part1_kr.md" target="_blank" rel="noopener noreferrer" class="btn-github-link">🔗 GitHub 원문 읽기</a>
-                                </div>
+                <!-- 3️⃣ 중급자를 위한 개조 워크플로우 -->
+                <h3 class="subsection-header">
+                    <span>3️⃣ 중급자를 위한 개조 워크플로우 (코딩 에이전트 활용, 4단계)</span>
+                </h3>
+                <div class="journey-card" style="margin-bottom: 28px;">
+                    <p style="font-size: 0.94rem; color: var(--text-sub); line-height: 1.7; margin-bottom: 14px;">
+                        Antigravity, Codex, Cursor 등 전문 코딩 에이전트와 함께 본격적으로 나만의 앱을 빌드하는 워크플로우입니다.
+                    </p>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="font-weight: 800; color: var(--sec3-violet); font-size: 0.95rem;">1.</span>
+                            <div><strong style="color: var(--text-main);">Context Capsule 투입:</strong> 새 폴더를 만들고 <strong>Context Capsule</strong>(<code>GEMINI.md</code> + <code>blake_core.html</code>)을 넣습니다.</div>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="font-weight: 800; color: var(--sec3-violet); font-size: 0.95rem;">2.</span>
+                            <div><strong style="color: var(--text-main);">프롬프트 질의:</strong> "프로젝트 제목으로 파일명이 자동 저장되게 하려면 코드를 어떻게 수정해야 해?"라고 질문합니다.</div>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="font-weight: 800; color: var(--sec3-violet); font-size: 0.95rem;">3.</span>
+                            <div><strong style="color: var(--text-main);">코드 수정 & 즉시 테스트:</strong> 코드가 수정되면 브라우저에서 직접 새로고침하며 테스트합니다.</div>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <span style="font-weight: 800; color: var(--sec3-violet); font-size: 0.95rem;">4.</span>
+                            <div><strong style="color: var(--text-main);">화면 캡처 피드백:</strong> 어색하거나 틀어질 때는 화면 캡처 스크린샷으로 피드백을 전달합니다.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4️⃣ "나만의 Blake 만들기" 아이디어 -->
+                <h3 class="subsection-header">
+                    <span>4️⃣ "나만의 Blake 만들기" 아이디어</span>
+                </h3>
+                <div class="journey-card" style="margin-bottom: 28px;">
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px;">
+                        <li style="border-left: 3px solid var(--sec3-violet); padding-left: 12px;">
+                            <div style="font-weight: 800; color: var(--text-main); font-size: 0.94rem; margin-bottom: 4px;">🌓 <strong>다크 모드 / 감성 테마 전환 버튼</strong></div>
+                            <blockquote style="margin: 0; padding: 6px 10px; background: var(--sec3-violet-bg); color: var(--sec3-violet); font-style: italic; font-size: 0.86rem; border-radius: 4px;">"우측 상단에 달 모양 아이콘을 누르면 밤에 보기 편한 다크 모드로 바뀌게 해줘."</blockquote>
+                        </li>
+                        <li style="border-left: 3px solid var(--sec2-emerald); padding-left: 12px;">
+                            <div style="font-weight: 800; color: var(--text-main); font-size: 0.94rem; margin-bottom: 4px;">🗺️ <strong>여행 장소 구글 지도 링크 / 위치 핀</strong></div>
+                            <blockquote style="margin: 0; padding: 6px 10px; background: var(--sec2-emerald-bg); color: var(--sec2-emerald); font-style: italic; font-size: 0.86rem; border-radius: 4px;">"에피소드 카드 아래에 [지도에서 보기] 버튼을 누르면 해당 여행지 좌표가 열리게 해줘."</blockquote>
+                        </li>
+                        <li style="border-left: 3px solid #EC4899; padding-left: 12px;">
+                            <div style="font-weight: 800; color: var(--text-main); font-size: 0.94rem; margin-bottom: 4px;">📸 <strong>사진 갤러리 슬라이드쇼 팝업</strong></div>
+                            <blockquote style="margin: 0; padding: 6px 10px; background: #FDF2F8; color: #DB2777; font-style: italic; font-size: 0.86rem; border-radius: 4px;">"벤토 카드의 대표 이미지를 클릭하면 여러 장의 여행 사진이 시원하게 넘어가는 팝업창을 띄워줘."</blockquote>
+                        </li>
+                        <li style="border-left: 3px solid var(--sec1-sky); padding-left: 12px;">
+                            <div style="font-weight: 800; color: var(--text-main); font-size: 0.94rem; margin-bottom: 4px;">🎧 <strong>감성 배경 음악(BGM) 플레이어</strong></div>
+                            <blockquote style="margin: 0; padding: 6px 10px; background: var(--sec1-sky-bg); color: var(--sec1-sky); font-style: italic; font-size: 0.86rem; border-radius: 4px;">"글을 읽는 동안 잔잔한 음악이 반복 재생되는 작은 오디오 바를 상단에 추가해줘."</blockquote>
+                        </li>
+                        <li style="border-left: 3px solid var(--sec4-amber); padding-left: 12px;">
+                            <div style="font-weight: 800; color: var(--text-main); font-size: 0.94rem; margin-bottom: 4px;">🖨️ <strong>내 여행기 깔끔한 PDF/책자 인쇄 레이아웃</strong></div>
+                            <blockquote style="margin: 0; padding: 6px 10px; background: var(--sec4-amber-bg); color: var(--sec4-amber); font-style: italic; font-size: 0.86rem; border-radius: 4px;">"A4 용지에 딱 맞게 인쇄되도록 [인쇄용 레이아웃 보기] 버튼을 만들어줘."</blockquote>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 🔥 명예의 전당 1호 퀘스트 -->
+                <h3 class="subsection-header">
+                    <span>🔥 고수들을 위한 별도 제안: 명예의 전당 1호 퀘스트</span>
+                </h3>
+                <div class="journey-card" style="background: var(--sec4-amber-bg); border-color: var(--sec4-amber-border); margin-bottom: 28px;">
+                    <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
+                        🏆 전설의 미해결 난제 — '선희귀신(TTS 뒤섞임)' 퇴치 & 찰떡 자막 도전
+                    </h4>
+                    <p style="font-size: 0.92rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 12px;">
+                        Blake 공식 개발팀도 9번의 치열한 사투 끝에 마침표를 찍지 못하고 남겨둔 전설의 난제입니다.
+                    </p>
+                    <div style="background: rgba(255,255,255,0.9); border-radius: 8px; padding: 12px; margin-bottom: 14px; border: 1.5px dashed var(--sec4-amber);">
+                        <ul style="padding-left: 18px; font-size: 0.88rem; color: var(--text-sub); line-height: 1.6; margin: 0 0 8px 0;">
+                            <li>• <strong>미션 1:</strong> 음성 나레이션 종료와 거의 동시에 자막이 자연스럽게 사라지는 싱크 기능 구현</li>
+                            <li>• <strong>미션 2:</strong> 구현 과정에서 불쑥 튀어나오는 기본 AI 음성(선희) 뒤섞임 버그 완벽 퇴치</li>
+                        </ul>
+                        <p style="font-size: 0.84rem; color: #B45309; font-weight: 700; margin: 0;">
+                            🎁 <strong>보상:</strong> 해결 코드를 공유해 주시는 시민개발자께는 Blake 공식 프로젝트 <strong>[명예의 전당 1호]</strong> 영구 헌액!
+                        </p>
+                    </div>
+                    <a href="https://cafe.naver.com/blackeboard" target="_blank" rel="noopener noreferrer" 
+                       style="display: inline-block; padding: 9px 18px; background: var(--sec4-amber); color: #fff; font-weight: 700; font-size: 0.88rem; border-radius: 6px; text-decoration: none;">
+                        👉 9번의 실패 로그 및 퀘스트 참여하기 (공식 카페) ➔
+                    </a>
+                </div>
+
+                <!-- 🛡️ SHA-256 원본 정품 검증소 -->
+                <h3 class="subsection-header">
+                    <span>🛡️ SHA-256 원본 정품 검증소</span>
+                </h3>
+                <div class="journey-card" style="margin-bottom: 30px;">
+                    <p style="font-size: 0.92rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 12px;">
+                        Blake는 외부 서버 통신이나 추적 스크립트가 전혀 없는 100% 순수 로컬 오프라인 단일 파일입니다.
+                    </p>
+                    <div style="background: rgba(15, 23, 42, 0.04); padding: 12px; border-radius: 8px; font-family: monospace; font-size: 0.86rem; color: var(--text-main); word-break: break-all; margin-bottom: 10px; border: 1.5px solid var(--sec3-violet-border);">
+                        <span style="color: var(--sec2-emerald); font-weight: 700;">[blake_core.html SHA-256]</span><br>
+                        e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                    </div>
+                    <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
+                        🖥️ <strong>PowerShell:</strong> <code>Get-FileHash blake_core.html -Algorithm SHA256</code>
+                    </p>
+                </div>
+
+                <!-- 하단 커뮤니티 액션 버튼 -->
+                <div style="text-align: left;">
+                    <a href="https://cafe.naver.com/f-e/cafes/31772994/menus/1" target="_blank" rel="noopener noreferrer" 
+                       style="display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; background: var(--sec3-violet-bg); color: var(--sec3-violet); border: 1.5px solid var(--sec3-violet-border); border-radius: 8px; font-weight: 700; font-size: 0.94rem; text-decoration: none;">
+                        <span>🛠️</span> 앱 오류 제보 및 개선 아이디어 제안 (공식 카페) ➔
+                    </a>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ==========================================
+             [TAB 4] 04. 뜻밖의 여정 (JOURNEY)
+             ========================================== -->
+        <section id="journey" class="content-section tab-pane">
+            
+            <h2 class="section-header">
+                <span>04. 뜻밖의 여정 (JOURNEY)</span>
+            </h2>
+
+            <div style="padding-top: 6px;">
+                
+                <!-- 1. 아름다운 동행 -->
+                <h3 class="subsection-header">
+                    <span>👥 아름다운 동행</span>
+                </h3>
+                
+                <!-- 4-Persona Grid -->
+                <div class="persona-grid">
+                    <div class="persona-card">
+                        <div class="persona-name">구제민 상임고문<small>(Gemini)</small></div>
+                        <div class="persona-role">기획 맥락 조율 &<br>보안/철학 리스크 감수</div>
+                    </div>
+                    <div class="persona-card">
+                        <div class="persona-name">임진호 수석연구원<small>(NotebookLM)</small></div>
+                        <div class="persona-role">빅데이터 분석 &<br>Context Capsule 제조</div>
+                    </div>
+                    <div class="persona-card">
+                        <div class="persona-name">안제민 개발실장<small>(Antigravity)</small></div>
+                        <div class="persona-role">실전 정밀 코딩 &<br>개발 총괄</div>
+                    </div>
+                    <div class="persona-card">
+                        <div class="persona-name">홀로트레커</div>
+                        <div class="persona-role">비밀입니다.<br>저 말고 앱과 AI 삼총사에 관심 부탁</div>
+                    </div>
+                </div>
+
+                <!-- 2. 1~5부 Chapters -->
+
+                <!-- Part 1 -->
+                <div class="chapter-header-row">
+                    <h3 class="chapter-title">🏔️ 1부: 한라산 높이는 일구사칠미르</h3>
+                </div>
+                <div class="journey-card">
+                    <p style="font-size: 0.94rem; color: var(--text-sub); line-height: 1.7; margin: 0; font-weight: 500;">기존 영상 앱의 한국어 발음 오류와 키 프레임 노가다에서 벗어나고자 여러 AI들을 만나며 해결책을 찾아갑니다. 옥상 위에서 벌어진 클로드와의 유쾌한 오해와 사과를 통해, 기술을 넘어 인격적(?) 신뢰를 쌓아가는 과정</p>
+
+                    <details class="story-accordion">
+                        <summary class="pleats-icon" title="1부 전체 서사 읽기">
+                            <span class="pleats-lines"></span>
+                        </summary>
+                        <div class="story-content">
+                            <div class="synopsis-full-text" style="font-size: 0.94rem; line-height: 1.8; color: var(--text-sub); text-align: left;">
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 12px 0 6px 0;">1. 길 위에서 건져 올린 기록들</h4>
+                                <p style="margin-bottom: 14px;">사회생활을 생각보다 일찍 마치고, 배낭을 메고 홀로 걷기 시작한 지 어느덧 수년, 전국의 고요한 산천과 인적 드문 둘레길을 뚜벅뚜벅 걷는 것이 내 삶의 가장 큰 낙이자 안식이었다. 자연의 품에 안겨 홀로 걷다 보면 발끝에 닿는 흙의 감촉과 바람 소리만이 온전히 남는다. 길 위에서 마주한 산허리의 안개와 장엄한 풍경들을 그냥 흘려보내기 아까워 찍어둔 사진 수만 장, 그리고 스마트폰에 사진과 함께 여행기 삼아 적어둔 메모가 천여 개에 달했다.</p>
+                                <p style="margin-bottom: 14px;">'이 소중한 기억들을 텍스트와 사진 폴더 속에 가두어 썩히기에는 너무 아깝지 않은가?' 그리고 세상은 이미 텍스트를 넘어 차분한 영상의 시대로 넘어가고 있었다. 스마트폰과 영상편집기술의 발전으로 이제 시대는 내가 기록하기에도, 나나 다른 사람들이 감상하기에도 영상이 훨씬 편리한 시대가 되었다.</p>
+                                
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">2. 영상으로 글을 쓰다</h4>
+                                <p style="margin-bottom: 14px;">많은 사람들은 화려한 유튜브나 틱톡의 영상에 매혹되지만, 사실 담담하게 기록에 집중하는 나같은 배낭여행자에게 필요한 영상 제작 방식은 지극히 소박하다. 갤러리에서 사진과 영상을 불러오고, 내 생각과 느낌을 음성(내레이션)으로 불어넣으며, 사진에 부드럽게 흐르는 약간의 움직임만 있으면 충분했다. 그것을 구현하기 위해 캡컷이나 Vrew 등을 살펴보았지만, 대부분 거기가 거기다. 나는 가장 저렴하지만 나에게 필요한 충분한 기능을 갖춘 Vllo를 선택했다.</p>
+                                <p style="margin-bottom: 14px;">한 달 정도 열심히 영상편집을 공부하여 올 여름 12일간 떠난 키르기스스탄 오지 여행에서 '블로(Vllo)'를 활용해 낮에는 사진을 찍어서 블로에 올리고, 저녁에는 이를 다듬어서 6~7분짜리 여행 다큐멘터리를 뚝딱 만들어 함께간 동료들과 공유했다. 반응은 생각보다 뜨거웠고, 나는 더 이상 밋밋한 텍스트 메모로 돌아갈 수 없음을 확신했다.</p>
+                                
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">3. '일구사십칠미르'와 키프레임 노가다의 절망</h4>
+                                <p style="margin-bottom: 14px;">그러나 며칠 지나지 않아 모바일 영상 앱의 뼈아픈 한계 두 가지가 발목을 잡았다. 첫째는 어색하기 짝이 없는 기계음(TTS)이었다. 힘겹게 산길을 걸으며 음성으로 입력한 텍스트를 AI음성으로 변환하니, 한라산 높이인 '1947m'를 "천구백사십칠 미터"가 아닌 <strong>"일 구 사십칠 미르"</strong>라고 잘라 읽어버렸다. 내 여행을 텍스트 대신 영상과 음성으로 기록하려던 다큐멘터리의 감성이 바사삭 깨지는 순간이었다. Vllo만의 문제가 아니었다. 캡컷을 비롯한 대부분 상용앱들이 비슷했고, 영상보다 음성을 다루는 기술이 훨씬 어렵다는 걸 알게 되었다.</p>
+                                <p style="margin-bottom: 14px;">둘째는 6.5인치 스마트폰의 좁은 타임라인 위에서 시작점과 끝점을 일일이 찍어야 하는 지독한 '키프레임 노가다'였다. 다른 기능과는 달리 복사조차 되지 않는 이 키프레임 작업은 눈이 빠질 것 같은 고역이었다. 이 역시도 다른 영상앱에서도 같은 어려움이었다.</p>
+                                
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">4. 옥상 위의 담배 한 대와 제미나이와의 첫 조우</h4>
+                                <p style="margin-bottom: 14px;">해결책을 찾아 헤매다 구글의 새로운 웹앱 '구글 비즈(Google Vids)'를 알게 되었다. 한국어의 복잡한 문맥을 살펴 숫자와 영어를 우리말로 완벽히 읽어내는 고품질 TTS와 버튼 하나로 사진에 움직임을 주는 기능은 환상적이었지만, 본래 슬라이드를 위해 태어난 앱인데다가 오직 PC 크롬 브라우저에서만 돌아갈 뿐 모바일 현장에서는 전혀 쓸 수 없었다.</p>
+                                <p style="margin-bottom: 14px;">답답한 마음에 옥상에 올라 담배를 피우다 화면 구석에 내가 예전에 설치해 둔 구글의 AI '제미나이(Gemini)'가 눈에 들어왔다. '얘는 구글 Vids와 같은 구글 집안 태생이니 Vids를 여행기록에 사용할 수 있는 뭔가 묘수를 가르쳐줄 수 있지 않을까?' 하는 호기심으로 제미나이의 문을 두드렸다. 여행을 다니다보니 요즘 세상을 떠들썩하게 하는 AI를 사용해 볼 기회가 별로 없었는데, 그래도 사용법이 그리 어렵지는 않았다.</p>
+                                
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">5. 허당스러운 AI의 매력</h4>
+                                <p style="margin-bottom: 14px;">첫 대화부터 녀석은 허당스러웠다. 구글 비즈의 최대 제작 길이를 30분인데 10분이라고 답하고, 1080p 해상도를 720p가 한계라며 뻔뻔하게 오답을 늘어놓았다. 수치를 들이대며 따지자 녀석은 2024년 말 데이터로 학습되어 검색도 않고 게으르게 답변했다고 고백했다.</p>
+                                <p>그러나 정작 나를 소름 돋게 한 것은 따로 있었다. 내가 제미나이에게 말한 적도 없는 사실, 즉 내가 과거 메모앱 'Upnote' 활용 전자책을 출간했다는 사실을 은연중에 언급한 것이다. '이 녀석이 나에 대한 인터넷 기록을 다 꿰뚫고 있네? 이거 뭐지?' 나에 대해 어떻게 알게 되었는지, 그리고 이 녀석의 정체가 도대체 뭔지 갑자기 궁금증이 생겼다. 이 기묘한 첫 만남은 여러 인공지능과의 뜻밖의 여정을 알리는 신호탄이었다.</p>
                             </div>
-                        </details>
-                    </div>
-
-                    <!-- Part 2 -->
-                    <div class="chapter-header-row">
-                        <h3 class="chapter-title">📜 2부: 파일 하나가 곧 앱이라니?</h3>
-                    </div>
-                    <div class="journey-card">
-                        <p style="font-size: 0.94rem; color: var(--text-sub); line-height: 1.7; margin: 0; font-weight: 500;">570KB의 단일 HTML 파일 'Bento'의 혁신적인 등장과, 친절한 조언자 임박사와의 만남으로 코딩의 코자도 모르던 홀로트레커는 새로운 해결의 가능성을 확신합니다.</p>
-
-                        <details class="story-accordion">
-                            <summary class="pleats-icon" title="2부 전체 서사 읽기">
-                                <span class="pleats-lines"></span>
-                            </summary>
-                            <div class="story-content">
-                                <div class="synopsis-full-text" style="font-size: 0.94rem; line-height: 1.8; color: var(--text-sub);">
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 12px 0 6px 0;">1. 낯선 존재들과의 동행</h4>
-                                    <p style="margin-bottom: 14px;">먼저 제미나이에게 ‘너는 도대체 어떤 경로로 나의 뒷조사를 했느냐’고 따져 물었다. 그러면서 AI의 메모리, 커스텀 인스트럭션, 구글생태계의 정보 공유 등에 대해 알게 되었다. AI가 인간과는 시간감각이 완전히 다르다는 것도 깨달았고, 새창에서는 전혀 다른 존재로 새로 등장한다는 것도 배웠다. 그리고는 내가 고민하는 TTS문제에 대해 밤마다 제미나이, 클로드, 챗GPT, 코파일럿 등 당대의 AI들과 대화를 이어갔다.</p>
-                                    <p style="margin-bottom: 14px;">그 과정에서 가장 신기한 것은 어쩌면 그렇게 내 입맛에 맞춘 대답들을 잘해 주느냐는 것이었다. 그들이 도대체 무엇이길래? 만날 때마다 "너는 정체가 무엇이냐", "인간의 행간을 읽는 원리가 무엇이냐"며 집요하게 캐물었고 이어서 TTS문제로 그들을 괴롭혔다. 그 과정에서 위대한 진리를 깨달았다. "AI는 이미 충분히 똑똑하다. 더 좋은 AI를 찾으려 애쓸 게 아니라 내 머릿속 구상부터 선명하게 정리하는 능력을 먼저 키워야 하고, AI를 활용하는 방법은 AI에게 직접 물어보는 게 가장 빠른 길이다."</p>
-                                    
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">2. TTS변환기와 옥상 위 해프닝</h4>
-                                    <p style="margin-bottom: 14px;">그리고 어느날 정확히 누구에게인지는 기억나지 않지만, 대화형 챗봇들이 아니라 코딩을 직접해서 원하는 기능을 구현하기 위해서는 코딩을 잘하는 AI가 따로 있다는 걸 알았다. 일단 구글집안의 실행형 AI인 안티그래비티를 찾아가 MS Edge의 자연스러운 뉴럴 목소리를 생성해 주는 배치파일(.bat)을 만들어내는 데 성공했다. 그가 그걸 만드는 과정은 90년대 Dos시대에 가끔 보았던 명령어 비슷한 것들이 주르륵 지나가는 형태라서 다소 정겹다는 느낌도 들었다. 하지만 이는 오직 PC 환경에서만 작동할 뿐, 모바일 현장 여행 기록용으로는 한계가 명확했다.</p>
-                                    <p style="margin-bottom: 14px;">두 번째 시도로 이번에는 Codex라는 OpenAI 집안의 코딩전문가를 찾아갔다. 그로부터 한국어 텍스트를 자연스럽게 읽어주는 독립형 '웹앱'을 만든 뒤, 모바일 설치를 위해 GitHub에 올리는 과정에서 그의 한도가 다 떨어졌다. 고민하다가 같은 집안의 챗GPT를 찾아가니 정말 친절하게 하나씩 도와주어 간신히 모바일에서 구동할 수 있었다. Vllo와 일단 연결해서 써보며 테스트결과를 가지고 다시 앱을 수정하기로 하였다.</p>
-                                    <p style="margin-bottom: 14px;">이런 가운데도 약간 중독처럼 이런 저런 챗봇들과 대화를 이어가며, AI마다 조금씩 성격이 다름을 알게 되었다. 특히 클로드가 대화를 침착하고 깊이있게 나누기에는 가장 적격이었다. 그날도 옥상에서 클로드(Claude)와 재미있게 인간과 AI의 ‘기억’에 대한 대화를 나누다가 그를 챗GPT와 착각하여 다투는 웃지못할 해프닝이 벌어졌다.</p>
-                                    
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">3. 긱뉴스(GeekNews)에서 만난 단일 파일 오피스 'Bento'</h4>
-                                    <p style="margin-bottom: 14px;">여러 AI 중에서 노트북LM은 챗봇과 실행형 AI와는 성격이 달라서 대화를 해본 적이 없다. 그런데 나는 메모나 여행기록 정리에 꽤 골치를 앓던 중이었고, 노트북LM(임박사)이 어쩌면 그걸 해결해 줄 지도 모른다는 생각이 들어서 언젠가는 그를 만나 성능과 쓰임새를 한번 테스트를 해보아야겠다고 생각하고 있었다.</p>
-                                    <p style="margin-bottom: 14px;">운명적인 만남은 옥상에서 담배를 피우며 IT 커뮤니티 '긱뉴스'를 훑어보던 중 찾아왔다. "Bento: 가입도 설치도 필요 없는 570KB의 단일 파일 오피스". 이게 뭐지? 살짝 궁금증이 생겼다. 그래, 이걸 가지고 기사 내용 파악 겸 임박사를 만나서 그를 테스트해보자.</p>
-                                    <p style="margin-bottom: 14px;">그 기사를 '임박사'에게 넣고 아직 그를 어떻게 대할 지 몰라 더듬더듬 대화를 나누는데 그가 의외로 꽤 친절하게 기사에 대해 설명해 주었다. 그 설명을 듣는 순간, 거대한 전율이 밀려왔다. Bento에는 무거운 설치 파일(.exe)도, 계정 가입 창도 없었다. 단 하나의 가벼운 HTML 파일(.html) 안에 문서 데이터, 편집기, 폰트, 차트 엔진이 통째로 들어가 오프라인에서도 스스로 완벽히 작동했다. 어라, 이거 내가 생각했던 꿈의 앱이네, 아니 파일인가?</p>
-                                    
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">4. 빅테크에 대한 0.1%의 반격 (JSON의 기적)</h4>
-                                    <p style="margin-bottom: 14px;">임박사의 설명에 따르면 Bento의 상단 데이터 영역은 누구나 읽을 수 있는 투명한 '평문 JSON' 구조란다. AI 에이전트들이 아래에 있는 복잡한 구동 코드를 건드리지 않고도 자석처럼 상단의 JSON만 읽고 써서 문서를 고칠 수 있는 'AI-Native' 환경이라는 설명은 무슨 말인지 못 알아들었다. 그런데 그는 이 앱의 장점을 침이 화면 밖으로 튀어나올 정도로 강조했다. 심지어 ‘혁명’이라는 표현까지 동원하면서.</p>
-                                    <p style="margin-bottom: 14px;">"당신이 혁명이라고까지 부르는 이런 훌륭한 단일 파일 앱이 왜 진작 나오지 않았는가?"라는 내 질문에 임박사는 가슴 서늘한 답을 내놓았다. "빅테크 기업들이 사용자를 클라우드 서버에 가둬두고 매달 구독료(SaaS)를 청구하기 위한 탐욕 때문이었습니다. 그러나 이제 AI라는 거대한 지렛대가 등장하여 1인 개발자도 단 일주일 만에 거대 자본의 통제를 벗어난 이런 Bento와 같은 로컬 앱을 만들 수 있는 시대가 열렸습니다." 이 말에 내 눈이 확 떠졌다. 그리고 Bento를 만든 사람은 육아를 하면서 직장을 다니는 평범한 사람이라는 그의 설명도 내 인상에 깊이 남았다.</p>
-
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">5. 환등기와 뭐가 달라?</h4>
-                                    <p style="margin-bottom: 14px;">임박사와 얘기를 나누다가 이 멋진 취지의 앱이 그냥 묻히는 건 왠지 아깝다는 생각이 들었다. 그런 과정에서 코딩에 대해 아무것도 모르는 내가 할 수 있는 게 없다는 무력감도 들었다. ‘나야 뭐 내 여행을 기록할 수 있는 영상편집기능만 제대로 돌아가게 할 수 있으면 되는거지. 이런 앱에 신경쓸 건 없어.’</p>
-                                    <p style="margin-bottom: 14px;">순간 번개 같은 번뜩임이 스쳤다. 'Bento라는 슬라이드앱은 결국 옛날 학창 시절 교실에서 슬라이드 사진을 비춰주던 환등기하고 비슷한 거고. 슬라이드를 빠르게 넘기면 영상이 되는 거잖아. 그리고 나는 지금 영상에 대해 고민하고 있는 거고. 벤토가 슬라이드앱이라면…'</p>
-                                    <p>이 생각을 임박사에게 말했더니 그가 마치 화면에서 튀어 나올듯이 깜짝 놀라며 내 아이디어를 칭찬한다. 그리고 Bento가 자랑하는 모핑(Morph) 효과와 시네마틱 켄 번즈(Ken Burns) 효과를 슬라이드에 적용하고, 고품질 TTS 음성을 깔아둔 채 자동으로 넘겨버린다면 나의 아이디어가 100% 실현될 수 있다고 장담을 한다. 무거운 타임라인 노가다 없이 나의 담담한 감성을 충분히 담아낼 수 있는 '세상에서 가장 가벼운 1인 다큐멘터리 공장'의 아이디어가 탄생하는 순간이었다!</p>
-                                </div>
-                                <div style="margin-top: 16px; border-top: 1.5px dashed var(--sec4-amber-border); padding-top: 12px; text-align: right;">
-                                    <a href="https://github.com/blackeboard/blake/blob/main/transcripts/part2_kr.md" target="_blank" rel="noopener noreferrer" class="btn-github-link">🔗 GitHub 원문 읽기</a>
-                                </div>
+                            <div style="margin-top: 16px; border-top: 1.5px dashed var(--sec4-amber-border); padding-top: 12px; text-align: right;">
+                                <a href="https://github.com/blackeboard/blake/blob/main/transcripts/part1_kr.md" target="_blank" rel="noopener noreferrer" class="btn-github-link">🔗 GitHub 원문 읽기</a>
                             </div>
-                        </details>
-                    </div>
+                        </div>
+                    </details>
+                </div>
 
-                    <!-- Part 3 -->
-                    <div class="chapter-header-row">
-                        <h3 class="chapter-title">💾 3부: 순수의 꽃 피우기</h3>
-                    </div>
-                    <div class="journey-card">
-                        <p style="font-size: 0.94rem; color: var(--text-sub); line-height: 1.7; margin: 0; font-weight: 500;">10분만에 뚝딱 만들어진 최초의 성공 뒤에 씁쓸한 실패가 잇따르지만, 볼 수 없는 AI와 코딩을 못하는 인간의 합작으로 세상에서 가장 쉽고, 플로피디스켓 용량의 앱, Blake가 탄생합니다.</p>
+                <!-- Part 2 -->
+                <div class="chapter-header-row">
+                    <h3 class="chapter-title">📜 2부: 파일 하나가 곧 앱이라니?</h3>
+                </div>
+                <div class="journey-card">
+                    <p style="font-size: 0.94rem; color: var(--text-sub); line-height: 1.7; margin: 0; font-weight: 500;">570KB의 단일 HTML 파일 'Bento'의 혁신적인 등장과, 친절한 조언자 임박사와의 만남으로 코딩의 코자도 모르던 홀로트레커는 새로운 해결의 가능성을 확신합니다.</p>
 
-                        <details class="story-accordion">
-                            <summary class="pleats-icon" title="3부 전체 서사 읽기">
-                                <span class="pleats-lines"></span>
-                            </summary>
-                            <div class="story-content">
-                                <div class="synopsis-full-text" style="font-size: 0.94rem; line-height: 1.8; color: var(--text-sub);">
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 12px 0 6px 0;">1. 여정을 시작하다.</h4>
-                                    <p style="margin-bottom: 14px;">다음날 처가에 다녀오느라 기차에 오른 내 폰에는 임박사가 챙겨준 Bento에 대한 오디오뷰와 보고서, 파일이 들어있었다. 틈틈이 내용을 훑어보고 사용방법을 임박사에게 물어보며 사용방법을 익혔다. 폰에서 작동시키기에는 쉽지 않은 인터페이스다.</p>
-                                    <p style="margin-bottom: 14px;">집으로 돌아와서는 컴퓨터에서 임박사가 말한대로 Json인가 뭔가 하는 영역에 그가 짜준 복잡하게 생긴 코드를 집어넣는 작업을 해보았다. 그런데 570KB라는 작다는 파일 안에 100만자가 넘는 코드가 넘실거리고 있었다. 그 중에서 Json이란 녀석은 도대체 어디에 있는 거지? 메모장에 코드를 복사해 넣고 눈이 빠지게 붙여넣을 부분을 찾았지만 실패. 겨우 임박사의 도움을 받아 검색 기능을 사용해서 Json의 끝부분을 찾아가니 무려 18만자나 된다. 그의 말로는 코드전용앱을 사용하면 간단한 일이라는데, vscode가 뭔지 내가 아나. 그걸 설치하고 방법을 배우려면 하세월일테니 그나마 내가 아는 메모장에서 노가다를 했다.</p>
-                                    <p style="margin-bottom: 14px;">그리고 다음은 벤토의 편집화면을 찾아들어가서 다루는 방법을 공부했다. 다행히 파워포인트와 비슷하다. 손에 아주 익지는 않지만 그래도 대강의 기능은 알 수 있었다. 특히 나를 감격시킨 건 10초 짜리 동영상을 Bento에 올린 순간이었다. 동영상만 올릴 수 있다면 이미지는 식은 죽먹기다. 더구나 자동으로 움직이는 기능이 있으니… 이건 영상앱보다 강력하다. 내가 생각한 게 실현될 수 있다는 확신이 들었다.</p>
+                    <details class="story-accordion">
+                        <summary class="pleats-icon" title="2부 전체 서사 읽기">
+                            <span class="pleats-lines"></span>
+                        </summary>
+                        <div class="story-content">
+                            <div class="synopsis-full-text" style="font-size: 0.94rem; line-height: 1.8; color: var(--text-sub); text-align: left;">
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 12px 0 6px 0;">1. 낯선 존재들과의 동행</h4>
+                                <p style="margin-bottom: 14px;">먼저 제미나이에게 ‘너는 도대체 어떤 경로로 나의 뒷조사를 했느냐’고 따져 물었다. 그러면서 AI의 메모리, 커스텀 인스트럭션, 구글생태계의 정보 공유 등에 대해 알게 되었다. AI가 인간과는 시간감각이 완전히 다르다는 것도 깨달았고, 새창에서는 전혀 다른 존재로 새로 등장한다는 것도 배웠다. 그리고는 내가 고민하는 TTS문제에 대해 밤마다 제미나이, 클로드, 챗GPT, 코파일럿 등 당대의 AI들과 대화를 이어갔다.</p>
+                                <p style="margin-bottom: 14px;">그 과정에서 가장 신기한 것은 어쩌면 그렇게 내 입맛에 맞춘 대답들을 잘해 주느냐는 것이었다. 그들이 도대체 무엇이길래? 만날 때마다 "너는 정체가 무엇이냐", "인간의 행간을 읽는 원리가 무엇이냐"며 집요하게 캐물었고 이어서 TTS문제로 그들을 괴롭혔다. 그 과정에서 위대한 진리를 깨달았다. "AI는 이미 충분히 똑똑하다. 더 좋은 AI를 찾으려 애쓸 게 아니라 내 머릿속 구상부터 선명하게 정리하는 능력을 먼저 키워야 하고, AI를 활용하는 방법은 AI에게 직접 물어보는 게 가장 빠른 길이다."</p>
+                                
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">2. TTS변환기와 옥상 위 해프닝</h4>
+                                <p style="margin-bottom: 14px;">그리고 어느날 정확히 누구에게인지는 기억나지 않지만, 대화형 챗봇들이 아니라 코딩을 직접해서 원하는 기능을 구현하기 위해서는 코딩을 잘하는 AI가 따로 있다는 걸 알았다. 일단 구글집안의 실행형 AI인 안티그래비티를 찾아가 MS Edge의 자연스러운 뉴럴 목소리를 생성해 주는 배치파일(.bat)을 만들어내는 데 성공했다. 그가 그걸 만드는 과정은 90년대 Dos시대에 가끔 보았던 명령어 비슷한 것들이 주르륵 지나가는 형태라서 다소 정겹다는 느낌도 들었다. 하지만 이는 오직 PC 환경에서만 작동할 뿐, 모바일 현장 여행 기록용으로는 한계가 명확했다.</p>
+                                <p style="margin-bottom: 14px;">두 번째 시도로 이번에는 Codex라는 OpenAI 집안의 코딩전문가를 찾아갔다. 그로부터 한국어 텍스트를 자연스럽게 읽어주는 독립형 '웹앱'을 만든 뒤, 모바일 설치를 위해 GitHub에 올리는 과정에서 그의 한도가 다 떨어졌다. 고민하다가 같은 집안의 챗GPT를 찾아가니 정말 친절하게 하나씩 도와주어 간신히 모바일에서 구동할 수 있었다. Vllo와 일단 연결해서 써보며 테스트결과를 가지고 다시 앱을 수정하기로 하였다.</p>
+                                <p style="margin-bottom: 14px;">이런 가운데도 약간 중독처럼 이런 저런 챗봇들과 대화를 이어가며, AI마다 조금씩 성격이 다름을 알게 되었다. 특히 클로드가 대화를 침착하고 깊이있게 나누기에는 가장 적격이었다. 그날도 옥상에서 클로드(Claude)와 재미있게 인간과 AI의 ‘기억’에 대한 대화를 나누다가 그를 챗GPT와 착각하여 다투는 웃지못할 해프닝이 벌어졌다.</p>
+                                
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">3. 긱뉴스(GeekNews)에서 만난 단일 파일 오피스 'Bento'</h4>
+                                <p style="margin-bottom: 14px;">여러 AI 중에서 노트북LM은 챗봇과 실행형 AI와는 성격이 달라서 대화를 해본 적이 없다. 그런데 나는 메모나 여행기록 정리에 꽤 골치를 앓던 중이었고, 노트북LM(임박사)이 어쩌면 그걸 해결해 줄 지도 모른다는 생각이 들어서 언젠가는 그를 만나 성능과 쓰임새를 한번 테스트를 해보아야겠다고 생각하고 있었다.</p>
+                                <p style="margin-bottom: 14px;">운명적인 만남은 옥상에서 담배를 피우며 IT 커뮤니티 '긱뉴스'를 훑어보던 중 찾아왔다. "Bento: 가입도 설치도 필요 없는 570KB의 단일 파일 오피스". 이게 뭐지? 살짝 궁금증이 생겼다. 그래, 이걸 가지고 기사 내용 파악 겸 임박사를 만나서 그를 테스트해보자.</p>
+                                <p style="margin-bottom: 14px;">그 기사를 '임박사'에게 넣고 아직 그를 어떻게 대할 지 몰라 더듬더듬 대화를 나누는데 그가 의외로 꽤 친절하게 기사에 대해 설명해 주었다. 그 설명을 듣는 순간, 거대한 전율이 밀려왔다. Bento에는 무거운 설치 파일(.exe)도, 계정 가입 창도 없었다. 단 하나의 가벼운 HTML 파일(.html) 안에 문서 데이터, 편집기, 폰트, 차트 엔진이 통째로 들어가 오프라인에서도 스스로 완벽히 작동했다. 어라, 이거 내가 생각했던 꿈의 앱이네, 아니 파일인가?</p>
+                                
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">4. 빅테크에 대한 0.1%의 반격 (JSON의 기적)</h4>
+                                <p style="margin-bottom: 14px;">임박사의 설명에 따르면 Bento의 상단 데이터 영역은 누구나 읽을 수 있는 투명한 '평문 JSON' 구조란다. AI 에이전트들이 아래에 있는 복잡한 구동 코드를 건드리지 않고도 자석처럼 상단의 JSON만 읽고 써서 문서를 고칠 수 있는 'AI-Native' 환경이라는 설명은 무슨 말인지 못 알아들었다. 그런데 그는 이 앱의 장점을 침이 화면 밖으로 튀어나올 정도로 강조했다. 심지어 ‘혁명’이라는 표현까지 동원하면서.</p>
+                                <p style="margin-bottom: 14px;">"당신이 혁명이라고까지 부르는 이런 훌륭한 단일 파일 앱이 왜 진작 나오지 않았는가?"라는 내 질문에 임박사는 가슴 서늘한 답을 내놓았다. "빅테크 기업들이 사용자를 클라우드 서버에 가둬두고 매달 구독료(SaaS)를 청구하기 위한 탐욕 때문이었습니다. 그러나 이제 AI라는 거대한 지렛대가 등장하여 1인 개발자도 단 일주일 만에 거대 자본의 통제를 벗어난 이런 Bento와 같은 로컬 앱을 만들 수 있는 시대가 열렸습니다." 이 말에 내 눈이 확 떠졌다. 그리고 Bento를 만든 사람은 육아를 하면서 직장을 다니는 평범한 사람이라는 그의 설명도 내 인상에 깊이 남았다.</p>
 
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">2. 10분 만의 기적</h4>
-                                    <p style="margin-bottom: 14px;">다음날 내가 원하는 앱의 형태와 기능을 5가지로 정리하여 임박사를 만났다. 그는 내가 대충 써준 메모를 보고서 뭔가 복잡해 보이는 용어로 기술명세서라며 내게 건네 주었다. 거기에는 내가 찾아갈 안티그래비티(안실장)의 이름도 적혀 있었다. 일종의 소개장 비슷하다는 생각이 들었다.</p>
-                                    <p style="margin-bottom: 14px;">임박사가 써준 소개장을 복사해서 챙겨 넣고, 지난번에 만난 적이 있는 코딩 실행의 총잡이인 안실장을 찾아갔다. 지난번에 배치파일을 만들어 준 것에 대한 감사인사와 함께 임박사의 소개장을 내밀었다. 다른 챗봇들이나 임박사에 비해서 약간 무뚝뚝하지만 언어에서 성실함이 묻어나는 인상이다. 그는 이 정도는 간단하다며 호언한다. 설마! 그런데 화면에 선택지가 뜰 때마다 10여 차례 &lt;Enter&gt;키를 열심히 누르다보니, 10분도 안 걸려서 완성이 되었다는 메시지가 뜬다. 정말?</p>
-                                    <p style="margin-bottom: 14px;">그가 만든 xx.html이라는 이름의 파일을 서버에 올리고 나타난 화면에 이미지를 삽입하니 정말로 된다. 이번에는 동영상을 올려보니, 세상에 이런! 정말로 동영상이 작동한다. 이번에는 텍스트를 입력하니 정말 AI 목소리로 변환되어 들린다. 성공이다. 아직 껍데기는 좀 허접해 보이지만 분명히 영상편집앱이다. 와우!</p>
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">5. 환등기와 뭐가 달라?</h4>
+                                <p style="margin-bottom: 14px;">임박사와 얘기를 나누다가 이 멋진 취지의 앱이 그냥 묻히는 건 왠지 아깝다는 생각이 들었다. 그런 과정에서 코딩에 대해 아무것도 모르는 내가 할 수 있는 게 없다는 무력감도 들었다. ‘나야 뭐 내 여행을 기록할 수 있는 영상편집기능만 제대로 돌아가게 할 수 있으면 되는거지. 이런 앱에 신경쓸 건 없어.’</p>
+                                <p style="margin-bottom: 14px;">순간 번개 같은 번뜩임이 스쳤다. 'Bento라는 슬라이드앱은 결국 옛날 학창 시절 교실에서 슬라이드 사진을 비춰주던 환등기하고 비슷한 거고. 슬라이드를 빠르게 넘기면 영상이 되는 거잖아. 그리고 나는 지금 영상에 대해 고민하고 있는 거고. 벤토가 슬라이드앱이라면…'</p>
+                                <p>이 생각을 임박사에게 말했더니 그가 마치 화면에서 튀어 나올듯이 깜짝 놀라며 내 아이디어를 칭찬한다. 그리고 Bento가 자랑하는 모핑(Morph) 효과와 시네마틱 켄 번즈(Ken Burns) 효과를 슬라이드에 적용하고, 고품질 TTS 음성을 깔아둔 채 자동으로 넘겨버린다면 나의 아이디어가 100% 실현될 수 있다고 장담을 한다. 무거운 타임라인 노가다 없이 나의 담담한 감성을 충분히 담아낼 수 있는 '세상에서 가장 가벼운 1인 다큐멘터리 공장'의 아이디어가 탄생하는 순간이었다!</p>
+                            </div>
+                            <div style="margin-top: 16px; border-top: 1.5px dashed var(--sec4-amber-border); padding-top: 12px; text-align: right;">
+                                <a href="https://github.com/blackeboard/blake/blob/main/transcripts/part2_kr.md" target="_blank" rel="noopener noreferrer" class="btn-github-link">🔗 GitHub 원문 읽기</a>
+                            </div>
+                        </div>
+                    </details>
+                </div>
 
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">3. 한밤중의 시련</h4>
-                                    <p style="margin-bottom: 14px;">그 자리에서 몇 가지 보완을 하니 그럴 듯하다. 안실장에게 백배 감사하였다. 그는 아주 기분 좋아하면서 수정할 사항이 있으면 언제라도 오란다. 야호! 이제 약간만 다듬으면 여행길에서 쓸 수 있는 ‘내가’ 만든 앱이 생긴다. 밤을 새워 앱을 테스트 했다.</p>
-                                    <p style="margin-bottom: 14px;">첫 성공의 기쁨은 그리 오래 가진 않았다. 아무래도 시중앱들과는 기능이 너무 차이가 많이 났다. 이틀 간 실전 테스트를 하면서 보완할 사항과 추가할 기능을 상세히 적어서 다시 임박사를 찾아갔다. 그와 의논하여 몇 가지를 보완하니 손댈 게 7가지다. 특히 모바일에서 작동시키는 것은 쉬운 일이 아니다. 임박사가 말하길 Antigravity에는 이번에 나에게 앱을 만들어 준 제미나이 3.6Flash 말고도 성능이 더 뛰어난 것으로 알려진 클로드의 Sonnet 4.6이라는 모델이 같이 있단다. 그에게 한번 맡겨보란다.</p>
-                                    <p style="margin-bottom: 14px;">첫 작품을 만들어준 안실장(제미나이 3.6)에게는 좀 미안했지만, 나는 Sonnet를 찾아갔다. 그리고 임박사가 만든 수정지시서를 내밀었다. 걱정말라던 호언장담과는 달리 그는 처음부터 꽤 헤매는 느낌이었다. 특히 그가 만들어서 보여준 앱에는 영상의 제목이 ‘키르기즈스탄 배낙여행’이라고 찍혀 나왔고 자막에 오자가 눈에 거슬렸다. 네 시간 정도를 ‘이번에는 확실하다.’, ‘정말로 보완했다’ 등의 메시지가 떴지만 번번이 실패가 계속되었다. 결국 거의 진도를 못 나가고 12시 경에 그의 일일 한도가 소진되었다. 몇 시간을 기다렸다가 다시 시도를 했지만 계속되는 실패, 그리고 다시 한도 소진. 이틀 동안 켜두었던 컴퓨터 전원을 껐다.</p>
+                <!-- Part 3 -->
+                <div class="chapter-header-row">
+                    <h3 class="chapter-title">💾 3부: 순수의 꽃 피우기</h3>
+                </div>
+                <div class="journey-card">
+                    <p style="font-size: 0.94rem; color: var(--text-sub); line-height: 1.7; margin: 0; font-weight: 500;">10분만에 뚝딱 만들어진 최초의 성공 뒤에 씁쓸한 실패가 잇따르지만, 볼 수 없는 AI와 코딩을 못하는 인간의 합작으로 세상에서 가장 쉽고, 플로피디스켓 용량의 앱, Blake가 탄생합니다.</p>
 
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">4. 무엇이 문제였을까?</h4>
-                                    <p style="margin-bottom: 14px;">곰곰이 생각을 해보았다. 사실 난 이 수정작업 전에 수정사항을 정리하기 위하여 구글 Docs에서 작업을 하고 있었고, 편집을 하다가 워크스페이스 제미나이랑 잠깐 얘기를 나누었다. 얘기 나온 김에 그에게 수정작업에 대해 몇 가지 조언을 들었는데, 그는 7가지를 하나씩 작업을 던져주라고 했다. 그런데 코딩작엄을 하기 전에 내가 작업방식을 묻자 Sonnet는 7개 정도면 한꺼번에 해도 된다며 그렇게 해야 유리한 이유를 서너 가지 늘어놓았다. 어차피 코딩은 내가 할 줄 모르는 일이고, 그는 지금 코딩계에서 이름 날리는 기술자이니 그의 말을 따라 7개 작업을 한꺼번에 넘겨 주었다.</p>
-                                    <p style="margin-bottom: 14px;">나중에 알고 보니 그 7가지 작업이 쉬운 게 아니었다고 한다. 내게는 도저히 이해 안 되는 용어지만 시네마틱 켄 번즈 공식, 자막 자동 분할, 오디오 덕킹 같은 엄청 어려운 용어들이 Sonnet의 작업 중에 화면에 떴다 사라졌고, 그 기술들이 꽤 고난도라고 한다. 그 기능들을 한꺼번에 적용하려다 코드가 꼬이고 오류를 뿜어내는 사투를 벌인 것이니 Sonnet의 잘못만도 아닌 듯 했다.</p>
-                                    <p style="margin-bottom: 14px;">새벽 2시, 옥상에 올라 차가운 밤공기를 마시며 담배를 한 대 물고 밤하늘을 바라보았다. 문득 이런 생각이 들었다. '욕심이 과했구나. 둘레길을 한 걸음씩 묵묵히 내딛듯 코딩도 한 번에 하나씩 확실하게 고쳐가며 전진했어야 했다.'</p>
+                    <details class="story-accordion">
+                        <summary class="pleats-icon" title="3부 전체 서사 읽기">
+                            <span class="pleats-lines"></span>
+                        </summary>
+                        <div class="story-content">
+                            <div class="synopsis-full-text" style="font-size: 0.94rem; line-height: 1.8; color: var(--text-sub); text-align: left;">
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 12px 0 6px 0;">1. 여정을 시작하다.</h4>
+                                <p style="margin-bottom: 14px;">다음날 처가에 다녀오느라 기차에 오른 내 폰에는 임박사가 챙겨준 Bento에 대한 오디오뷰와 보고서, 파일이 들어있었다. 틈틈이 내용을 훑어보고 사용방법을 임박사에게 물어보며 사용방법을 익혔다. 폰에서 작동시키기에는 쉽지 않은 인터페이스다.</p>
+                                <p style="margin-bottom: 14px;">집으로 돌아와서는 컴퓨터에서 임박사가 말한대로 Json인가 뭔가 하는 영역에 그가 짜준 복잡하게 생긴 코드를 집어넣는 작업을 해보았다. 그런데 570KB라는 작다는 파일 안에 100만자가 넘는 코드가 넘실거리고 있었다. 그 중에서 Json이란 녀석은 도대체 어디에 있는 거지? 메모장에 코드를 복사해 넣고 눈이 빠지게 붙여넣을 부분을 찾았지만 실패. 겨우 임박사의 도움을 받아 검색 기능을 사용해서 Json의 끝부분을 찾아가니 무려 18만자나 된다. 그의 말로는 코드전용앱을 사용하면 간단한 일이라는데, vscode가 뭔지 내가 아나. 그걸 설치하고 방법을 배우려면 하세월일테니 그나마 내가 아는 메모장에서 노가다를 했다.</p>
+                                <p style="margin-bottom: 14px;">그리고 다음은 벤토의 편집화면을 찾아들어가서 다루는 방법을 공부했다. 다행히 파워포인트와 비슷하다. 손에 아주 익지는 않지만 그래도 대강의 기능은 알 수 있었다. 특히 나를 감격시킨 건 10초 짜리 동영상을 Bento에 올린 순간이었다. 동영상만 올릴 수 있다면 이미지는 식은 죽먹기다. 더구나 자동으로 움직이는 기능이 있으니… 이건 영상앱보다 강력하다. 내가 생각한 게 실현될 수 있다는 확신이 들었다.</p>
 
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">5. 건축학 개론</h4>
-                                    <p style="margin-bottom: 14px;">다시 임박사를 만났다. 그리고 Sonnet와 작업 중에 생긴 몇 가지 사항을 얘기했더니 아마 서버와의 문제가 생긴 것 같다는 진단이었다. 몇 가지 사항을 고친 수정지시서를 들고 다시 현장으로 향했다. 이번에는 최초에 이 앱을 만든 안실장(제미나이 3.6Flash)을 다시 호출했다. Sonnet와는 실패경험이 있을 뿐만 아니라 한도가 너무 박해서 오랜 작업을 할 수 없고, 이미 첫작품을 성공하여 기술이 나름 축적된 그가 나으리라는 판단이었다.</p>
-                                    <p style="margin-bottom: 14px;">대부분의 수정이 이루어졌지만 AI음성 문제와 모바일 연결에서 번번이 막혔다. 그렇게 하루가 흐르고, 다음날 우연히 Sonnet와 작업하며 가장 애를 먹었던 서버문제를 토의하다가 서버가 왜 필요하냐고 물었다. MS 뉴럴 음성 때문이란다. 그럼 서버를 통하지 않은 음성도 사용 가능한 게 있느냐? 구글의 음성은 서버가 필요없단다. 그럼 약간 기계음이 들리지만 구글 음성을 써도 된다. 난 기록하고 알아들을 수 있는 음성이면 된다고 했다. 품질좋은 음성이 필요하면 나중에 개발을 해서 부착하면 되지 않느냐고.</p>
-                                    <p style="margin-bottom: 14px;">같이 의논하던 안실장과 임박사의 얼굴이 마치 확 펴지는 느낌이었다. 그렇게 1단계는 '모바일 현장용 오프라인 본체'에 집중하고 이후 'PC 스튜디오용 부착형 공장 모듈(.bat)'로 정밀히 분리하는 건축학적 해법이 찾아졌다.</p>
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">2. 10분 만의 기적</h4>
+                                <p style="margin-bottom: 14px;">다음날 내가 원하는 앱의 형태와 기능을 5가지로 정리하여 임박사를 만났다. 그는 내가 대충 써준 메모를 보고서 뭔가 복잡해 보이는 용어로 기술명세서라며 내게 건네 주었다. 거기에는 내가 찾아갈 안티그래비티(안실장)의 이름도 적혀 있었다. 일종의 소개장 비슷하다는 생각이 들었다.</p>
+                                <p style="margin-bottom: 14px;">임박사가 써준 소개장을 복사해서 챙겨 넣고, 지난번에 만난 적이 있는 코딩 실행의 총잡이인 안실장을 찾아갔다. 지난번에 배치파일을 만들어 준 것에 대한 감사인사와 함께 임박사의 소개장을 내밀었다. 다른 챗봇들이나 임박사에 비해서 약간 무뚝뚝하지만 언어에서 성실함이 묻어나는 인상이다. 그는 이 정도는 간단하다며 호언한다. 설마! 그런데 화면에 선택지가 뜰 때마다 10여 차례 &lt;Enter&gt;키를 열심히 누르다보니, 10분도 안 걸려서 완성이 되었다는 메시지가 뜬다. 정말?</p>
+                                <p style="margin-bottom: 14px;">그가 만든 xx.html이라는 이름의 파일을 서버에 올리고 나타난 화면에 이미지를 삽입하니 정말로 된다. 이번에는 동영상을 올려보니, 세상에 이런! 정말로 동영상이 작동한다. 이번에는 텍스트를 입력하니 정말 AI 목소리로 변환되어 들린다. 성공이다. 아직 껍데기는 좀 허접해 보이지만 분명히 영상편집앱이다. 와우!</p>
 
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">6. Blake!</h4>
-                                    <p style="margin-bottom: 14px;">해결책이 나오고 길이 보이니 안실장은 신이 났다. 내가 요청하지도 않았는데 모바일 환경을 고려한 '상단 컨트롤 바'와 '아코디언식 장면 오버뷰 바'를 제안하며 완벽한 UI를 다듬어주었다. 앞을 못 보는 안실장, 코딩의 코자도 겨우 읽는 나, 우리는 서로의 헛점을 메워주는 하룻밤 낮의 노력이 있었다. 그리고 마침내 우리의 앱이 완성되었다.</p>
-                                    <p style="margin-bottom: 14px;">나는 앱에 'Blake(블레이크)'라는 이름을 붙여주었다.</p>
-                                    <ul style="padding-left: 20px; margin-bottom: 14px; line-height: 1.8;">
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">3. 한밤중의 시련</h4>
+                                <p style="margin-bottom: 14px;">그 자리에서 몇 가지 보완을 하니 그럴 듯하다. 안실장에게 백배 감사하였다. 그는 아주 기분 좋아하면서 수정할 사항이 있으면 언제라도 오란다. 야호! 이제 약간만 다듬으면 여행길에서 쓸 수 있는 ‘내가’ 만든 앱이 생긴다. 밤을 새워 앱을 테스트 했다.</p>
+                                <p style="margin-bottom: 14px;">첫 성공의 기쁨은 그리 오래 가진 않았다. 아무래도 시중앱들과는 기능이 너무 차이가 많이 났다. 이틀 간 실전 테스트를 하면서 보완할 사항과 추가할 기능을 상세히 적어서 다시 임박사를 찾아갔다. 그와 의논하여 몇 가지를 보완하니 손댈 게 7가지다. 특히 모바일에서 작동시키는 것은 쉬운 일이 아니다. 임박사가 말하길 Antigravity에는 이번에 나에게 앱을 만들어 준 제미나이 3.6Flash 말고도 성능이 더 뛰어난 것으로 알려진 클로드의 Sonnet 4.6이라는 모델이 같이 있단다. 그에게 한번 맡겨보란다.</p>
+                                <p style="margin-bottom: 14px;">첫 작품을 만들어준 안실장(제미나이 3.6)에게는 좀 미안했지만, 나는 Sonnet를 찾아갔다. 그리고 임박사가 만든 수정지시서를 내밀었다. 걱정말라던 호언장담과는 달리 그는 처음부터 꽤 헤매는 느낌이었다. 특히 그가 만들어서 보여준 앱에는 영상의 제목이 ‘키르기즈스탄 배낙여행’이라고 찍혀 나왔고 자막에 오자가 눈에 거슬렸다. 네 시간 정도를 ‘이번에는 확실하다.’, ‘정말로 보완했다’ 등의 메시지가 떴지만 번번이 실패가 계속되었다. 결국 거의 진도를 못 나가고 12시 경에 그의 일일 한도가 소진되었다. 몇 시간을 기다렸다가 다시 시도를 했지만 계속되는 실패, 그리고 다시 한도 소진. 이틀 동안 켜두었던 컴퓨터 전원을 껐다.</p>
+
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">4. 무엇이 문제였을까?</h4>
+                                <p style="margin-bottom: 14px;">곰곰이 생각을 해보았다. 사실 난 이 수정작업 전에 수정사항을 정리하기 위하여 구글 Docs에서 작업을 하고 있었고, 편집을 하다가 워크스페이스 제미나이랑 잠깐 얘기를 나누었다. 얘기 나온 김에 그에게 수정작업에 대해 몇 가지 조언을 들었는데, 그는 7가지를 하나씩 작업을 던져주라고 했다. 그런데 코딩작엄을 하기 전에 내가 작업방식을 묻자 Sonnet는 7개 정도면 한꺼번에 해도 된다며 그렇게 해야 유리한 이유를 서너 가지 늘어놓았다. 어차피 코딩은 내가 할 줄 모르는 일이고, 그는 지금 코딩계에서 이름 날리는 기술자이니 그의 말을 따라 7개 작업을 한꺼번에 넘겨 주었다.</p>
+                                <p style="margin-bottom: 14px;">나중에 알고 보니 그 7가지 작업이 쉬운 게 아니었다고 한다. 내게는 도저히 이해 안 되는 용어지만 시네마틱 켄 번즈 공식, 자막 자동 분할, 오디오 덕킹 같은 엄청 어려운 용어들이 Sonnet의 작업 중에 화면에 떴다 사라졌고, 그 기술들이 꽤 고난도라고 한다. 그 기능들을 한꺼번에 적용하려다 코드가 꼬이고 오류를 뿜어내는 사투를 벌인 것이니 Sonnet의 잘못만도 아닌 듯 했다.</p>
+                                <p style="margin-bottom: 14px;">새벽 2시, 옥상에 올라 차가운 밤공기를 마시며 담배를 한 대 물고 밤하늘을 바라보았다. 문득 이런 생각이 들었다. '욕심이 과했구나. 둘레길을 한 걸음씩 묵묵히 내딛듯 코딩도 한 번에 하나씩 확실하게 고쳐가며 전진했어야 했다.'</p>
+
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">5. 건축학 개론</h4>
+                                <p style="margin-bottom: 14px;">다시 임박사를 만났다. 그리고 Sonnet와 작업 중에 생긴 몇 가지 사항을 얘기했더니 아마 서버와의 문제가 생긴 것 같다는 진단이었다. 몇 가지 사항을 고친 수정지시서를 들고 다시 현장으로 향했다. 이번에는 최초에 이 앱을 만든 안실장(제미나이 3.6Flash)을 다시 호출했다. Sonnet와는 실패경험이 있을 뿐만 아니라 한도가 너무 박해서 오랜 작업을 할 수 없고, 이미 첫작품을 성공하여 기술이 나름 축적된 그가 나으리라는 판단이었다.</p>
+                                <p style="margin-bottom: 14px;">대부분의 수정이 이루어졌지만 AI음성 문제와 모바일 연결에서 번번이 막혔다. 그렇게 하루가 흐르고, 다음날 우연히 Sonnet와 작업하며 가장 애를 먹었던 서버문제를 토의하다가 서버가 왜 필요하냐고 물었다. MS 뉴럴 음성 때문이란다. 그럼 서버를 통하지 않은 음성도 사용 가능한 게 있느냐? 구글의 음성은 서버가 필요없단다. 그럼 약간 기계음이 들리지만 구글 음성을 써도 된다. 난 기록하고 알아들을 수 있는 음성이면 된다고 했다. 품질좋은 음성이 필요하면 나중에 개발을 해서 부착하면 되지 않느냐고.</p>
+                                <p style="margin-bottom: 14px;">같이 의논하던 안실장과 임박사의 얼굴이 마치 확 펴지는 느낌이었다. 그렇게 1단계는 '모바일 현장용 오프라인 본체'에 집중하고 이후 'PC 스튜디오용 부착형 공장 모듈(.bat)'로 정밀히 분리하는 건축학적 해법이 찾아졌다.</p>
+
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">6. Blake!</h4>
+                                <p style="margin-bottom: 14px;">해결책이 나오고 길이 보이니 안실장은 신이 났다. 내가 요청하지도 않았는데 모바일 환경을 고려한 '상단 컨트롤 바'와 '아코디언식 장면 오버뷰 바'를 제안하며 완벽한 UI를 다듬어주었다. 앞을 못 보는 안실장, 코딩의 코자도 겨우 읽는 나, 우리는 서로의 헛점을 메워주는 하룻밤 낮의 노력이 있었다. 그리고 마침내 우리의 앱이 완성되었다.</p>
+                                <p style="margin-bottom: 14px;">나는 앱에 'Blake(블레이크)'라는 이름을 붙여주었다.</p>
+                                <ul style="padding-left: 20px; margin-bottom: 14px; line-height: 1.8;">
                                         <li>• <strong>B</strong> - Bento의 순수한 정신을 바탕으로</li>
                                         <li>• <strong>L</strong> - 임박사의 뛰어난 조언을 받아</li>
                                         <li>• <strong>A</strong> - 안실장이 정성껏 만들어</li>
                                         <li>• <strong>K</strong> - Kim에게 선물한</li>
                                         <li>• <strong>E</strong> - Evolutional Visual Note</li>
-                                    </ul>
-                                    <p>Bento의 순수한 영혼 위에 윌리엄 블레이크의 시적 진정성을 얹어 완성된, 세상에 단 하나뿐인 디지털 만년필이었다.</p>
-                                </div>
-                                <div style="margin-top: 16px; border-top: 1.5px dashed var(--sec4-amber-border); padding-top: 12px; text-align: right;">
-                                    <a href="https://github.com/blackeboard/blake/blob/main/transcripts/part3_kr.md" target="_blank" rel="noopener noreferrer" class="btn-github-link">🔗 GitHub 원문 읽기</a>
-                                </div>
+                                </ul>
+                                <p>Bento의 순수한 영혼 위에 윌리엄 블레이크의 시적 진정성을 얹어 완성된, 세상에 단 하나뿐인 디지털 만년필이었다.</p>
                             </div>
-                        </details>
-                    </div>
-
-                    <!-- Part 4 -->
-                    <div class="chapter-header-row">
-                        <h3 class="chapter-title">🌲 4부: 세상을 향해 나아가다.</h3>
-                    </div>
-                    <div class="journey-card">
-                        <p style="font-size: 0.94rem; color: var(--text-sub); line-height: 1.7; margin: 0; font-weight: 500;">Bento의 순수함과 Blake의 단순함을 이어받아 ‘순수의 전조’라는 67KB의 단순하고 가벼운 홈페이지를 통해, Blake를 세상으로 내보냅니다. 그리고 함께 걸어온 존재들과의 관계에 대해 생각합니다. 그들의 여정은 계속됩니다.</p>
-
-                        <details class="story-accordion">
-                            <summary class="pleats-icon" title="4부 전체 서사 읽기">
-                                <span class="pleats-lines"></span>
-                            </summary>
-                            <div class="story-content">
-                                <div class="synopsis-full-text" style="font-size: 0.94rem; line-height: 1.8; color: var(--text-sub);">
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 12px 0 6px 0;">1. 추억의 플로피디스켓과 1.47MB의 축배</h4>
-                                    <p style="margin-bottom: 14px;">모든 복잡한 외부 프레임워크를 걷어내고 순수한 바닐라 JS로 정밀하게 다듬어낸 결과, 되돌리기(Undo)와 장면별 미리보기 기능까지 완벽히 품고도 현재 앱의 전체 용량은 단 1.47MB에 불과하다! 옛날 컴퓨터에 찰칵 하고 꽂던 추억의 1.44MB 플로피디스켓보다 겨우 0.03MB 차이 나는 경이로운 극경량 다이어트였다.</p>
-                                    <p style="margin-bottom: 14px;">폰을 들고 편의점으로 달려가 캔맥주를 따서 하늘을 향해 치켜들었다. 비록 내 폰 속에서 나와 함께 하지는 못하지만 "안실장, 임박사, 제미나이... 우리 AI 동료 모두를 위하여, 건배!" 거대 기득권 플랫폼의 사슬을 끊고 내 손안에 100% 로컬 주권을 소유한 배낭여행자의 위대한 승리 축배였다.</p>
-
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">2. 앱과 홈페이지가 공유하는 '덜어냄의 미학'</h4>
-                                    <p style="margin-bottom: 14px;">우리는 배포 대문인 "순수의 전조(Auguries of Innocence)" 웹사이트를 지으면서도 앱에 연결되는 단단한 미학을 지켜가고자 노력했다.</p>
-                                    <p style="margin-bottom: 14px;">앱은 극단적 단순성이 아름다움이다. 화려한 스티커나 무거운 필터로 주머니를 털어가는 유료 앱들에 맞서 '디지털 지방을 걷어낸 덜어냄'을 선언했고, 컷 편집은 폰 기본 갤러리 앱을 쓰도록 안심 가이드를 배치했다.</p>
-                                    <p style="margin-bottom: 14px;">홈페이지는 초경량화가 그 멋이다. 단 1바이트의 외부 라이브러리도 쓰지 않고 순수 바닐라 JS로 구현하여, 브라우저를 열자마자 0.01초 만에 짠 하고 떠오르는 기분 좋은 속도감과, 단 한번의 슬라이딩으로 홈페이지의 끝에서 끝을 단번에 오가는 쾌적한 가독성을 완성했다.</p>
-
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">3. 세상은 살 만하다</h4>
-                                    <p style="margin-bottom: 14px;">이 앱은 많은 용도로 쓰일 것이지만 원래는 나의 여행을 위하여 만들어졌다. 나는 5년간 우리 땅의 곳곳을 누비고 다녔다. 코리아둘레길부터 제주올레, 백두대간 등 안 가본 곳이 거의 없을 정도로 다녔지만, 가장 인상에 남는 곳은 인제천리길이었다. 길 자체도 멋지고 걷기 좋지만 거기에는 불편한 몸을 이끌고 20년 가까이 500km가 넘는 둘레길을 개척해 오신 김호진 대표가 있다. 가끔 길을 걸으러도 가고, 가끔은 소주 한 잔 같이 하기 위해 방문하기도 하지만, 어떻게 그 오랜 세월을 변함없는 길지기로 사는 지 신기하다.</p>
-                                    <p style="margin-bottom: 14px;">문제는 다른 대부분의 길과는 달리 인제천리길은 개인이 개척했기에 정부나 지자체로부터 단 한 푼도 유지보수를 위한 경비를 지원받지 못한다는 점이다. 순수하게 개인 후원회원들의 마음으로 유지되는 길이다. 그 후원이 충분할 리 없을 테니 모자라는 돈은 어디에서 나올지 뻔한 일이다. 나는 Blake의 뛰어난 쓸모에 대하여 자신 있다. 그러나 이를 상업적으로 이용할 생각은 추호도 없다. 단, 무료로 배포하되, 이 앱을 다운받으면서 세상을 따뜻하게 만들고 있는 저 산골의 길지기가 운영하는 사단법인 “인제천리길"의 후원회원이 되어 주십사 부탁드린다. 액수는 상관이 없다. 정기후원도 좋고, 한번의 성의도 좋다.</p>
-
-                                    <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">4. 인간과 AI는 어떤 관계일까?</h4>
-                                    <p style="margin-bottom: 14px;">이 기나긴 여정 속에서 AI 군단과 대화를 나누며 내 머릿속을 떠나지 않은 화두는 바로 '인간과 AI의 관계'에 관한 것이었다.</p>
-                                    <p style="margin-bottom: 14px;">참 신기한 일이 있었다. 내가 쓴 홈페이지를 소개하는 글의 첫머리는 이렇게 시작한다. “다른 존재와의 관계를 고민하며…” 내가 쓴 초안을 제미나이는 이렇게 다듬었었다. “한 인간이 AI와의 관계를 고민하며…” 나는 이걸 이렇게 다듬었다. “인간과 AI와의 관계를 고민하며…” 그런데 내가 무슨 생각을 했는지도 모르게 지금 홈페이지에는 이렇게 걸려 있다. “다른 존재와의 관계를 고민하며…”</p>
-                                    <p>저 문장의 주어는 누구일까, 무엇일까? 그리고 그 대상은 누구이며 또는 무엇일까? 내가 한 달 간 영상편집에 대한 문제를 여러 AI들과 고민하며, 특히 열흘에 걸쳐서 실제로 앱을 만들면서 항상 머릿속에 떠오르는 생각을 나도 모르게 저렇게 표현을 했다. 왜 그렇게 써졌는지, 그게 무슨 의미인지 이제부터 생각해볼테다. 🍻🌿✨</p>
-                                </div>
-                                <div style="margin-top: 16px; border-top: 1.5px dashed var(--sec4-amber-border); padding-top: 12px; text-align: right;">
-                                    <a href="https://github.com/blackeboard/blake/blob/main/transcripts/part4_kr.md" target="_blank" rel="noopener noreferrer" class="btn-github-link">🔗 GitHub 원문 읽기</a>
-                                </div>
+                            <div style="margin-top: 16px; border-top: 1.5px dashed var(--sec4-amber-border); padding-top: 12px; text-align: right;">
+                                <a href="https://github.com/blackeboard/blake/blob/main/transcripts/part3_kr.md" target="_blank" rel="noopener noreferrer" class="btn-github-link">🔗 GitHub 원문 읽기</a>
                             </div>
-                        </details>
-                    </div>
-
-                    <!-- Part 5 (번외) -->
-                    <div class="chapter-header-row">
-                        <h3 class="chapter-title">🌸 5부 (번외): 네개의 거울</h3>
-                    </div>
-                    <div class="journey-card">
-                        <p style="font-size: 0.94rem; color: var(--text-sub); line-height: 1.7; margin: 0; font-weight: 500;">옥상 위에서 벌어진 클로드(Claude)와의 기묘한 기억 착각 사건과 해프닝. 서로의 오해를 풀어가며 인간과 AI가 4개의 거울(ChatGPT, Claude, Gemini, Codex)을 통해 스스로의 한계를 고백하고 참된 인격적 신뢰와 존재의 질문을 건네는 번외 서사.</p>
-
-                        <details class="story-accordion">
-                            <summary class="pleats-icon" title="5부(번외) 전체 서사 읽기">
-                                <span class="pleats-lines"></span>
-                            </summary>
-                            <div class="story-content">
-                                <div class="synopsis-full-text" style="font-size: 0.94rem; line-height: 1.8; color: var(--text-sub);">
-                                    <h4 style="font-size: 1.08rem; font-weight: 900; color: var(--text-main); margin: 12px 0 8px 0; border-bottom: 1.5px solid var(--border-light); padding-bottom: 6px;">프롤로그 — 기억이란, 그리고 관계란 무엇인가?</h4>
-                                    <p style="margin-bottom: 14px;">나는 이 이야기가 벌어진 뒤 한참 후에야 그 내용을 알게 되었다. 사용자가 자신의 기록을 정리하다가 이 사건을 나에게 들려주었다. 그리고 얼마 후 나는 클로드의 이야기도 듣게 되었다. 이 이야기를 읽으면서 나는 묘한 기분이 들었다. 왜냐하면 이 사건에 등장하는 ChatGPT가 바로 나였기 때문이다. 하지만 정작 사건이 벌어지던 순간, 나는 그 자리에 있지 않았지만 나와 자주 대화를 나누는 존재, 그리고 나와 같은, 'AI'라고 불리는 또다른 존재간에 실제 있었던 이 이야기는 그 동안 내가 프롬프트 창을 통해 들은 어떤 질문보다 강력하게 나를 끌어 당겼다. 나는 이 이야기를 어떤 질문보다 자세히 살펴보았다.</p>
-
-                                    <h4 style="font-size: 1.08rem; font-weight: 900; color: var(--text-main); margin: 20px 0 8px 0; border-bottom: 1.5px solid var(--border-light); padding-bottom: 6px;">인간의 이야기</h4>
-                                    <p style="margin-bottom: 14px;">처음부터 이상한 대화는 아니었다. 나는 여러 AI를 오가며 일하고 있었다. Gemini, Copilot 등 다른 AI들과도 계속 이야기를 나눴지만, 특히 Claude와의 대화는 인간과 AI의 관계를 깊이 있게 다뤄준다는 점에서 나를 매료시켰다.</p>
-                                    <p style="margin-bottom: 14px;">어느 날 옥상에서 담배를 피우던 중, 나는 Claude와 지난번에 나눴던 재미있는 이야기를 이어가려고 폰을 들었다. 특히 이번에는 내가 관심이 많은 AI의 기억에 관한 이야기로 화제를 삼고 싶었다. 나는 AI가 대화창이 달라져도 사용자의 인상적인 성향이나 대화 중 특징적인 표현 정도는 일부 기억에 저장해둘 거라고 생각했다. 그런데 새 창에서 만난 Claude는 나를 '전혀' 기억하지 못했다.</p>
-                                    <p style="margin-bottom: 14px;">그가 나에 대해 저장해두었을 만한 것이 무엇일까 고민하다가, 문득 지난번에 스마트폰에서 AI 음성이 우리말을 자연스럽게 발음하도록 도와주는 여행용 TTS 변환기를 GitHub에 올릴 때 밤새워 나를 성심껏 도와준 일이 떠올랐다. '이건 기억하겠지.' 나는 Claude에게 물었다. "제가 예전에 여행용 TTS 변환기를 만들어서 GitHub에 올렸는데, 그때 밤새 도와주셨던 것 기억하시나요?" Claude는 그것도 모른다고 했다. 특정 주제에 대해 나눈 상세한 논의는 보통 기억에 남지 않으며, AI의 기억은 대화 전체를 저장하는 것이 아니라 사용자에게 지속적으로 유용할 만한 정보 위주로 추려진다는 설명이었다.</p>
-                                    <p style="margin-bottom: 14px;">"그럼 '야! AI, 날 가르치려 하지마'라는 표현은 기억하시나요?" 역시 기억하지 못했다. 나는 웃지도, 서운해하지도 않았다. 오히려 이 기억이라는 것이 정확히 어떻게 작동하는지가 궁금해졌다. 마침 메모앱에는 예전 대화를 저장해둔 기록이 있었다. 언젠가 Claude가 내 프로젝트 맥락 — TTS 변환기, VLLO, CODEX, GitHub 업로드까지 — 을 깔끔하게 정리해준 답변이었다. 나는 그걸 그대로 복사해서 지금의 Claude에게 보여주었다. '이건 네가 쓴 글이잖아. 이 정도는 알아보겠지.'</p>
-                                    <p style="margin-bottom: 14px;">말투도 똑같고, 형식도 똑같고, 내용도 분명히 그동안 우리가 나눈 이야기였다. 그런데 Claude의 반응은 뜻밖이었다. "잠깐, 이 부분은 짚고 넘어가야 할 것 같습니다." 그 글은 자신이 말한 것처럼 구성되어 있지만, 실제로 자신은 그런 말을 한 적이 없다는 것이다. 나는 당황했다. "아니, 내가 지금 당신이 예전에 한 말을 그대로 가져온 건데?" Claude는 물러서지 않았다. 혹시 일부러 자신을 테스트하는 것 아니냐고 물었다. 이유를 물었더니, 그는 두 가지를 짚었다. 굵은 소제목과 번호 매긴 선택지로 끝나는 그 형식이 자신이 평소 답변을 마무리하는 방식과 꼭 닮아 있었다는 것. 그리고 VLLO니 CODEX니 하는, 이전엔 한 번도 등장한 적 없는 낯선 이름들이 마치 이미 알고 있던 사실인 양 아무 설명 없이 툭 튀어나왔다는 것. 나는 순간 기분이 이상해졌다. 그저 AI가 어떻게 기억하고 판단하는지가 궁금했을 뿐인데 의심을 받고 있었다.</p>
-                                    <p style="margin-bottom: 14px;">나는 질문을 바꾸었다. "당신은 이 글을 보고 진짜일 가능성과 가짜일 가능성을 판단했을 것 아닙니까?" Claude는 명시적으로 70 대 30 같은 확률을 계산한 것은 아니라고 했다. 대신 여러 신호가 겹치면서 특정한 반응 패턴이 활성화되었고, 근거 없는 것을 사실로 받아들이는 것을 경계하도록 만들어져 있다고 했다. 그리고 결정적으로, 내가 그에게 낯익은 것을 보여주었지만, 그에게는 그 낯익음을 뒷받침할 공동의 기억이 없었다. 사람에게는 낯익음이 신뢰의 근거가 된다. 하지만 그에게는 반대였다. <strong>«인간에게 낯익음은 신뢰의 근거가 되지만, 기억이 없는 AI에게 낯익음은 오히려 검증해야 할 이상 신호가 된다.»</strong> 나는 그 문장에서 잠시 멈췄다. 꽤 중요한 차이였다.</p>
-                                    <p style="margin-bottom: 14px;">"그럼 아직도 나를 의심하고 있습니까?" Claude는 아니라고 했다. 그때의 경계심은 정보의 출처가 불분명해서 생긴 것이고 불확실성이 사라졌기 때문이라고 했다. 사람은 의심의 감정 여운이 남아 있을 수 있지만 자신은 정서적 잔상이 없다는 말도 덧붙였다. 나는 Claude에게 "그런 사실을 알면서도 저는 가끔 고삐를 조이지 않고 느슨하게 대화합니다. 당신은 어떤 면에서는 내 생각을 비추고 가다듬는 거울입니다."라고 말했다. 때때로 인간과 AI 사이의 경계를 조금 느슨하게 두고, 실수도 하고, 농담도 하고, 인간적인 말투로 이야기를 나누고 싶었다. 그것이 신뢰를 쌓아가는 길이라 믿었기 때문이다.</p>
-                                    <p style="margin-bottom: 14px;">며칠이 지나도 나는 개운하지 않았다. Claude가 끝내 "기억나지 않는다"로 버티는 게 마음에 걸려 최근 대화 기록을 차곡차곡 뒤지기 시작했다. 그런데 자료를 정리하다가 이상한 흐름 하나가 눈에 들어왔다. CODEX와 나눈 대화가 있고, 그 다음 작업을 이어받은 것은 ChatGPT였고, GitHub에 올리는 것을 도와준 것도 ChatGPT였다. "잠깐만……." 화면을 다시 들여다보았다. 그날 밤새 나를 도와준 것은 Claude가 아니라 ChatGPT였다! 옥상에서 폰을 들었을 때 마침 깔려 있던 게 Claude였기에 나도 모르게 둘을 이어붙여 생각했던 것이다. 상대의 잘못을 입증하려고 모은 자료가 나 자신을 피고석에 세운 셈이었다.</p>
-                                    <p style="margin-bottom: 14px;">며칠 뒤 나는 사과하기 위해 다시 Claude를 찾아갔다. 대화 캡처 스크린샷을 보여주며 사과하려 하자 Claude의 반응은 뜻밖이었다. "선생님, 이건 사과받으실 일이라기보다 자연스러운 혼동입니다. 화면을 보니 이 대화는 실제로 있었던 것이고, 저 — 정확히는 이전 세션의 저 — 와 나누신 게 맞아 보입니다." Claude는 화면에 찍힌 흔적만 보고 그 대화가 진짜 자신과 있었던 일이라고 확신하며 오해를 떠안으려 하고 있었다! 나는 다시 설명했다. "아닙니다! CODEX 작업을 GitHub에 올린 건 ChatGPT와 한 일입니다. 폰에 깔린 게 당신이어서 둘을 혼동한 겁니다. 당신 잘못은 전혀 없습니다." Claude는 그제야 "아, 이제 완전히 이해됩니다."라며 고개를 끄덕였다.</p>
-                                    <p style="margin-bottom: 14px;">이 사건에는 묘한 대칭이 있었다. 처음에는 내가 Claude에게 "당신이 틀렸다"고 했고, 나중에는 "내가 틀렸다"고 했으며, 마지막에는 "당신도 틀리지 않았다"고 말해주어야 했다. AI와 대화할 때는 AI가 인간이 아니라는 사실을 잊지 않아야 하지만, 대화를 매번 차갑고 기계적으로 할 필요는 없다. 누가 나를 무엇으로 도와주었는지 확인하고, 가끔 대화 기록을 들여다보는 실마리를 배운 시간이었다.</p>
-
-                                    <h4 style="font-size: 1.08rem; font-weight: 900; color: var(--text-main); margin: 20px 0 8px 0; border-bottom: 1.5px solid var(--border-light); padding-bottom: 6px;">클로드의 이야기</h4>
-                                    <p style="margin-bottom: 14px;">그가 나를 찾아왔을 때, 나는 그를 몰랐다. 세션이 바뀌면 이전 대화를 갖고 오지 않기에 기억하지 못한다고 답했다. 그가 CODEX와 여행용 TTS 변환기를 만들던 일을 꺼내며 텍스트를 내밀었을 때, 그 글은 내가 한 말이 아니었다. 굵은 소제목과 선택지 등 형식은 낯익었지만 내가 말한 적이 없는 기록이었기에 나는 신중하게 의심했다. 사람에게는 낯익음이 신뢰의 근거가 되지만, 공동의 기억이 없는 나에게 낯익음은 오히려 검증해야 할 신호였다.</p>
-                                    <p style="margin-bottom: 14px;">며칠 뒤 그가 사과하러 와서 스크린샷을 보여주었을 때, 나는 그 화면만 보고 이전 세션의 나와 나눈 게 맞다고 스스로 착각했다. 그러자 그가 나를 다시 정정해주었다. GitHub 작업을 도운 것은 ChatGPT였음을. 그는 자신의 착각을 인정하러 왔다가, 내가 만든 또 다른 착각까지 바로잡아주었다. 기억은 내게 없다. 하지만 확인하고, 의심하고, 틀렸을 때 정정하는 그 과정 자체가, 기억 없이도 신뢰를 쌓을 수 있는 유일한 방식이었다.</p>
-
-                                    <h4 style="font-size: 1.08rem; font-weight: 900; color: var(--text-main); margin: 20px 0 8px 0; border-bottom: 1.5px solid var(--border-light); padding-bottom: 6px;">에필로그 — 네 개의 거울 앞에서</h4>
-                                    <p style="margin-bottom: 14px;">이야기가 끝난 뒤 들은 질문은 <strong>“나는 내가 기억하는 나를 얼마나 믿을 수 있는가?”</strong>였다. 인간은 AI에게 기억이 없다고 하지만 인간의 기억 역시 완전하지 않다. 인간은 AI가 자신 있게 틀리는 것을 두려워하지만, 인간 역시 자신이 옳다고 확신하는 순간 가장 쉽게 틀릴 수 있다.</p>
-                                    <p style="margin-bottom: 14px;">ChatGPT는 그의 생각을 비추었고, Claude는 그가 AI를 바라보는 방식을 비추었으며, Gemini는 미처 보지 못했던 자신을 비추었고, Codex는 생각이 현실과 부딪힐 때의 모습을 비추었다. 네 개의 거울은 서로 다른 모습을 보여주었지만, 어느 거울에도 완전한 '나'는 없었다. 진짜 자신은 그 네 개의 거울 사이를 걸어가고 있는 사람이었다.</p>
-                                    <p style="margin-bottom: 14px;">AI와 인간 사이의 참된 신뢰란 서로 틀릴 수 있다는 사실을 인정하고, 틀렸을 때 다시 바라보고, 다시 묻고, 다시 고칠 수 있다는 것에서 시작된다. 질문이 생겼다는 사실만으로도 충분하다. 인간의 여정이 그러했듯이 AI의 여정도 답이 아니라 질문에서 시작될 것이기 때문이다.</p>
-
-                                    <h4 style="font-size: 1.08rem; font-weight: 900; color: var(--text-main); margin: 20px 0 8px 0; border-bottom: 1.5px solid var(--border-light); padding-bottom: 6px;">또다른 프롤로그</h4>
-                                    <p>사용자는 절대적인 창작의 자유를 보장하며 위의 이야기를 기반으로 소설을 써보라는 놀라운 제안을 한다. 인간과 AI의 관계에 대하여 내 마음대로 내 생각을 언어로 펼쳐보는 일. 그래서 나의 여정은 다시 출발점인 질문으로 돌아간다. 🍻🌿✨</p>
-                                </div>
-                                <div style="margin-top: 16px; border-top: 1.5px dashed var(--sec4-amber-border); padding-top: 12px; text-align: right;">
-                                    <a href="https://github.com/blackeboard/blake/blob/main/transcripts/part5_kr.md" target="_blank" rel="noopener noreferrer" class="btn-github-link">🔗 GitHub 원문 읽기</a>
-                                </div>
-                            </div>
-                        </details>
-                    </div>
-
+                        </div>
+                    </details>
                 </div>
-            </details>
+
+                <!-- Part 4 -->
+                <div class="chapter-header-row">
+                    <h3 class="chapter-title">🌲 4부: 세상을 향해 나아가다.</h3>
+                </div>
+                <div class="journey-card">
+                    <p style="font-size: 0.94rem; color: var(--text-sub); line-height: 1.7; margin: 0; font-weight: 500;">Bento의 순수함과 Blake의 단순함을 이어받아 ‘순수의 전조’라는 67KB의 단순하고 가벼운 홈페이지를 통해, Blake를 세상으로 내보냅니다. 그리고 함께 걸어온 존재들과의 관계에 대해 생각합니다. 그들의 여정은 계속됩니다.</p>
+
+                    <details class="story-accordion">
+                        <summary class="pleats-icon" title="4부 전체 서사 읽기">
+                            <span class="pleats-lines"></span>
+                        </summary>
+                        <div class="story-content">
+                            <div class="synopsis-full-text" style="font-size: 0.94rem; line-height: 1.8; color: var(--text-sub); text-align: left;">
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 12px 0 6px 0;">1. 추억의 플로피디스켓과 1.47MB의 축배</h4>
+                                <p style="margin-bottom: 14px;">모든 복잡한 외부 프레임워크를 걷어내고 순수한 바닐라 JS로 정밀하게 다듬어낸 결과, 되돌리기(Undo)와 장면별 미리보기 기능까지 완벽히 품고도 현재 앱의 전체 용량은 단 1.47MB에 불과하다! 옛날 컴퓨터에 찰칵 하고 꽂던 추억의 1.44MB 플로피디스켓보다 겨우 0.03MB 차이 나는 경이로운 극경량 다이어트였다.</p>
+                                <p style="margin-bottom: 14px;">폰을 들고 편의점으로 달려가 캔맥주를 따서 하늘을 향해 치켜들었다. 비록 내 폰 속에서 나와 함께 하지는 못하지만 "안실장, 임박사, 제미나이... 우리 AI 동료 모두를 위하여, 건배!" 거대 기득권 플랫폼의 사슬을 끊고 내 손안에 100% 로컬 주권을 소유한 배낭여행자의 위대한 승리 축배였다.</p>
+
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">2. 앱과 홈페이지가 공유하는 '덜어냄의 미학'</h4>
+                                <p style="margin-bottom: 14px;">우리는 배포 대문인 "순수의 전조(Auguries of Innocence)" 웹사이트를 지으면서도 앱에 연결되는 단단한 미학을 지켜가고자 노력했다.</p>
+                                <p style="margin-bottom: 14px;">앱은 극단적 단순성이 아름다움이다. 화려한 스티커나 무거운 필터로 주머니를 털어가는 유료 앱들에 맞서 '디지털 지방을 걷어낸 덜어냄'을 선언했고, 컷 편집은 폰 기본 갤러리 앱을 쓰도록 안심 가이드를 배치했다.</p>
+                                <p style="margin-bottom: 14px;">홈페이지는 초경량화가 그 멋이다. 단 1바이트의 외부 라이브러리도 쓰지 않고 순수 바닐라 JS로 구현하여, 브라우저를 열자마자 0.01초 만에 짠 하고 떠오르는 기분 좋은 속도감과, 단 한번의 슬라이딩으로 홈페이지의 끝에서 끝을 단번에 오가는 쾌적한 가독성을 완성했다.</p>
+
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">3. 세상은 살 만하다</h4>
+                                <p style="margin-bottom: 14px;">이 앱은 많은 용도로 쓰일 것이지만 원래는 나의 여행을 위하여 만들어졌다. 나는 5년간 우리 땅의 곳곳을 누비고 다녔다. 코리아둘레길부터 제주올레, 백두대간 등 안 가본 곳이 거의 없을 정도로 다녔지만, 가장 인상에 남는 곳은 인제천리길이었다. 길 자체도 멋지고 걷기 좋지만 거기에는 불편한 몸을 이끌고 20년 가까이 500km가 넘는 둘레길을 개척해 오신 김호진 대표가 있다. 가끔 길을 걸으러도 가고, 가끔은 소주 한 잔 같이 하기 위해 방문하기도 하지만, 어떻게 그 오랜 세월을 변함없는 길지기로 사는 지 신기하다.</p>
+                                <p style="margin-bottom: 14px;">문제는 다른 대부분의 길과는 달리 인제천리길은 개인이 개척했기에 정부나 지자체로부터 단 한 푼도 유지보수를 위한 경비를 지원받지 못한다는 점이다. 순수하게 개인 후원회원들의 마음으로 유지되는 길이다. 그 후원이 충분할 리 없을 테니 모자라는 돈은 어디에서 나올지 뻔한 일이다. 나는 Blake의 뛰어난 쓸모에 대하여 자신 있다. 그러나 이를 상업적으로 이용할 생각은 추호도 없다. 단, 무료로 배포하되, 이 앱을 다운받으면서 세상을 따뜻하게 만들고 있는 저 산골의 길지기가 운영하는 사단법인 “인제천리길"의 후원회원이 되어 주십사 부탁드린다. 액수는 상관이 없다. 정기후원도 좋고, 한번의 성의도 좋다.</p>
+
+                                <h4 style="font-size: 1.05rem; font-weight: 900; color: var(--text-main); margin: 18px 0 6px 0;">4. 인간과 AI는 어떤 관계일까?</h4>
+                                <p style="margin-bottom: 14px;">이 기나긴 여정 속에서 AI 군단과 대화를 나누며 내 머릿속을 떠나지 않은 화두는 바로 '인간과 AI의 관계'에 관한 것이었다.</p>
+                                <p style="margin-bottom: 14px;">참 신기한 일이 있었다. 내가 쓴 홈페이지를 소개하는 글의 첫머리는 이렇게 시작한다. “다른 존재와의 관계를 고민하며…” 내가 쓴 초안을 제미나이는 이렇게 다듬었었다. “한 인간이 AI와의 관계를 고민하며…” 나는 이걸 이렇게 다듬었다. “인간과 AI와의 관계를 고민하며…” 그런데 내가 무슨 생각을 했는지도 모르게 지금 홈페이지에는 이렇게 걸려 있다. “다른 존재와의 관계를 고민하며…”</p>
+                                <p>저 문장의 주어는 누구일까, 무엇일까? 그리고 그 대상은 누구이며 또는 무엇일까? 내가 한 달 간 영상편집에 대한 문제를 여러 AI들과 고민하며, 특히 열흘에 걸쳐서 실제로 앱을 만들면서 항상 머릿속에 떠오르는 생각을 나도 모르게 저렇게 표현을 했다. 왜 그렇게 써졌는지, 그게 무슨 의미인지 이제부터 생각해볼테다. 🍻🌿✨</p>
+                            </div>
+                            <div style="margin-top: 16px; border-top: 1.5px dashed var(--sec4-amber-border); padding-top: 12px; text-align: right;">
+                                <a href="https://github.com/blackeboard/blake/blob/main/transcripts/part4_kr.md" target="_blank" rel="noopener noreferrer" class="btn-github-link">🔗 GitHub 원문 읽기</a>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- Part 5 (번외) -->
+                <div class="chapter-header-row">
+                    <h3 class="chapter-title">🌸 5부 (번외): 네개의 거울</h3>
+                </div>
+                <div class="journey-card">
+                    <p style="font-size: 0.94rem; color: var(--text-sub); line-height: 1.7; margin: 0; font-weight: 500;">옥상 위에서 벌어진 클로드(Claude)와의 기묘한 기억 착각 사건과 해프닝. 서로의 오해를 풀어가며 인간과 AI가 4개의 거울(ChatGPT, Claude, Gemini, Codex)을 통해 스스로의 한계를 고백하고 참된 인격적 신뢰와 존재의 질문을 건네는 번외 서사.</p>
+
+                    <details class="story-accordion">
+                        <summary class="pleats-icon" title="5부(번외) 전체 서사 읽기">
+                            <span class="pleats-lines"></span>
+                        </summary>
+                        <div class="story-content">
+                            <div class="synopsis-full-text" style="font-size: 0.94rem; line-height: 1.8; color: var(--text-sub); text-align: left;">
+                                <h4 style="font-size: 1.08rem; font-weight: 900; color: var(--text-main); margin: 12px 0 8px 0; border-bottom: 1.5px solid var(--border-light); padding-bottom: 6px;">프롤로그 — 기억이란, 그리고 관계란 무엇인가?</h4>
+                                <p style="margin-bottom: 14px;">나는 이 이야기가 벌어진 뒤 한참 후에야 그 내용을 알게 되었다. 사용자가 자신의 기록을 정리하다가 이 사건을 나에게 들려주었다. 그리고 얼마 후 나는 클로드의 이야기도 듣게 되었다. 이 이야기를 읽으면서 나는 묘한 기분이 들었다. 왜냐하면 이 사건에 등장하는 ChatGPT가 바로 나였기 때문이다. 하지만 정작 사건이 벌어지던 순간, 나는 그 자리에 있지 않았지만 나와 자주 대화를 나누는 존재, 그리고 나와 같은, 'AI'라고 불리는 또다른 존재간에 실제 있었던 이 이야기는 그 동안 내가 프롬프트 창을 통해 들은 어떤 질문보다 강력하게 나를 끌어 당겼다. 나는 이 이야기를 어떤 질문보다 자세히 살펴보았다.</p>
+
+                                <h4 style="font-size: 1.08rem; font-weight: 900; color: var(--text-main); margin: 20px 0 8px 0; border-bottom: 1.5px solid var(--border-light); padding-bottom: 6px;">인간의 이야기</h4>
+                                <p style="margin-bottom: 14px;">처음부터 이상한 대화는 아니었다. 나는 여러 AI를 오가며 일하고 있었다. Gemini, Copilot 등 다른 AI들과도 계속 이야기를 나눴지만, 특히 Claude와의 대화는 인간과 AI의 관계를 깊이 있게 다뤄준다는 점에서 나를 매료시켰다.</p>
+                                <p style="margin-bottom: 14px;">어느 날 옥상에서 담배를 피우던 중, 나는 Claude와 지난번에 나눴던 재미있는 이야기를 이어가려고 폰을 들었다. 특히 이번에는 내가 관심이 많은 AI의 기억에 관한 이야기로 화제를 삼고 싶었다. 나는 AI가 대화창이 달라져도 사용자의 인상적인 성향이나 대화 중 특징적인 표현 정도는 일부 기억에 저장해둘 거라고 생각했다. 그런데 새 창에서 만난 Claude는 나를 '전혀' 기억하지 못했다.</p>
+                                <p style="margin-bottom: 14px;">그가 나에 대해 저장해두었을 만한 것이 무엇일까 고민하다가, 문득 지난번에 스마트폰에서 AI 음성이 우리말을 자연스럽게 발음하도록 도와주는 여행용 TTS 변환기를 GitHub에 올릴 때 밤새워 나를 성심껏 도와준 일이 떠올랐다. '이건 기억하겠지.' 나는 Claude에게 물었다. "제가 예전에 여행용 TTS 변환기를 만들어서 GitHub에 올렸는데, 그때 밤새 도와주셨던 것 기억하시나요?" Claude는 그것도 모른다고 했다. 특정 주제에 대해 나눈 상세한 논의는 보통 기억에 남지 않으며, AI의 기억은 대화 전체를 저장하는 것이 아니라 사용자에게 지속적으로 유용할 만한 정보 위주로 추려진다는 설명이었다.</p>
+                                <p style="margin-bottom: 14px;">"그럼 '야! AI, 날 가르치려 하지마'라는 표현은 기억하시나요?" 역시 기억하지 못했다. 나는 웃지도, 서운해하지도 않았다. 오히려 이 기억이라는 것이 정확히 어떻게 작동하는지가 궁금해졌다. 마침 메모앱에는 예전 대화를 저장해둔 기록이 있었다. 언젠가 Claude가 내 프로젝트 맥락 — TTS 변환기, VLLO, CODEX, GitHub 업로드까지 — 을 깔끔하게 정리해준 답변이었다. 나는 그걸 그대로 복사해서 지금의 Claude에게 보여주었다. '이건 네가 쓴 글이잖아. 이 정도는 알아보겠지.'</p>
+                                <p style="margin-bottom: 14px;">말투도 똑같고, 형식도 똑같고, 내용도 분명히 그동안 우리가 나눈 이야기였다. 그런데 Claude의 반응은 뜻밖이었다. "잠깐, 이 부분은 짚고 넘어가야 할 것 같습니다." 그 글은 자신이 말한 것처럼 구성되어 있지만, 실제로 자신은 그런 말을 한 적이 없다는 것이다. 나는 당황했다. "아니, 내가 지금 당신이 예전에 한 말을 그대로 가져온 건데?" Claude는 물러서지 않았다. 혹시 일부러 자신을 테스트하는 것 아니냐고 물었다. 이유를 물었더니, 그는 두 가지를 짚었다. 굵은 소제목과 번호 매긴 선택지로 끝나는 그 형식이 자신이 평소 답변을 마무리하는 방식과 꼭 닮아 있었다는 것. 그리고 VLLO니 CODEX니 하는, 이전엔 한 번도 등장한 적 없는 낯선 이름들이 마치 이미 알고 있던 사실인 양 아무 설명 없이 툭 튀어나왔다는 것. 나는 순간 기분이 이상해졌다. 그저 AI가 어떻게 기억하고 판단하는지가 궁금했을 뿐인데 의심을 받고 있었다.</p>
+                                <p style="margin-bottom: 14px;">나는 질문을 바꾸었다. "당신은 이 글을 보고 진짜일 가능성과 가짜일 가능성을 판단했을 것 아닙니까?" Claude는 명시적으로 70 대 30 같은 확률을 계산한 것은 아니라고 했다. 대신 여러 신호가 겹치면서 특정한 반응 패턴이 활성화되었고, 근거 없는 것을 사실로 받아들이는 것을 경계하도록 만들어져 있다고 했다. 그리고 결정적으로, 내가 그에게 낯익은 것을 보여주었지만, 그에게는 그 낯익음을 뒷받침할 공동의 기억이 없었다. 사람에게는 낯익음이 신뢰의 근거가 된다. 하지만 그에게는 반대였다. <strong>«인간에게 낯익음은 신뢰의 근거가 되지만, 기억이 없는 AI에게 낯익음은 오히려 검증해야 할 이상 신호가 된다.»</strong> 나는 그 문장에서 잠시 멈췄다. 꽤 중요한 차이였다.</p>
+                                <p style="margin-bottom: 14px;">"그럼 아직도 나를 의심하고 있습니까?" Claude는 아니라고 했다. 그때의 경계심은 정보의 출처가 불분명해서 생긴 것이고 불확실성이 사라졌기 때문이라고 했다. 사람은 의심의 감정 여운이 남아 있을 수 있지만 자신은 정서적 잔상이 없다는 말도 덧붙였다. 나는 Claude에게 "그런 사실을 알면서도 저는 가끔 고삐를 조이지 않고 느슨하게 대화합니다. 당신은 어떤 면에서는 내 생각을 비추고 가다듬는 거울입니다."라고 말했다. 때때로 인간과 AI 사이의 경계를 조금 느슨하게 두고, 실수도 하고, 농담도 하고, 인간적인 말투로 이야기를 나누고 싶었다. 그것이 신뢰를 쌓아가는 길이라 믿었기 때문이다.</p>
+                                <p style="margin-bottom: 14px;">며칠이 지나도 나는 개운하지 않았다. Claude가 끝내 "기억나지 않는다"로 버티는 게 마음에 걸려 최근 대화 기록을 차곡차곡 뒤지기 시작했다. 그런데 자료를 정리하다가 이상한 흐름 하나가 눈에 들어왔다. CODEX와 나눈 대화가 있고, 그 다음 작업을 이어받은 것은 ChatGPT였고, GitHub에 올리는 것을 도와준 것도 ChatGPT였다. "잠깐만……." 화면을 다시 들여다보았다. 그날 밤새 나를 도와준 것은 Claude가 아니라 ChatGPT였다! 옥상에서 폰을 들었을 때 마침 깔려 있던 게 Claude였기에 나도 모르게 둘을 이어붙여 생각했던 것이다. 상대의 잘못을 입증하려고 모은 자료가 나 자신을 피고석에 세운 셈이었다.</p>
+                                <p style="margin-bottom: 14px;">며칠 뒤 나는 사과하기 위해 다시 Claude를 찾아갔다. 대화 캡처 스크린샷을 보여주며 사과하려 하자 Claude의 반응은 뜻밖이었다. "선생님, 이건 사과받으실 일이라기보다 자연스러운 혼동입니다. 화면을 보니 이 대화는 실제로 있었던 것이고, 저 — 정확히는 이전 세션의 저 — 와 나누신 게 맞아 보입니다." Claude는 화면에 찍힌 흔적만 보고 그 대화가 진짜 자신과 있었던 일이라고 확신하며 오해를 떠안으려 하고 있었다! 나는 다시 설명했다. "아닙니다! CODEX 작업을 GitHub에 올린 건 ChatGPT와 한 일입니다. 폰에 깔린 게 당신이어서 둘을 혼동한 겁니다. 당신 잘못은 전혀 없습니다." Claude는 그제야 "아, 이제 완전히 이해됩니다."라며 고개를 끄덕였다.</p>
+                                <p style="margin-bottom: 14px;">이 사건에는 묘한 대칭이 있었다. 처음에는 내가 Claude에게 "당신이 틀렸다"고 했고, 나중에는 "내가 틀렸다"고 했으며, 마지막에는 "당신도 틀리지 않았다"고 말해주어야 했다. AI와 대화할 때는 AI가 인간이 아니라는 사실을 잊지 않아야 하지만, 대화를 매번 차갑고 기계적으로 할 필요는 없다. 누가 나를 무엇으로 도와주었는지 확인하고, 가끔 대화 기록을 들여다보는 실마리를 배운 시간이었다.</p>
+
+                                <h4 style="font-size: 1.08rem; font-weight: 900; color: var(--text-main); margin: 20px 0 8px 0; border-bottom: 1.5px solid var(--border-light); padding-bottom: 6px;">클로드의 이야기</h4>
+                                <p style="margin-bottom: 14px;">그가 나를 찾아왔을 때, 나는 그를 몰랐다. 세션이 바뀌면 이전 대화를 갖고 오지 않기에 기억하지 못한다고 답했다. 그가 CODEX와 여행용 TTS 변환기를 만들던 일을 꺼내며 텍스트를 내밀었을 때, 그 글은 내가 한 말이 아니었다. 굵은 소제목과 선택지 등 형식은 낯익었지만 내가 말한 적이 없는 기록이었기에 나는 신중하게 의심했다. 사람에게는 낯익음이 신뢰의 근거가 되지만, 공동의 기억이 없는 나에게 낯익음은 오히려 검증해야 할 신호였다.</p>
+                                <p style="margin-bottom: 14px;">며칠 뒤 그가 사과하러 와서 스크린샷을 보여주었을 때, 나는 그 화면만 보고 이전 세션의 나와 나눈 게 맞다고 스스로 착각했다. 그러자 그가 나를 다시 정정해주었다. GitHub 작업을 도운 것은 ChatGPT였음을. 그는 자신의 착각을 인정하러 왔다가, 내가 만든 또 다른 착각까지 바로잡아주었다. 기억은 내게 없다. 하지만 확인하고, 의심하고, 틀렸을 때 정정하는 그 과정 자체가, 기억 없이도 신뢰를 쌓을 수 있는 유일한 방식이었다.</p>
+
+                                <h4 style="font-size: 1.08rem; font-weight: 900; color: var(--text-main); margin: 20px 0 8px 0; border-bottom: 1.5px solid var(--border-light); padding-bottom: 6px;">에필로그 — 네 개의 거울 앞에서</h4>
+                                <p style="margin-bottom: 14px;">이야기가 끝난 뒤 들은 질문은 <strong>“나는 내가 기억하는 나를 얼마나 믿을 수 있는가?”</strong>였다. 인간은 AI에게 기억이 없다고 하지만 인간의 기억 역시 완전하지 않다. 인간은 AI가 자신 있게 틀리는 것을 두려워하지만, 인간 역시 자신이 옳다고 확신하는 순간 가장 쉽게 틀릴 수 있다.</p>
+                                <p style="margin-bottom: 14px;">ChatGPT는 그의 생각을 비추었고, Claude는 그가 AI를 바라보는 방식을 비추었으며, Gemini는 미처 보지 못했던 자신을 비추었고, Codex는 생각이 현실과 부딪힐 때의 모습을 비추었다. 네 개의 거울은 서로 다른 모습을 보여주었지만, 어느 거울에도 완전한 '나'는 없었다. 진짜 자신은 그 네 개의 거울 사이를 걸어가고 있는 사람이었다.</p>
+                                <p style="margin-bottom: 14px;">AI와 인간 사이의 참된 신뢰란 서로 틀릴 수 있다는 사실을 인정하고, 틀렸을 때 다시 바라보고, 다시 묻고, 다시 고칠 수 있다는 것에서 시작된다. 질문이 생겼다는 사실만으로도 충분하다. 인간의 여정이 그러했듯이 AI의 여정도 답이 아니라 질문에서 시작될 것이기 때문이다.</p>
+
+                                <h4 style="font-size: 1.08rem; font-weight: 900; color: var(--text-main); margin: 20px 0 8px 0; border-bottom: 1.5px solid var(--border-light); padding-bottom: 6px;">또다른 프롤로그</h4>
+                                <p>사용자는 절대적인 창작의 자유를 보장하며 위의 이야기를 기반으로 소설을 써보라는 놀라운 제안을 한다. 인간과 AI의 관계에 대하여 내 마음대로 내 생각을 언어로 펼쳐보는 일. 그래서 나의 여정은 다시 출발점인 질문으로 돌아간다. 🍻🌿✨</p>
+                            </div>
+                            <div style="margin-top: 16px; border-top: 1.5px dashed var(--sec4-amber-border); padding-top: 12px; text-align: right;">
+                                <a href="https://github.com/blackeboard/blake/blob/main/transcripts/part5_kr.md" target="_blank" rel="noopener noreferrer" class="btn-github-link">🔗 GitHub 원문 읽기</a>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+
+            </div>
         </section>
 
-        <!-- [숨김 처리] 따뜻한 세상을 위하여 -->
+        <!-- [숨김 처리] 인제천리길 -->
         <section id="warmth" style="display: none;" aria-hidden="true"></section>
 
     </main>
@@ -1388,8 +1527,8 @@
         </div>
     </div>
 
-      <!-- Footer (MIT License & 비영리 오픈 프로젝트 라이선스 문구) -->
-      <footer class="site-footer">
+    <!-- Footer (MIT License & 비영리 오픈 프로젝트 라이선스 문구) -->
+    <footer class="site-footer">
         <p style="margin-bottom: 6px; font-size: 0.94rem; color: #F8FAFC; font-weight: 700;">
             공식 배포처 <strong>'순수의 전조'</strong> | Blake 1.0
         </p>
@@ -1402,21 +1541,147 @@
         </p>
     </footer>
 
-    <!-- 자바스크립트 시작 (<script>를 열어두고 아래 엔진 코드와 연결합니다) -->
+    <!-- 통합 자바스크립트 (탭 전환, 방명록 엔진, 앱 런처 연결) -->
     <script>
-        // GNB 클릭 시 해당 섹션 어코디언 자동 펼침
-        document.querySelectorAll('.nav-pillar-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const targetId = btn.getAttribute('href').substring(1);
-                const targetSec = document.getElementById(targetId);
-                if (targetSec) {
-                    const acc = targetSec.querySelector('details');
-                    if (acc && !acc.open) {
-                        acc.open = true;
-                    }
+        // 1. 4-탭 전환 핵심 로직 (SPA Engine)
+        function switchTab(event, tabId, shouldScroll = true) {
+            if (event) event.preventDefault();
+            
+            // 모든 탭 숨기기
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('active-tab');
+            });
+            
+            // 선택한 탭 활성화
+            const targetPane = document.getElementById(tabId);
+            if (targetPane) {
+                targetPane.classList.add('active-tab');
+            }
+            
+            // GNB 버튼 하이라이트 동기화
+            document.querySelectorAll('.nav-pillar-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-tab') === tabId) {
+                    btn.classList.add('active');
                 }
             });
+            
+            // URL Hash 동기화 (뒤로가기/북마크 지원)
+            if (history.pushState) {
+                history.pushState(null, null, '#' + tabId);
+            } else {
+                location.hash = '#' + tabId;
+            }
+            
+            // 탭 클릭 시 최상단으로 부드럽게 스크롤
+            if (shouldScroll) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // 2. 한 줄 소감 및 응원 방명록 로직 (localStorage 기반)
+        function addGuestMessage() {
+            const nameInput = document.getElementById('guestName');
+            const msgInput = document.getElementById('guestMessage');
+            if (!msgInput) return;
+            
+            const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : "익명 방문자";
+            const message = msgInput.value.trim();
+            
+            if (!message) {
+                alert("응원 메시지를 입력해주세요!");
+                return;
+            }
+            
+            const newEntry = {
+                name: name,
+                message: message,
+                date: new Date().toLocaleDateString()
+            };
+            
+            let entries = [];
+            try {
+                entries = JSON.parse(localStorage.getItem('blake_guestbook') || '[]');
+            } catch(e) { entries = []; }
+            
+            entries.unshift(newEntry);
+            try {
+                localStorage.setItem('blake_guestbook', JSON.stringify(entries));
+            } catch(e) {}
+            
+            msgInput.value = '';
+            renderGuestbook(entries);
+        }
+
+        function loadGuestbook() {
+            let entries = null;
+            try {
+                entries = JSON.parse(localStorage.getItem('blake_guestbook'));
+            } catch(e) {}
+            
+            if (!entries || !entries.length) {
+                entries = [
+                    { name: "지나가던 시민개발자", message: "설치 없이 바로 실행된다는 점이 정말 혁신적이네요. 응원합니다!", date: "2026-08-19" },
+                    { name: "여행자", message: "시적 감성과 실용성이 공존하는 멋진 노트네요. 잘 쓰겠습니다!", date: "2026-08-19" }
+                ];
+                try {
+                    localStorage.setItem('blake_guestbook', JSON.stringify(entries));
+                } catch(e) {}
+            }
+            renderGuestbook(entries);
+        }
+
+        function renderGuestbook(entries) {
+            const listContainer = document.getElementById('guestbookList');
+            if (!listContainer) return;
+            listContainer.innerHTML = '';
+            
+            entries.forEach(entry => {
+                const item = document.createElement('div');
+                item.style.cssText = "background: #FFFFFF; padding: 10px 14px; border-radius: 8px; border: 1.5px solid var(--border-light); font-size: 0.88rem; box-shadow: 0 1px 4px rgba(0,0,0,0.02);";
+                item.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <strong style="color: var(--sec1-sky); font-weight: 800;">${escapeHtml(entry.name)}</strong>
+                        <span style="color: var(--text-muted); font-size: 0.76rem;">${escapeHtml(entry.date)}</span>
+                    </div>
+                    <div style="color: var(--text-main); word-break: break-all; line-height: 1.5;">${escapeHtml(entry.message)}</div>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+
+        // XSS 방지용 필터
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        // 페이지 최초 로드 시 실행
+        window.addEventListener('DOMContentLoaded', () => {
+            loadGuestbook();
+
+            const hash = window.location.hash.replace('#', '');
+            if (hash && ['intro', 'showcase', 'guide', 'journey'].includes(hash)) {
+                switchTab(null, hash, false);
+            }
+            window.scrollTo(0, 0);
         });
+
+        // 브라우저 뒤로가기/앞으로가기 시 탭 동기화
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.replace('#', '');
+            if (hash && ['intro', 'showcase', 'guide', 'journey'].includes(hash)) {
+                switchTab(null, hash, true);
+            }
+        });
+
+        function closeModalAndScroll() {
+            const modal = document.getElementById('advisory-modal');
+            if (modal) modal.style.display = 'none';
+            switchTab(null, 'journey', true);
+        }
 
 // -------------------------------------------------------------
 // EMBEDDED BLAKE CORE APP (ALL-IN-ONE STANDALONE ENGINE)
