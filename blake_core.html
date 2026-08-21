@@ -489,12 +489,13 @@ function pushUndoState() {
         
         slideCards.forEach(card => {
             const cardId = card.id.replace('slide-card-', '');
+            const f = fileStore[cardId];
             slides.push({
                 id: cardId,
                 title: `장면 ${cardId}`,
                 text: card.querySelector('.slide-text') ? card.querySelector('.slide-text').value : '',
-                file: fileStore[cardId] ? JSON.parse(JSON.stringify(fileStore[cardId])) : null,
-                narration: narrationStore[cardId] ? JSON.parse(JSON.stringify(narrationStore[cardId])) : { mode: 'tts', recAudioDataUri: null }
+                fileInfo: f ? { name: f.name, type: f.type, thumbUri: f.thumbUri } : null,
+                narration: narrationStore[cardId] ? { mode: narrationStore[cardId].mode } : { mode: 'tts' }
             });
         });
         
@@ -537,15 +538,17 @@ function undoLastAction() {
         const container = document.getElementById('slides-container');
         if (container) container.innerHTML = '';
         
-        for (let k in fileStore) delete fileStore[k];
-        for (let k in narrationStore) delete narrationStore[k];
-        
         if (data.slides && data.slides.length > 0) {
             let maxId = 0;
             data.slides.forEach((s, idx) => {
                 const sId = parseInt(s.id) || (idx + 1);
                 if (sId > maxId) maxId = sId;
-                createSlideCard(sId, s, idx === 0);
+                const existingFile = fileStore[sId] || (s.fileInfo ? { name: s.fileInfo.name, type: s.fileInfo.type, thumbUri: s.fileInfo.thumbUri, dataUri: s.fileInfo.thumbUri } : null);
+                createSlideCard(sId, {
+                    text: s.text,
+                    file: existingFile,
+                    narration: narrationStore[sId] || s.narration
+                }, idx === 0);
             });
             slideCounter = maxId;
         } else {
@@ -554,9 +557,7 @@ function undoLastAction() {
             slideCounter = 2;
         }
         
-        saveDraftIndexedDB(data);
-        try { SafeStorage.setItem('blake_core_draft_backup', JSON.stringify(data)); } catch(e) {}
-        
+        flushSaveDraft();
         showToast('↩️ 이전 작업이 취소(복구)되었습니다!');
     } catch(e) {
         alert("작업 취소 오류: " + e.message);
@@ -654,79 +655,47 @@ function toggleSubtitleButton() {
 }
 
 // ==========================================
-// 2. 모바일 네이티브 공유 및 PC 다운로드 통합 처리 함수 (정밀 보정)
+// 2. 통합 고속 파일 다운로드 함수 (초경량 클린 버전)
 // ==========================================
-async function exportAndShareBlake(htmlContent) {
+function downloadBlakeFile(htmlContent) {
     const fileName = getDynamicFileName();
-    
-    // HTML 내용을 담은 Blob 생성
     const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-
-    // 모바일 환경(스마트폰/태블릿) 여부 정밀 판별
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-    // 1단계: 모바일 기기이면서 Web Share API가 지원되는 경우 (HTTPS 환경)
-    if (isMobile && typeof navigator.canShare === 'function') {
-        try {
-            const file = new File([blob], fileName, { type: 'text/plain' });
-            if (navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    title: fileName.replace('.html', ''),
-                    text: 'Blake에서 생성된 멀티미디어 웹 문서입니다.',
-                    files: [file]
-                });
-                showToast(`📤 [${fileName}] 공유가 완료되었습니다.`);
-                return;
-            }
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                return; // 사용자가 공유창을 닫은 경우
-            }
-            console.warn('모바일 공유 실패, 다운로드로 전환:', error);
-        }
-    }
-
-    // 2단계: PC 환경이거나 모바일 공유 미지원/로컬 환경일 때 -> 표준 브라우저 직접 다운로드 실행
-    const downloadUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = downloadUrl;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    
-    // 3단계: 다운로드 시작 후 2초 뒤 안전하게 메모리 해제
-    setTimeout(function() {
-        if (a.parentNode) document.body.removeChild(a);
-        URL.revokeObjectURL(downloadUrl);
-    }, 2000);
-
-    // 사용자 안내 알림
-    showToast(`💾 [${fileName}] 다운로드가 완료되었습니다.`);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+        if (link.parentNode) document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }, 1000);
+    showToast(`💾 [${fileName}] 저장이 완료되었습니다.`);
 }
 
-async function manualSaveDraft() {
-    saveDraft();
-    generateMobileBento(1);
-    if (lastGeneratedHtml) {
-        await exportAndShareBlake(lastGeneratedHtml);
-    } else {
-        showToast('💾 저장되었습니다.');
-    }
-}
+let saveDraftDebounceTimer = null;
 
 function saveDraft() {
+    if (saveDraftDebounceTimer) clearTimeout(saveDraftDebounceTimer);
+    saveDraftDebounceTimer = setTimeout(flushSaveDraft, 300);
+}
+
+function flushSaveDraft() {
     try {
-        const title = document.getElementById('doc-title').value;
-        const showSubtitle = document.getElementById('doc-subtitle-toggle').checked;
+        const titleEl = document.getElementById('doc-title');
+        const title = titleEl ? titleEl.value : '';
+        const toggleEl = document.getElementById('doc-subtitle-toggle');
+        const showSubtitle = toggleEl ? toggleEl.checked : true;
         const slideCards = document.querySelectorAll('.accordion-card');
         const slides = [];
         
         slideCards.forEach(card => {
             const cardId = card.id.replace('slide-card-', '');
+            const txtEl = card.querySelector('.slide-text');
             slides.push({
                 id: cardId,
                 title: `장면 ${cardId}`,
-                text: card.querySelector('.slide-text').value,
+                text: txtEl ? txtEl.value : '',
                 file: fileStore[cardId] || null,
                 narration: narrationStore[cardId] || { mode: 'tts', recAudioDataUri: null }
             });
@@ -734,28 +703,32 @@ function saveDraft() {
         
         const draftObj = { title, showSubtitle, slides };
         saveDraftIndexedDB(draftObj);
-        try { SafeStorage.setItem('blake_core_draft_backup', JSON.stringify(draftObj)); } catch(e) {}
     } catch(e) {}
+}
+
+function manualSaveDraft() {
+    flushSaveDraft();
+    const html = generateMobileBento(1);
+    if (html) {
+        downloadBlakeFile(html);
+    } else {
+        showToast('💾 저장되었습니다.');
+    }
 }
 
 function loadDraft() {
     loadDraftIndexedDB(function(data) {
-        if (!data) {
-            try {
-                const b = SafeStorage.getItem('blake_core_draft_backup');
-                if (b) data = JSON.parse(b);
-            } catch(e) {}
-        }
-        
         const container = document.getElementById('slides-container');
-        container.innerHTML = '';
+        if (container) container.innerHTML = '';
         
         if (data) {
-            if (data.title) document.getElementById('doc-title').value = data.title;
+            if (data.title && document.getElementById('doc-title')) {
+                document.getElementById('doc-title').value = data.title;
+            }
             if (data.showSubtitle !== undefined) {
                 const toggleInput = document.getElementById('doc-subtitle-toggle');
                 const btn = document.getElementById('btn-sub-toggle');
-                toggleInput.checked = data.showSubtitle;
+                if (toggleInput) toggleInput.checked = data.showSubtitle;
                 if (btn) {
                     btn.innerText = data.showSubtitle ? '💬 자막 ON' : '💬 자막 OFF';
                     btn.style.color = data.showSubtitle ? '#A7F3D0' : '#94A3B8';
@@ -1008,12 +981,79 @@ function createSlideCard(num, data, isOpen) {
     container.appendChild(card);
 }
 
+// ==========================================
+// 3. 미디어 가상 바인딩 및 썸네일 메모리 최적화 매니저
+// ==========================================
+const MediaStore = {
+    // 원본 미디어 Blob/File 데이터를 메모리에 가상 보관하는 저장소
+    virtualFiles: new Map(),
+
+    // 파일 등록 및 초경량 가상 주소(Object URL) 발급
+    registerMedia: function(cellId, file) {
+        // 기존에 등록된 메모리 주소가 있다면 해제하여 누수 방지
+        if (this.virtualFiles.has(cellId)) {
+            try { URL.revokeObjectURL(this.virtualFiles.get(cellId).previewUrl); } catch(e) {}
+        }
+
+        const previewUrl = URL.createObjectURL(file);
+        this.virtualFiles.set(cellId, {
+            file: file,
+            previewUrl: previewUrl,
+            type: file.type
+        });
+
+        return previewUrl;
+    },
+
+    // 화면 렌더링용 초경량 썸네일(Canvas 리사이징) 생성
+    createOptimizedThumbnail: function(imageSource, maxWidth = 320) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            let isObjUrl = false;
+            if (typeof imageSource === 'string') {
+                img.src = imageSource;
+            } else {
+                img.src = URL.createObjectURL(imageSource);
+                isObjUrl = true;
+            }
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const scale = maxWidth / (img.width || maxWidth);
+                    canvas.width = maxWidth;
+                    canvas.height = (img.height || maxWidth) * scale;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    if (isObjUrl) {
+                        try { URL.revokeObjectURL(img.src); } catch(e) {}
+                    }
+                    resolve(canvas.toDataURL('image/jpeg', 0.7)); // 압축 썸네일 반환
+                } catch(e) {
+                    resolve(null);
+                }
+            };
+            img.onerror = () => {
+                if (isObjUrl) {
+                    try { URL.revokeObjectURL(img.src); } catch(e) {}
+                }
+                resolve(null);
+            };
+        });
+    }
+};
+
 function removeSlide(slideId) {
     try {
         pushUndoState();
         const card = document.getElementById(`slide-card-${slideId}`);
         if (card) {
             card.remove();
+            if (MediaStore.virtualFiles.has(slideId)) {
+                try { URL.revokeObjectURL(MediaStore.virtualFiles.get(slideId).previewUrl); } catch(e) {}
+                MediaStore.virtualFiles.delete(slideId);
+            }
             delete fileStore[slideId];
             delete narrationStore[slideId];
             
@@ -1047,11 +1087,14 @@ function handleFileSelect(slideId, event) {
         
         pushUndoState();
         const dropzone = document.getElementById(`dropzone-${slideId}`);
+        const preview = document.getElementById(`preview-${slideId}`);
         const isVideo = file.type.startsWith('video') || file.name.toLowerCase().endsWith('.mp4');
+        
+        MediaStore.registerMedia(slideId, file);
+
         const reader = new FileReader();
         reader.onload = function(e) {
             const dataUri = e.target.result;
-            const preview = document.getElementById(`preview-${slideId}`);
             
             if (isVideo) {
                 generateVideoThumbnail(dataUri, function(thumbUri) {
@@ -1079,22 +1122,26 @@ function handleFileSelect(slideId, event) {
                     pushUndoState();
                 });
             } else {
-                fileStore[slideId] = {
-                    name: file.name,
-                    type: 'image',
-                    dataUri: dataUri
-                };
-                if (preview) {
-                    preview.src = dataUri;
-                    preview.style.display = 'block';
-                    if (dropzone) dropzone.style.display = 'none';
-                }
-                const badge = document.getElementById(`badge-${slideId}`);
-                if (badge) badge.innerText = `🖼️ ${slideId}`;
-                const btn = document.getElementById(`btn-remove-${slideId}`);
-                if (btn) btn.innerText = `🗑️ 장면 삭제 (${file.name})`;
-                saveDraft();
-                pushUndoState();
+                MediaStore.createOptimizedThumbnail(file, 320).then(function(thumbUri) {
+                    const finalThumb = thumbUri || dataUri;
+                    fileStore[slideId] = {
+                        name: file.name,
+                        type: 'image',
+                        dataUri: dataUri,
+                        thumbUri: finalThumb
+                    };
+                    if (preview) {
+                        preview.src = finalThumb;
+                        preview.style.display = 'block';
+                        if (dropzone) dropzone.style.display = 'none';
+                    }
+                    const badge = document.getElementById(`badge-${slideId}`);
+                    if (badge) badge.innerText = `🖼️ ${slideId}`;
+                    const btn = document.getElementById(`btn-remove-${slideId}`);
+                    if (btn) btn.innerText = `🗑️ 장면 삭제 (${file.name})`;
+                    saveDraft();
+                    pushUndoState();
+                });
             }
         };
         reader.readAsDataURL(file);
@@ -1361,12 +1408,63 @@ function generateMobileBento(startSlideNum) {
             return;
         }
         
-        // Blake 1.0 Official Baseline Engine
+        // Blake 1.0 Official Baseline Engine (Voice + Slide Index Tracking + ESC Restoration)
         const audioEngineScript = "<script>" +
             "(function() {" +
-            "  const TARGET_SPEED = 1.4;" +
+            "  const TARGET_SPEED = 1.35;" +
             "  const SLIDE_TEXTS = " + JSON.stringify(slideTextMap) + ";" +
             "  let currentSlideNum = 0;" +
+            "  let speechDelayTimer = null;" +
+            "  let isPresenterStarted = false;" +
+            "  let cachedVoices = [];" +
+            "  function getVoicesSafe() {" +
+            "    if (window.speechSynthesis) {" +
+            "      try {" +
+            "        const v = window.speechSynthesis.getVoices();" +
+            "        if (v && v.length > 0) { cachedVoices = v; return v; }" +
+            "      } catch(e) {}" +
+            "    }" +
+            "    return cachedVoices;" +
+            "  }" +
+            "  if (window.speechSynthesis) {" +
+            "    window.speechSynthesis.onvoiceschanged = function() {" +
+            "      try {" +
+            "        const v = window.speechSynthesis.getVoices();" +
+            "        if (v && v.length > 0) cachedVoices = v;" +
+            "      } catch(e) {}" +
+            "    };" +
+            "    try { cachedVoices = window.speechSynthesis.getVoices() || []; } catch(e) {}" +
+            "  }" +
+            "  function selectVoiceAndPitch(voices) {" +
+            "    const ko = voices.filter(function(v) {" +
+            "      const l = (v.lang || '').toLowerCase().replace(/_/g, '-');" +
+            "      return l.startsWith('ko') || l.includes('kr') || l.includes('kor');" +
+            "    });" +
+            "    if (ko.length === 0) return { voice: null, pitch: 0.75 };" +
+            "    const injoon = ko.find(function(v) {" +
+            "      const str = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
+            "      return str.includes('injoon') || str.includes('인준');" +
+            "    });" +
+            "    if (injoon) return { voice: injoon, pitch: 1.0 };" +
+            "    const maleVoice = ko.find(function(v) {" +
+            "      const str = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
+            "      if (str.includes('female') || str.includes('여성')) return false;" +
+            "      return str.includes('bongjin') || str.includes('봉진') ||" +
+            "             str.includes('gookmin') || str.includes('국민') || str.includes('ism') || str.includes('koc') ||" +
+            "             str.includes('kod') || str.includes('sm2') || str.includes('남성') ||" +
+            "             str.includes('voice 2') || str.includes('voice2') || str.includes('_2') || str.includes('#2');" +
+            "    });" +
+            "    if (maleVoice) return { voice: maleVoice, pitch: 1.0 };" +
+            "    const nonFemale = ko.find(function(v) {" +
+            "      const str = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
+            "      return !str.includes('sunhi') && !str.includes('선희') && !str.includes('sun-hi') &&" +
+            "             !str.includes('heami') && !str.includes('혜미') && !str.includes('yuna') &&" +
+            "             !str.includes('유나') && !str.includes('female') && !str.includes('여성') &&" +
+            "             !str.includes('kob') && !str.includes('koe');" +
+            "    });" +
+            "    if (nonFemale) return { voice: nonFemale, pitch: 0.95 };" +
+            "    return { voice: ko[0], pitch: 0.75 };" +
+            "  }" +
             "  function enforceSpeedOnAudio(aud) {" +
             "    if (!aud) return;" +
             "    try {" +
@@ -1375,70 +1473,71 @@ function generateMobileBento(startSlideNum) {
             "    } catch(e) {}" +
             "  }" +
             "  function stopAllAudio() {" +
-            "    if (window.speechSynthesis) { try { window.speechSynthesis.cancel(); } catch(e) {} }" +
+            "    if (window.speechSynthesis) {" +
+            "      try { window.speechSynthesis.cancel(); } catch(e) {}" +
+            "      try { if (window.speechSynthesis.paused) window.speechSynthesis.resume(); } catch(e) {}" +
+            "    }" +
             "    document.querySelectorAll('audio').forEach(function(a) { try { a.pause(); a.currentTime = 0; } catch(e) {} });" +
             "    document.querySelectorAll('video').forEach(function(v) { try { v.pause(); v.currentTime = 0; v.muted = true; } catch(e) {} });" +
             "  }" +
+            "  window._blakeActiveUtterance = null;" +
             "  function speakTextReliably(txt, onEnd) {" +
             "    if (!txt || !txt.trim()) { if (onEnd) onEnd(); return; }" +
             "    if (!window.speechSynthesis) { if (onEnd) onEnd(); return; }" +
             "    try {" +
             "      window.speechSynthesis.cancel();" +
-            "      const voices = window.speechSynthesis.getVoices() || [];" +
+            "      if (window.speechSynthesis.paused) {" +
+            "        try { window.speechSynthesis.resume(); } catch(e) {}" +
+            "      }" +
+            "      const voices = getVoicesSafe();" +
             "      if (voices.length === 0) {" +
-            "        setTimeout(function() { speakTextReliably(txt, onEnd); }, 120);" +
+            "        setTimeout(function() { speakTextReliably(txt, onEnd); }, 100);" +
             "        return;" +
             "      }" +
             "      const u = new SpeechSynthesisUtterance(txt.trim());" +
+            "      window._blakeActiveUtterance = u;" +
             "      u.lang = 'ko-KR';" +
             "      u.rate = TARGET_SPEED;" +
-            "      u.pitch = 1.0;" +
-            "      const maleVoice = voices.find(function(v){" +
-            "        const n = (v.name || '').toLowerCase();" +
-            "        return (v.lang && v.lang.includes('ko')) && (" +
-            "          n.includes('injoon') || n.includes('인준') || n.includes('male') || n.includes('남성') ||" +
-            "          n.includes('sm2') || n.includes('x-ism') || n.includes('x-koc') || n.includes('x-kod')" +
-            "        );" +
-            "      }) || voices.find(function(v){ return v.lang && v.lang.includes('ko'); });" +
-            "      if (maleVoice) { u.voice = maleVoice; }" +
-            "      u.onend = function() { if (onEnd) onEnd(); };" +
-            "      u.onerror = function() { if (onEnd) onEnd(); };" +
+            "      const vp = selectVoiceAndPitch(voices);" +
+            "      if (vp.voice) { u.voice = vp.voice; }" +
+            "      u.pitch = vp.pitch;" +
+            "      u.onend = function() {" +
+            "        window._blakeActiveUtterance = null;" +
+            "        if (onEnd) onEnd();" +
+            "      };" +
+            "      u.onerror = function() {" +
+            "        window._blakeActiveUtterance = null;" +
+            "        if (onEnd) onEnd();" +
+            "      };" +
+            "      if (window.speechSynthesis.paused) {" +
+            "        try { window.speechSynthesis.resume(); } catch(e) {}" +
+            "      }" +
             "      window.speechSynthesis.speak(u);" +
             "    } catch(e) { if (onEnd) onEnd(); }" +
             "  }" +
-            "  function exitPresenterToBentoCanvas() {" +
-            "    stopAllAudio();" +
-            "    const overlay = document.querySelector('.bento-present-overlay');" +
-            "    if (overlay) { overlay.style.display = 'none'; overlay.remove(); }" +
-            "    const exitBtn = document.querySelector('.ed-btn-stop') || " +
-            "                    document.querySelector('[title*=Stop]') || " +
-            "                    document.querySelector('[title*=Exit]') || " +
-            "                    document.querySelector('.ed-stop');" +
-            "    if (exitBtn) { try { exitBtn.click(); } catch(e) {} }" +
-            "  }" +
             "  function handleEsc(e) {" +
             "    if (e.key === 'Escape' || e.keyCode === 27 || e.code === 'Escape') {" +
-            "      exitPresenterToBentoCanvas();" +
+            "      stopAllAudio();" +
             "    }" +
             "  }" +
-            "  window.addEventListener('keydown', handleEsc, true);" +
-            "  document.addEventListener('keydown', handleEsc, true);" +
-            "  if (window.speechSynthesis) {" +
-            "    window.speechSynthesis.onvoiceschanged = function() {" +
-            "      try { window.speechSynthesis.getVoices(); } catch(e) {}" +
-            "    };" +
-            "  }" +
+            "  window.addEventListener('keydown', handleEsc, false);" +
+            "  document.addEventListener('keydown', handleEsc, false);" +
             "  function handleSlideChange() {" +
+            "    const allSections = Array.from(document.querySelectorAll('.slides > section'));" +
+            "    const activeSection = document.querySelector('.slides > section.present') || document.querySelector('section.present') || document.querySelector('section.active');" +
             "    let slideNum = 1;" +
-            "    const activeEl = document.querySelector('.present') || document.querySelector('.slide-doc-1') || document.querySelector('section');" +
-            "    if (activeEl && activeEl.id) {" +
-            "      const m = activeEl.id.match(/\\d+/);" +
+            "    if (activeSection && allSections.length > 0) {" +
+            "      const idx = allSections.indexOf(activeSection);" +
+            "      if (idx >= 0) slideNum = idx + 1;" +
+            "    } else if (activeSection && activeSection.id) {" +
+            "      const m = activeSection.id.match(/\\d+/);" +
             "      if (m) slideNum = parseInt(m[0]);" +
             "    }" +
             "    if (slideNum === currentSlideNum) return;" +
             "    currentSlideNum = slideNum;" +
             "    stopAllAudio();" +
-            "    const video = activeEl ? activeEl.querySelector('video') : null;" +
+            "    if (speechDelayTimer) { clearTimeout(speechDelayTimer); speechDelayTimer = null; }" +
+            "    const video = activeSection ? activeSection.querySelector('video') : null;" +
             "    if (video) {" +
             "      try {" +
             "        video.muted = false;" +
@@ -1450,41 +1549,48 @@ function generateMobileBento(startSlideNum) {
             "    function restoreVideoVolume() {" +
             "      if (video) { try { video.volume = 1.0; } catch(e) {} }" +
             "    }" +
-            "    const audio = activeEl ? activeEl.querySelector('audio') : null;" +
+            "    const audio = activeSection ? activeSection.querySelector('audio') : null;" +
             "    const targetText = SLIDE_TEXTS[slideNum] || '';" +
-            "    if (audio) {" +
-            "      enforceSpeedOnAudio(audio);" +
-            "      try { audio.currentTime = 0; } catch(e) {}" +
-            "      audio.addEventListener('ended', restoreVideoVolume, { once: true });" +
-            "      audio.play().then(function(){ enforceSpeedOnAudio(audio); }).catch(function() { speakTextReliably(targetText, restoreVideoVolume); });" +
-            "    } else if (targetText) {" +
-            "      speakTextReliably(targetText, restoreVideoVolume);" +
-            "    }" +
+            "    speechDelayTimer = setTimeout(function() {" +
+            "      if (audio) {" +
+            "        enforceSpeedOnAudio(audio);" +
+            "        try { audio.currentTime = 0; } catch(e) {}" +
+            "        audio.addEventListener('ended', restoreVideoVolume, { once: true });" +
+            "        audio.play().then(function(){ enforceSpeedOnAudio(audio); }).catch(function() { speakTextReliably(targetText, restoreVideoVolume); });" +
+            "      } else if (targetText) {" +
+            "        speakTextReliably(targetText, restoreVideoVolume);" +
+            "      }" +
+            "    }, 150);" +
             "  }" +
-            "  function forcePresenterMode() {" +
-            "    var pBtn = document.querySelector('.ed-playgo') || " +
+            "  function tryEnterPresenter() {" +
+            "    if (isPresenterStarted) return;" +
+            "    if (document.querySelector('.bento-present-overlay') || document.querySelector('.present')) {" +
+            "      isPresenterStarted = true;" +
+            "      return;" +
+            "    }" +
+            "    if (window.location.hash !== '#present') {" +
+            "      try { window.location.hash = 'present'; } catch(e) {}" +
+            "    }" +
+            "    var pBtn = document.querySelector('.ed-pill-main') || " +
+            "               document.querySelector('.ed-present-pill button') || " +
+            "               document.querySelector('.ed-playgo') || " +
+            "               document.querySelector('[title*=Slideshow]') || " +
             "               document.querySelector('[title*=Present]') || " +
-            "               document.querySelector('button[title*=Present]') || " +
             "               document.querySelector('button[title*=슬라이드쇼]');" +
-            "    if (pBtn) { try { pBtn.click(); } catch(e) {} }" +
-            "    const f5Evt = new KeyboardEvent('keydown', {" +
-            "      key: 'F5'," +
-            "      code: 'F5'," +
-            "      keyCode: 116," +
-            "      which: 116," +
-            "      bubbles: true," +
-            "      cancelable: true" +
-            "    });" +
-            "    document.dispatchEvent(f5Evt);" +
-            "    window.dispatchEvent(f5Evt);" +
+            "    if (pBtn) {" +
+            "      try { pBtn.click(); isPresenterStarted = true; } catch(e) {}" +
+            "    }" +
             "  }" +
             "  const observer = new MutationObserver(function() {" +
             "    handleSlideChange();" +
             "  });" +
             "  window.addEventListener('load', function() {" +
-            "    forcePresenterMode();" +
+            "    tryEnterPresenter();" +
             "    observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });" +
-            "    setTimeout(forcePresenterMode, 150);" +
+            "    setTimeout(tryEnterPresenter, 50);" +
+            "    setTimeout(tryEnterPresenter, 150);" +
+            "    setTimeout(tryEnterPresenter, 300);" +
+            "    setTimeout(tryEnterPresenter, 600);" +
             "    setTimeout(function() { handleSlideChange(); }, 200);" +
             "  });" +
             "  setInterval(function() {" +
