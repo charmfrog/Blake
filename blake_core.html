@@ -607,6 +607,30 @@ function loadDraftIndexedDB(callback) {
     });
 }
 
+// ==========================================
+// 1. 프로젝트 제목 기반 동적 파일명 생성 함수
+// ==========================================
+function getDynamicFileName() {
+    // 1단계: 상단 제목 입력창(id: 'project-title' 혹은 'doc-title')의 값 가져오기
+    const titleInput = document.getElementById('project-title') || document.getElementById('doc-title');
+    let titleText = titleInput ? titleInput.value.trim() : '';
+
+    // 2단계: 파일명으로 쓸 수 없는 특수문자(/ \ : * ? " < > |) 제거
+    titleText = titleText.replace(/[\\/:*?"<>|]/g, '');
+
+    // 3단계: 제목이 비어있을 경우 오늘 날짜(YYMMDD) 기반 기본 파일명 부여
+    if (!titleText) {
+        const today = new Date();
+        const yy = String(today.getFullYear()).slice(-2);
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        titleText = `Blake_Project_${yy}${mm}${dd}`;
+    }
+
+    // 4단계: 최종 .html 확장자 붙여서 반환
+    return `${titleText}.html`;
+}
+
 function showToast(msg) {
     const toast = document.getElementById('toast-msg');
     if (toast) {
@@ -628,9 +652,63 @@ function toggleSubtitleButton() {
     }
 }
 
-function manualSaveDraft() {
+// ==========================================
+// 2. 모바일 네이티브 공유 및 PC 다운로드 통합 처리 함수 (보정 완결판)
+// ==========================================
+async function exportAndShareBlake(htmlContent) {
+    const fileName = getDynamicFileName();
+    
+    // HTML 내용을 담은 Blob 생성
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    
+    // 모바일 공유 허용을 위해 text/plain 타입으로 파일 객체 포장 (파일명은 .html 유지)
+    const file = new File([blob], fileName, { type: 'text/plain' });
+
+    // 1단계: 모바일 Web Share API 파일 공유 시도
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+            await navigator.share({
+                title: fileName.replace('.html', ''),
+                text: 'Blake에서 생성된 멀티미디어 웹 문서입니다.',
+                files: [file]
+            });
+            console.log('네이티브 공유 창 열기 성공');
+            showToast(`📤 [${fileName}] 공유가 완료되었습니다.`);
+            return;
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                return; // 사용자가 직접 닫은 경우 정상 종료
+            }
+            console.warn('공유 실패, 다운로드로 전환합니다:', error);
+        }
+    }
+
+    // 2단계: PC 또는 공유 미지원 환경일 때 표준 브라우저 다운로드 실행
+    const downloadUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    
+    // 3단계: 다운로드 시작 후 2초 뒤 안전하게 메모리 해제 (즉시 해제 시 크롬 다운로드 증발 방지)
+    setTimeout(function() {
+        if (a.parentNode) document.body.removeChild(a);
+        URL.revokeObjectURL(downloadUrl);
+    }, 2000);
+
+    // 사용자 안내 알림
+    showToast(`💾 [${fileName}] 다운로드가 완료되었습니다.`);
+}
+
+async function manualSaveDraft() {
     saveDraft();
-    showToast('💾 저장되었습니다.');
+    generateMobileBento(1);
+    if (lastGeneratedHtml) {
+        await exportAndShareBlake(lastGeneratedHtml);
+    } else {
+        showToast('💾 저장되었습니다.');
+    }
 }
 
 function saveDraft() {
