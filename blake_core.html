@@ -423,6 +423,199 @@
             z-index: 99999;
             display: none;
         }
+
+        /* Glassmorphism Settings Modal */
+        .more-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+
+        .more-modal-backdrop.active {
+            display: flex;
+        }
+
+        .more-modal-card {
+            background: #1E293B;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalPop {
+            from { transform: scale(0.94); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .more-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            background: #0F172A;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .more-modal-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #F8FAFC;
+        }
+
+        .btn-close-modal {
+            background: transparent;
+            border: none;
+            color: #94A3B8;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .btn-close-modal:hover {
+            color: #FFF;
+            background: #334155;
+        }
+
+        .more-modal-body {
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .setting-label {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #E2E8F0;
+        }
+
+        .btn-menu-toggle {
+            background: #064E3B;
+            color: #A7F3D0;
+            border: 1px solid #059669;
+            padding: 6px 18px;
+            border-radius: 8px;
+            font-size: 0.92rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-menu-toggle.off {
+            background: #334155;
+            color: #94A3B8;
+            border-color: #475569;
+        }
+
+        .setting-block {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .setting-text-input {
+            width: 100%;
+            background: #0F172A;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: #FFF;
+            padding: 10px 12px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .setting-text-input:focus {
+            border-color: var(--accent);
+        }
+
+        .setting-help {
+            margin: 0;
+            font-size: 0.8rem;
+            color: #94A3B8;
+            line-height: 1.4;
+        }
+
+        .setting-group-box {
+            background: #0F172A;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .setting-group-header {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .setting-select {
+            background: #1E293B;
+            border: 1px solid var(--border);
+            color: #F8FAFC;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            outline: none;
+        }
+
+        .setting-divider {
+            border: 0;
+            border-top: 1px solid #334155;
+            margin: 2px 0;
+        }
+
+        .btn-menu-danger {
+            width: 100%;
+            background: #450A0A;
+            color: #FCA5A5;
+            border: 1px solid #991B1B;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-menu-danger:active {
+            background: #7F1D1D;
+        }
     </style>
 </head>
 <body>
@@ -437,9 +630,65 @@
             <div class="top-row-actions">
                 <button type="button" class="btn-top-bar" id="btn-undo" onclick="undoLastAction()">↪️ 작업취소</button>
                 <button type="button" class="btn-top-bar" onclick="manualSaveDraft()">💾 저장</button>
-                <button type="button" class="btn-top-bar" onclick="clearDraft()">🔄 초기화</button>
-                <button type="button" class="btn-top-bar" id="btn-sub-toggle" onclick="toggleSubtitleButton()" style="color:#A7F3D0;">💬 자막 ON</button>
+                <button type="button" class="btn-top-bar" id="btn-more-menu" onclick="openMoreMenu()" style="letter-spacing: 1px;">●●● 설정</button>
                 <input type="checkbox" id="doc-subtitle-toggle" checked style="display:none;" onchange="saveDraft()">
+            </div>
+        </div>
+
+        <!-- Glassmorphism Settings Modal -->
+        <div id="more-modal" class="more-modal-backdrop" onclick="if(event.target===this)closeMoreMenu()">
+            <div class="more-modal-card">
+                <div class="more-modal-header">
+                    <span class="more-modal-title">⚙️ 프로젝트 & 플레이 설정</span>
+                    <button type="button" class="btn-close-modal" onclick="closeMoreMenu()">✕</button>
+                </div>
+                <div class="more-modal-body">
+                    <!-- 1. Playback & Subtitle -->
+                    <div class="setting-row">
+                        <span class="setting-label">💬 슬라이드쇼 자막</span>
+                        <button type="button" id="btn-sub-toggle" class="btn-menu-toggle" onclick="toggleSubtitleButton()">ON</button>
+                    </div>
+
+                    <!-- 2. Playlist Chaining (Next File) -->
+                    <div class="setting-block">
+                        <label class="setting-label" for="next-file-input">🔗 다음 이어보기 파일 (플레이리스트)</label>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <input type="text" id="next-file-input" class="setting-text-input" placeholder="직접 입력 또는 파일 선택" oninput="saveDraft()" style="flex:1;">
+                            <button type="button" class="btn-voice-choice" style="flex:0 0 auto; padding:8px 12px; font-size:0.88rem; background:#0F172A; border-color:var(--accent); color:var(--accent);" onclick="document.getElementById('next-file-picker').click()">📁 파일 선택</button>
+                            <input type="file" id="next-file-picker" accept=".html,.htm" style="display:none;" onchange="handleNextFileSelected(event)">
+                        </div>
+                        <p class="setting-help">💡 다운로드 폴더에서 다음 회차 HTML 파일을 선택하면 파일명이 자동으로 연결됩니다.</p>
+                    </div>
+
+                    <!-- 3. Advanced Playback Settings (Future Slots) -->
+                    <div class="setting-group-box">
+                        <div class="setting-group-header">🎬 재생 연출 설정</div>
+                        <div class="setting-row">
+                            <span class="setting-label">🎞️ 켄번즈 줌 모션</span>
+                            <select id="kenburns-speed-select" class="setting-select" onchange="saveDraft()">
+                                <option value="normal" selected>기본 (부드러운 모션)</option>
+                                <option value="slow">느리게 (서정적)</option>
+                                <option value="fast">빠르게 (역동적)</option>
+                                <option value="off">끄기 (정지 화면)</option>
+                            </select>
+                        </div>
+                        <div class="setting-row">
+                            <span class="setting-label">🔤 자막 글자 크기</span>
+                            <select id="subtitle-size-select" class="setting-select" onchange="saveDraft()">
+                                <option value="medium" selected>보통 (기본 100%)</option>
+                                <option value="large">크게 (120%)</option>
+                                <option value="small">작게 (80%)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr class="setting-divider">
+
+                    <!-- 4. Project Reset -->
+                    <div class="setting-row">
+                        <button type="button" class="btn-menu-danger" onclick="clearDraft(); closeMoreMenu();">🔄 새 프로젝트로 초기화</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -642,15 +891,36 @@ function showToast(msg) {
     }
 }
 
+function openMoreMenu() {
+    const modal = document.getElementById('more-modal');
+    if (modal) modal.classList.add('active');
+}
+
+function closeMoreMenu() {
+    const modal = document.getElementById('more-modal');
+    if (modal) modal.classList.remove('active');
+}
+
 function toggleSubtitleButton() {
     pushUndoState();
     const toggleInput = document.getElementById('doc-subtitle-toggle');
     const btn = document.getElementById('btn-sub-toggle');
     if (toggleInput && btn) {
         toggleInput.checked = !toggleInput.checked;
-        btn.innerText = toggleInput.checked ? '💬 자막 ON' : '💬 자막 OFF';
-        btn.style.color = toggleInput.checked ? '#A7F3D0' : '#94A3B8';
+        btn.innerText = toggleInput.checked ? 'ON' : 'OFF';
+        btn.className = toggleInput.checked ? 'btn-menu-toggle' : 'btn-menu-toggle off';
         saveDraft();
+    }
+}
+
+function handleNextFileSelected(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const input = document.getElementById('next-file-input');
+    if (input) {
+        input.value = file.name;
+        saveDraft();
+        showToast(`🔗 다음 파일 [${file.name}] 이(가) 연결되었습니다.`);
     }
 }
 
@@ -686,6 +956,13 @@ function flushSaveDraft() {
         const title = titleEl ? titleEl.value : '';
         const toggleEl = document.getElementById('doc-subtitle-toggle');
         const showSubtitle = toggleEl ? toggleEl.checked : true;
+        const nextFileEl = document.getElementById('next-file-input');
+        const nextFile = nextFileEl ? nextFileEl.value.trim() : '';
+        const kenburnsEl = document.getElementById('kenburns-speed-select');
+        const kenburnsSpeed = kenburnsEl ? kenburnsEl.value : 'normal';
+        const subSizeEl = document.getElementById('subtitle-size-select');
+        const subtitleSize = subSizeEl ? subSizeEl.value : 'medium';
+
         const slideCards = document.querySelectorAll('.accordion-card');
         const slides = [];
         
@@ -701,7 +978,7 @@ function flushSaveDraft() {
             });
         });
         
-        const draftObj = { title, showSubtitle, slides };
+        const draftObj = { title, showSubtitle, nextFile, kenburnsSpeed, subtitleSize, slides };
         saveDraftIndexedDB(draftObj);
     } catch(e) {}
 }
@@ -730,9 +1007,18 @@ function loadDraft() {
                 const btn = document.getElementById('btn-sub-toggle');
                 if (toggleInput) toggleInput.checked = data.showSubtitle;
                 if (btn) {
-                    btn.innerText = data.showSubtitle ? '💬 자막 ON' : '💬 자막 OFF';
-                    btn.style.color = data.showSubtitle ? '#A7F3D0' : '#94A3B8';
+                    btn.innerText = data.showSubtitle ? 'ON' : 'OFF';
+                    btn.className = data.showSubtitle ? 'btn-menu-toggle' : 'btn-menu-toggle off';
                 }
+            }
+            if (data.nextFile && document.getElementById('next-file-input')) {
+                document.getElementById('next-file-input').value = data.nextFile;
+            }
+            if (data.kenburnsSpeed && document.getElementById('kenburns-speed-select')) {
+                document.getElementById('kenburns-speed-select').value = data.kenburnsSpeed;
+            }
+            if (data.subtitleSize && document.getElementById('subtitle-size-select')) {
+                document.getElementById('subtitle-size-select').value = data.subtitleSize;
             }
             if (data.slides && data.slides.length > 0) {
                 let maxId = 0;
@@ -1408,14 +1694,20 @@ function generateMobileBento(startSlideNum) {
             return;
         }
         
-        // Blake 1.0 Official Baseline Engine (Voice + Slide Index Tracking + ESC Restoration)
+        const nextFileEl = document.getElementById('next-file-input');
+        const nextFile = nextFileEl ? nextFileEl.value.trim() : '';
+
+        // Blake 1.0 Official Baseline Engine (Voice + Slide Index Tracking + Playlist Chaining)
         const audioEngineScript = "<script>" +
             "(function() {" +
             "  const TARGET_SPEED = 1.35;" +
             "  const SLIDE_TEXTS = " + JSON.stringify(slideTextMap) + ";" +
+            "  const NEXT_FILE_URL = " + JSON.stringify(nextFile) + ";" +
             "  let currentSlideNum = 0;" +
             "  let speechDelayTimer = null;" +
             "  let isPresenterStarted = false;" +
+            "  let nextChapterTimer = null;" +
+            "  const totalSlideCount = Object.keys(SLIDE_TEXTS).length;" +
             "  let cachedVoices = [];" +
             "  function getVoicesSafe() {" +
             "    if (window.speechSynthesis) {" +
@@ -1515,9 +1807,34 @@ function generateMobileBento(startSlideNum) {
             "      window.speechSynthesis.speak(u);" +
             "    } catch(e) { if (onEnd) onEnd(); }" +
             "  }" +
+            "  function triggerNextChapterRelay() {" +
+            "    if (!NEXT_FILE_URL || !NEXT_FILE_URL.trim()) return;" +
+            "    if (document.getElementById('blake-next-banner')) return;" +
+            "    const banner = document.createElement('div');" +
+            "    banner.id = 'blake-next-banner';" +
+            "    banner.style.cssText = 'position:fixed; bottom:36px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.94); border:2px solid #FF9E8A; color:#FFF; padding:12px 22px; border-radius:30px; font-weight:bold; font-size:15px; box-shadow:0 8px 32px rgba(0,0,0,0.75); z-index:999999; display:flex; align-items:center; gap:14px; backdrop-filter:blur(8px); cursor:pointer; font-family:sans-serif;';" +
+            "    let cd = 3;" +
+            "    banner.innerHTML = '<span>🎬 다음 챕터(' + NEXT_FILE_URL + ')로 이동 (<b id=\"blake-cd\">' + cd + '</b>초)</span><button style=\"background:#FF9E8A; color:#0F172A; border:none; padding:6px 14px; border-radius:20px; font-weight:800; cursor:pointer;\">지금 보기</button>';" +
+            "    function goNext() {" +
+            "      if (nextChapterTimer) clearInterval(nextChapterTimer);" +
+            "      const target = NEXT_FILE_URL.includes('#') ? NEXT_FILE_URL : (NEXT_FILE_URL + '#present');" +
+            "      window.location.href = target;" +
+            "    }" +
+            "    banner.onclick = goNext;" +
+            "    document.body.appendChild(banner);" +
+            "    nextChapterTimer = setInterval(function() {" +
+            "      cd--;" +
+            "      const cdEl = document.getElementById('blake-cd');" +
+            "      if (cdEl) cdEl.innerText = cd;" +
+            "      if (cd <= 0) { goNext(); }" +
+            "    }, 1000);" +
+            "  }" +
             "  function handleEsc(e) {" +
             "    if (e.key === 'Escape' || e.keyCode === 27 || e.code === 'Escape') {" +
             "      stopAllAudio();" +
+            "      if (nextChapterTimer) clearInterval(nextChapterTimer);" +
+            "      const b = document.getElementById('blake-next-banner');" +
+            "      if (b) b.remove();" +
             "    }" +
             "  }" +
             "  window.addEventListener('keydown', handleEsc, false);" +
@@ -1546,8 +1863,11 @@ function generateMobileBento(startSlideNum) {
             "        video.play().catch(function(){});" +
             "      } catch(e) {}" +
             "    }" +
-            "    function restoreVideoVolume() {" +
+            "    function onNarrationComplete() {" +
             "      if (video) { try { video.volume = 1.0; } catch(e) {} }" +
+            "      if (slideNum >= totalSlideCount && NEXT_FILE_URL && NEXT_FILE_URL.trim()) {" +
+            "        setTimeout(triggerNextChapterRelay, 1200);" +
+            "      }" +
             "    }" +
             "    const audio = activeSection ? activeSection.querySelector('audio') : null;" +
             "    const targetText = SLIDE_TEXTS[slideNum] || '';" +
@@ -1555,10 +1875,12 @@ function generateMobileBento(startSlideNum) {
             "      if (audio) {" +
             "        enforceSpeedOnAudio(audio);" +
             "        try { audio.currentTime = 0; } catch(e) {}" +
-            "        audio.addEventListener('ended', restoreVideoVolume, { once: true });" +
-            "        audio.play().then(function(){ enforceSpeedOnAudio(audio); }).catch(function() { speakTextReliably(targetText, restoreVideoVolume); });" +
+            "        audio.addEventListener('ended', onNarrationComplete, { once: true });" +
+            "        audio.play().then(function(){ enforceSpeedOnAudio(audio); }).catch(function() { speakTextReliably(targetText, onNarrationComplete); });" +
             "      } else if (targetText) {" +
-            "        speakTextReliably(targetText, restoreVideoVolume);" +
+            "        speakTextReliably(targetText, onNarrationComplete);" +
+            "      } else {" +
+            "        onNarrationComplete();" +
             "      }" +
             "    }, 150);" +
             "  }" +
