@@ -913,16 +913,31 @@ function toggleSubtitleButton() {
     }
 }
 
+window._blakeNextFileContent = null;
+
 function handleNextFileSelected(event) {
     const file = event.target.files[0];
     if (!file) return;
     const input = document.getElementById('next-file-input');
     if (input) {
         input.value = file.name;
+    }
+    
+    // Read the file content into memory for direct iframe rendering (avoids blob: localStorage restriction)
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        window._blakeNextFileContent = e.target.result;
         saveDraft();
         showToast(`🔗 다음 파일 [${file.name}] 이(가) 연결되었습니다.`);
-    }
+    };
+    reader.readAsText(file);
 }
+
+window.playNextChapterHtml = function(nextHtml) {
+    if (!nextHtml) return;
+    lastGeneratedHtml = nextHtml;
+    playInApp(1);
+};
 
 // ==========================================
 // 2. 통합 고속 파일 다운로드 함수 (초경량 클린 버전)
@@ -985,7 +1000,7 @@ function flushSaveDraft() {
 
 function manualSaveDraft() {
     flushSaveDraft();
-    const html = generateMobileBento(1);
+    const html = generateMobileBento(1, false);
     if (html) {
         downloadBlakeFile(html);
     } else {
@@ -1480,18 +1495,18 @@ function generateVideoThumbnail(videoDataUri, callback) {
 
 function generateAndPlayDirectly() {
     saveDraft();
-    generateMobileBento(1);
+    generateMobileBento(1, true);
     playInApp(1);
 }
 
 function previewSingleSlide(targetSlideNum, event) {
     if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
     saveDraft();
-    generateMobileBento(targetSlideNum);
+    generateMobileBento(targetSlideNum, true);
     playInApp(1);
 }
 
-function generateMobileBento(startSlideNum) {
+function generateMobileBento(startSlideNum, isPreviewMode = false) {
     try {
         const title = document.getElementById('doc-title').value || '나의 배낭여행 기록';
         const showSubtitle = document.getElementById('doc-subtitle-toggle').checked;
@@ -1817,6 +1832,10 @@ function generateMobileBento(startSlideNum) {
             "    banner.innerHTML = '<span>🎬 다음 챕터(' + NEXT_FILE_URL + ')로 이동 (<b id=\"blake-cd\">' + cd + '</b>초)</span><button style=\"background:#FF9E8A; color:#0F172A; border:none; padding:6px 14px; border-radius:20px; font-weight:800; cursor:pointer;\">지금 보기</button>';" +
             "    function goNext() {" +
             "      if (nextChapterTimer) clearInterval(nextChapterTimer);" +
+            "      if (window.parent && typeof window.parent.playNextChapterHtml === 'function' && window.parent._blakeNextFileContent) {" +
+            "        window.parent.playNextChapterHtml(window.parent._blakeNextFileContent);" +
+            "        return;" +
+            "      }" +
             "      const target = NEXT_FILE_URL.includes('#') ? NEXT_FILE_URL : (NEXT_FILE_URL + '#present');" +
             "      window.location.href = target;" +
             "    }" +
