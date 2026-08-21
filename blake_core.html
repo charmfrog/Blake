@@ -470,6 +470,7 @@ const fileStore = {};
 const narrationStore = {};
 const mediaRecorders = {};
 const recChunks = {};
+let lastGeneratedHtml = '';
 
 let slideCounter = 2;
 
@@ -653,37 +654,39 @@ function toggleSubtitleButton() {
 }
 
 // ==========================================
-// 2. 모바일 네이티브 공유 및 PC 다운로드 통합 처리 함수 (보정 완결판)
+// 2. 모바일 네이티브 공유 및 PC 다운로드 통합 처리 함수 (정밀 보정)
 // ==========================================
 async function exportAndShareBlake(htmlContent) {
     const fileName = getDynamicFileName();
     
     // HTML 내용을 담은 Blob 생성
     const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-    
-    // 모바일 공유 허용을 위해 text/plain 타입으로 파일 객체 포장 (파일명은 .html 유지)
-    const file = new File([blob], fileName, { type: 'text/plain' });
 
-    // 1단계: 모바일 Web Share API 파일 공유 시도
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    // 모바일 환경(스마트폰/태블릿) 여부 정밀 판별
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    // 1단계: 모바일 기기이면서 Web Share API가 지원되는 경우 (HTTPS 환경)
+    if (isMobile && typeof navigator.canShare === 'function') {
         try {
-            await navigator.share({
-                title: fileName.replace('.html', ''),
-                text: 'Blake에서 생성된 멀티미디어 웹 문서입니다.',
-                files: [file]
-            });
-            console.log('네이티브 공유 창 열기 성공');
-            showToast(`📤 [${fileName}] 공유가 완료되었습니다.`);
-            return;
+            const file = new File([blob], fileName, { type: 'text/plain' });
+            if (navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    title: fileName.replace('.html', ''),
+                    text: 'Blake에서 생성된 멀티미디어 웹 문서입니다.',
+                    files: [file]
+                });
+                showToast(`📤 [${fileName}] 공유가 완료되었습니다.`);
+                return;
+            }
         } catch (error) {
             if (error.name === 'AbortError') {
-                return; // 사용자가 직접 닫은 경우 정상 종료
+                return; // 사용자가 공유창을 닫은 경우
             }
-            console.warn('공유 실패, 다운로드로 전환합니다:', error);
+            console.warn('모바일 공유 실패, 다운로드로 전환:', error);
         }
     }
 
-    // 2단계: PC 또는 공유 미지원 환경일 때 표준 브라우저 다운로드 실행
+    // 2단계: PC 환경이거나 모바일 공유 미지원/로컬 환경일 때 -> 표준 브라우저 직접 다운로드 실행
     const downloadUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = downloadUrl;
@@ -691,7 +694,7 @@ async function exportAndShareBlake(htmlContent) {
     document.body.appendChild(a);
     a.click();
     
-    // 3단계: 다운로드 시작 후 2초 뒤 안전하게 메모리 해제 (즉시 해제 시 크롬 다운로드 증발 방지)
+    // 3단계: 다운로드 시작 후 2초 뒤 안전하게 메모리 해제
     setTimeout(function() {
         if (a.parentNode) document.body.removeChild(a);
         URL.revokeObjectURL(downloadUrl);
@@ -1142,8 +1145,6 @@ function generateVideoThumbnail(videoDataUri, callback) {
     }
 }
 
-let lastGeneratedHtml = '';
-
 function generateAndPlayDirectly() {
     saveDraft();
     generateMobileBento(1);
@@ -1505,8 +1506,10 @@ function generateMobileBento(startSlideNum) {
             "<" + "/script>";
         
         lastGeneratedHtml = rawTemplate.substring(0, sIdx + startMarker.length) + "\n" + jsonStr + "\n    " + rawTemplate.substring(eIdx) + audioEngineScript;
+        return lastGeneratedHtml;
     } catch(e) {
         alert("Bento 생성 중 오류 발생: " + e.message);
+        return null;
     }
 }
 
