@@ -1,9 +1,24 @@
 <!DOCTYPE html>
+<!--
+ * ============================================================================
+ * Blake Core Engine (v1.1g)
+ * Copyright (c) 2026 홀로트레커. All rights reserved.
+ * 
+ * Licensed under CC BY-NC-SA 4.0 (Creative Commons Attribution-NonCommercial-ShareAlike 4.0)
+ * - 원작자 표시 필수 / 비영리 목적에 한해 자유로운 수정 및 재배포 허용
+ * - 2차 저작물 역시 동일한 라이선스(CC BY-NC-SA 4.0)로만 배포 가능
+ * - 상업적 이용 및 라이선스 문의: damink6114@gmail.com
+ *
+ * [버전 및 개선 이력 (Version History)]
+ * - Blake 1.0 (2026. 8. 4.)   : 홀로트레커, 안제민 개발실장(Antigravity), 임진호 수석연구원(Notebook LM) - 개발
+ * - Blake 1.1g (2026. 8. 22.) : 구제민 상임고문(구글 Gemini) - 플레이리스트 순차 연결 아이디어 등 기여
+ * ============================================================================
+-->
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>📱 Blake 1.0 공식버전 — 독립형 영상 메모장</title>
+    <title>📱 Blake 1.1g 공식버전 — 독립형 영상 메모장</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -451,7 +466,7 @@
             border: 1px solid var(--border);
             border-radius: 14px;
             width: 100%;
-            max-width: 440px;
+            max-width: 360px;
             box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
             overflow: hidden;
             animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -466,13 +481,13 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 14px 18px;
+            padding: 12px 18px;
             background: #0F172A;
             border-bottom: 1px solid var(--border);
         }
 
         .more-modal-title {
-            font-size: 1.05rem;
+            font-size: 1.0rem;
             font-weight: 800;
             color: #F8FAFC;
         }
@@ -481,7 +496,7 @@
             background: transparent;
             border: none;
             color: #94A3B8;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: bold;
             cursor: pointer;
             padding: 4px 8px;
@@ -494,10 +509,10 @@
         }
 
         .more-modal-body {
-            padding: 18px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
             max-height: 80vh;
             overflow-y: auto;
         }
@@ -506,7 +521,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
+            gap: 10px;
         }
 
         .setting-label {
@@ -519,9 +534,9 @@
             background: #064E3B;
             color: #A7F3D0;
             border: 1px solid #059669;
-            padding: 6px 18px;
-            border-radius: 8px;
-            font-size: 0.92rem;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.88rem;
             font-weight: 800;
             cursor: pointer;
             transition: all 0.2s;
@@ -533,58 +548,8 @@
             border-color: #475569;
         }
 
-        .setting-block {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .setting-text-input {
-            width: 100%;
-            background: #0F172A;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: #FFF;
-            padding: 10px 12px;
-            font-size: 0.92rem;
-            font-weight: 600;
-            box-sizing: border-box;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .setting-text-input:focus {
-            border-color: var(--accent);
-        }
-
-        .setting-help {
-            margin: 0;
-            font-size: 0.8rem;
-            color: #94A3B8;
-            line-height: 1.4;
-        }
-
-        .setting-group-box {
-            background: #0F172A;
-            border: 1px solid #334155;
-            border-radius: 10px;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .setting-group-header {
-            font-size: 0.85rem;
-            font-weight: 800;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 2px;
-        }
-
         .setting-select {
-            background: #1E293B;
+            background: #0F172A;
             border: 1px solid var(--border);
             color: #F8FAFC;
             padding: 6px 10px;
@@ -592,12 +557,13 @@
             font-size: 0.88rem;
             font-weight: 600;
             outline: none;
+            cursor: pointer;
         }
 
         .setting-divider {
             border: 0;
             border-top: 1px solid #334155;
-            margin: 2px 0;
+            margin: 4px 0;
         }
 
         .btn-menu-danger {
@@ -605,9 +571,9 @@
             background: #450A0A;
             color: #FCA5A5;
             border: 1px solid #991B1B;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.9rem;
+            padding: 9px;
+            border-radius: 6px;
+            font-size: 0.88rem;
             font-weight: 700;
             cursor: pointer;
             transition: background 0.2s;
@@ -630,7 +596,7 @@
             <div class="top-row-actions">
                 <button type="button" class="btn-top-bar" id="btn-undo" onclick="undoLastAction()">↪️ 작업취소</button>
                 <button type="button" class="btn-top-bar" onclick="manualSaveDraft()">💾 저장</button>
-                <button type="button" class="btn-top-bar" id="btn-more-menu" onclick="openMoreMenu()" style="letter-spacing: 1px;">●●● 설정</button>
+                <button type="button" class="btn-top-bar" id="btn-more-menu" onclick="openMoreMenu()">설정 •••</button>
                 <input type="checkbox" id="doc-subtitle-toggle" checked style="display:none;" onchange="saveDraft()">
             </div>
         </div>
@@ -639,54 +605,53 @@
         <div id="more-modal" class="more-modal-backdrop" onclick="if(event.target===this)closeMoreMenu()">
             <div class="more-modal-card">
                 <div class="more-modal-header">
-                    <span class="more-modal-title">⚙️ 프로젝트 & 플레이 설정</span>
+                    <span class="more-modal-title">설정</span>
                     <button type="button" class="btn-close-modal" onclick="closeMoreMenu()">✕</button>
                 </div>
                 <div class="more-modal-body">
-                    <!-- 1. Playback & Subtitle -->
+                    <!-- 1. Subtitle -->
                     <div class="setting-row">
-                        <span class="setting-label">💬 슬라이드쇼 자막</span>
+                        <span class="setting-label">자막</span>
                         <button type="button" id="btn-sub-toggle" class="btn-menu-toggle" onclick="toggleSubtitleButton()">ON</button>
                     </div>
 
-                    <!-- 2. Playlist Chaining (Next File) -->
-                    <div class="setting-block">
-                        <label class="setting-label" for="next-file-input">🔗 다음 이어보기 파일 (플레이리스트)</label>
-                        <div style="display:flex; gap:8px; align-items:center;">
-                            <input type="text" id="next-file-input" class="setting-text-input" placeholder="직접 입력 또는 파일 선택" oninput="saveDraft()" style="flex:1;">
-                            <button type="button" class="btn-voice-choice" style="flex:0 0 auto; padding:8px 12px; font-size:0.88rem; background:#0F172A; border-color:var(--accent); color:var(--accent);" onclick="document.getElementById('next-file-picker').click()">📁 파일 선택</button>
+                    <!-- 2. Next File (Playlist) -->
+                    <div class="setting-row">
+                        <span class="setting-label">이어보기</span>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span id="next-file-name-badge" style="font-size:0.85rem; color:#94A3B8; max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+                            <button type="button" class="btn-menu-toggle off" style="padding:6px 12px; font-size:0.85rem;" onclick="document.getElementById('next-file-picker').click()">파일선택</button>
+                            <input type="text" id="next-file-input" style="display:none;" oninput="saveDraft()">
                             <input type="file" id="next-file-picker" accept=".html,.htm" style="display:none;" onchange="handleNextFileSelected(event)">
                         </div>
-                        <p class="setting-help">💡 다운로드 폴더에서 다음 회차 HTML 파일을 선택하면 파일명이 자동으로 연결됩니다.</p>
                     </div>
 
-                    <!-- 3. Advanced Playback Settings (Future Slots) -->
-                    <div class="setting-group-box">
-                        <div class="setting-group-header">🎬 재생 연출 설정</div>
-                        <div class="setting-row">
-                            <span class="setting-label">🎞️ 켄번즈 줌 모션</span>
-                            <select id="kenburns-speed-select" class="setting-select" onchange="saveDraft()">
-                                <option value="normal" selected>기본 (부드러운 모션)</option>
-                                <option value="slow">느리게 (서정적)</option>
-                                <option value="fast">빠르게 (역동적)</option>
-                                <option value="off">끄기 (정지 화면)</option>
-                            </select>
-                        </div>
-                        <div class="setting-row">
-                            <span class="setting-label">🔤 자막 글자 크기</span>
-                            <select id="subtitle-size-select" class="setting-select" onchange="saveDraft()">
-                                <option value="medium" selected>보통 (기본 100%)</option>
-                                <option value="large">크게 (120%)</option>
-                                <option value="small">작게 (80%)</option>
-                            </select>
-                        </div>
+                    <!-- 3. Ken Burns Motion -->
+                    <div class="setting-row">
+                        <span class="setting-label">켄번즈 모션</span>
+                        <select id="kenburns-speed-select" class="setting-select" onchange="saveDraft()">
+                            <option value="normal" selected>기본</option>
+                            <option value="slow">느리게</option>
+                            <option value="fast">빠르게</option>
+                            <option value="off">끄기</option>
+                        </select>
+                    </div>
+
+                    <!-- 4. Subtitle Size -->
+                    <div class="setting-row">
+                        <span class="setting-label">자막크기</span>
+                        <select id="subtitle-size-select" class="setting-select" onchange="saveDraft()">
+                            <option value="medium" selected>보통</option>
+                            <option value="large">크게</option>
+                            <option value="small">작게</option>
+                        </select>
                     </div>
 
                     <hr class="setting-divider">
 
-                    <!-- 4. Project Reset -->
+                    <!-- 5. Reset -->
                     <div class="setting-row">
-                        <button type="button" class="btn-menu-danger" onclick="clearDraft(); closeMoreMenu();">🔄 새 프로젝트로 초기화</button>
+                        <button type="button" class="btn-menu-danger" onclick="clearDraft(); closeMoreMenu();">초기화</button>
                     </div>
                 </div>
             </div>
@@ -919,24 +884,26 @@ function handleNextFileSelected(event) {
     const file = event.target.files[0];
     if (!file) return;
     const input = document.getElementById('next-file-input');
-    if (input) {
-        input.value = file.name;
-    }
+    const badge = document.getElementById('next-file-name-badge');
+    if (input) input.value = file.name;
+    if (badge) badge.innerText = file.name;
     
     // Read the file content into memory for direct iframe rendering (avoids blob: localStorage restriction)
     const reader = new FileReader();
     reader.onload = function(e) {
         window._blakeNextFileContent = e.target.result;
         saveDraft();
-        showToast(`🔗 다음 파일 [${file.name}] 이(가) 연결되었습니다.`);
+        showToast(`[${file.name}] 연결됨`);
     };
     reader.readAsText(file);
 }
 
 window.playNextChapterHtml = function(nextHtml) {
     if (!nextHtml) return;
-    lastGeneratedHtml = nextHtml;
-    playInApp(1);
+    setTimeout(function() {
+        lastGeneratedHtml = nextHtml;
+        playInApp(1);
+    }, 60);
 };
 
 // ==========================================
@@ -1026,8 +993,9 @@ function loadDraft() {
                     btn.className = data.showSubtitle ? 'btn-menu-toggle' : 'btn-menu-toggle off';
                 }
             }
-            if (data.nextFile && document.getElementById('next-file-input')) {
-                document.getElementById('next-file-input').value = data.nextFile;
+            if (data.nextFile) {
+                if (document.getElementById('next-file-input')) document.getElementById('next-file-input').value = data.nextFile;
+                if (document.getElementById('next-file-name-badge')) document.getElementById('next-file-name-badge').innerText = data.nextFile;
             }
             if (data.kenburnsSpeed && document.getElementById('kenburns-speed-select')) {
                 document.getElementById('kenburns-speed-select').value = data.kenburnsSpeed;
@@ -1712,7 +1680,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false) {
         const nextFileEl = document.getElementById('next-file-input');
         const nextFile = nextFileEl ? nextFileEl.value.trim() : '';
 
-        // Blake 1.0 Official Baseline Engine (Voice + Slide Index Tracking + Playlist Chaining)
+        // Blake 1.1g Official Baseline Engine (Voice + Slide Index Tracking + Playlist Chaining)
         const audioEngineScript = "<script>" +
             "(function() {" +
             "  const TARGET_SPEED = 1.35;" +
@@ -1976,16 +1944,13 @@ function playInApp(targetSlideNum) {
         frame = document.createElement('iframe');
         frame.id = 'bento-frame';
         frame.title = 'Bento Presentation Frame';
-        frame.style.cssText = 'width: 100%; height: 100%; border: none; display: block;';
+        frame.style.cssText = 'width: 100%; height: 100%; border: none; display: block; background: #0D1B2E;';
         bentoView.appendChild(frame);
         
         editorView.style.display = 'none';
         bentoView.style.display = 'block';
         
-        const doc = frame.contentWindow.document;
-        doc.open();
-        doc.write(lastGeneratedHtml);
-        doc.close();
+        frame.srcdoc = lastGeneratedHtml;
 
         // Focus iframe window so keypresses like ESC are captured instantly
         setTimeout(function() {
@@ -1993,7 +1958,7 @@ function playInApp(targetSlideNum) {
                 frame.focus();
                 if (frame.contentWindow) frame.focus();
             } catch(e) {}
-        }, 100);
+        }, 150);
     } catch(e) {
         alert("재생 오류: " + e.message);
     }
