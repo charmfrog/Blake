@@ -650,7 +650,7 @@
         <!-- Harmonized Uniform Top Control Header -->
         <div class="top-bar">
             <div class="top-row-title">
-                <input type="text" id="doc-title" class="title-input" value="1️⃣ 이곳에 넣은 제목이 곧 &quot;파일명&quot;이 됩니다." placeholder="여행 메인 제목 입력" oninput="saveDraft()">
+                <input type="text" id="doc-title" class="title-input" value="제목이 곧 파일명입니다." placeholder="여행 메인 제목 입력" oninput="saveDraft()">
                 <button type="button" class="btn-title-preview" onclick="generateAndPlayDirectly()">👁️ 미리보기</button>
             </div>
             <div class="top-row-actions">
@@ -749,7 +749,7 @@
 
     <div id="blake-bento-view">
         <button type="button" id="parent-back-btn" onclick="closeBentoView()">🔙 Blake 편집기로 돌아가기</button>
-        <iframe id="bento-frame" title="Bento Presentation Frame"></iframe>
+        <iframe id="bento-frame" title="Bento Presentation Frame" allow="autoplay; fullscreen; microphone"></iframe>
     </div>
 
     <div id="toast-msg">💾 저장되었습니다.</div>
@@ -1126,9 +1126,10 @@ function isMaleVoice(v) {
 }
 
 function selectVoiceAndPitch(voices, pref = 'male') {
+    const DEFAULT_PITCH = 0.85;
     if (!voices || voices.length === 0) {
         if (pref === 'male') return { voice: null, pitch: 0.72, rate: 1.25 };
-        return { voice: null, pitch: 1.0, rate: 1.35 };
+        return { voice: null, pitch: DEFAULT_PITCH, rate: 1.35 };
     }
     const ko = voices.filter(function(v) {
         const l = (v.lang || '').toLowerCase().replace(/_/g, '-');
@@ -1140,7 +1141,7 @@ function selectVoiceAndPitch(voices, pref = 'male') {
     });
     if (ko.length === 0) {
         if (pref === 'male') return { voice: null, pitch: 0.72, rate: 1.25 };
-        return { voice: null, pitch: 1.0, rate: 1.35 };
+        return { voice: null, pitch: DEFAULT_PITCH, rate: 1.35 };
     }
     
     if (pref === 'female') {
@@ -1148,11 +1149,11 @@ function selectVoiceAndPitch(voices, pref = 'male') {
             const s = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();
             return s.includes('sunhi') || s.includes('선희') || s.includes('female') || s.includes('여성') || s.includes('yuna') || s.includes('heami');
         });
-        return { voice: female || ko[0], pitch: 1.0, rate: 1.35 };
+        return { voice: female || ko[0], pitch: DEFAULT_PITCH, rate: 1.35 };
     }
     
     if (pref === 'default') {
-        return { voice: ko[0], pitch: 1.0, rate: 1.35 };
+        return { voice: ko[0], pitch: DEFAULT_PITCH, rate: 1.35 };
     }
     
     // Male preference:
@@ -1174,7 +1175,7 @@ function selectVoiceAndPitch(voices, pref = 'male') {
         return { voice: naturalOrOnline || nonSunHiVoices[0], pitch: 0.75, rate: 1.25 };
     }
     
-    return { voice: ko[0], pitch: 0.72, rate: 1.25 };
+    return { voice: ko[0], pitch: DEFAULT_PITCH, rate: 1.25 };
 }
 
 function testSelectedVoice() {
@@ -1200,7 +1201,7 @@ function testSelectedVoice() {
             u.voice = vp.voice;
             if (vp.voice.lang) u.lang = vp.voice.lang;
         }
-        u.pitch = vp.pitch || 0.90;
+        u.pitch = vp.pitch !== undefined ? vp.pitch : 0.85;
         u.rate = vp.rate || 1.35;
         u.onend = function() { window._blakeActiveUtterance = null; };
         u.onerror = function() { window._blakeActiveUtterance = null; };
@@ -2072,9 +2073,10 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "           str.includes('standard-d') || str.includes('wavenet-d') || str.includes('neural2-d');" +
             "  }" +
             "  function selectVoiceAndPitch(voices, pref = VOICE_PREF) {" +
+            "    const DEFAULT_PITCH = 0.85;" +
             "    if (!voices || voices.length === 0) {" +
             "      if (pref === 'male') return { voice: null, pitch: 0.72, rate: 1.25 };" +
-            "      return { voice: null, pitch: 0.95, rate: TARGET_SPEED };" +
+            "      return { voice: null, pitch: DEFAULT_PITCH, rate: TARGET_SPEED };" +
             "    }" +
             "    const ko = voices.filter(function(v) {" +
             "      const l = (v.lang || '').toLowerCase().replace(/_/g, '-');" +
@@ -2086,17 +2088,17 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    });" +
             "    if (ko.length === 0) {" +
             "      if (pref === 'male') return { voice: null, pitch: 0.72, rate: 1.25 };" +
-            "      return { voice: null, pitch: 0.95, rate: TARGET_SPEED };" +
+            "      return { voice: null, pitch: DEFAULT_PITCH, rate: TARGET_SPEED };" +
             "    }" +
             "    if (pref === 'female') {" +
             "      const female = ko.find(function(v) {" +
             "        const s = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
             "        return s.includes('sunhi') || s.includes('선희') || s.includes('female') || s.includes('여성') || s.includes('yuna') || s.includes('heami');" +
             "      });" +
-            "      return { voice: female || ko[0], pitch: 1.0, rate: TARGET_SPEED };" +
+            "      return { voice: female || ko[0], pitch: DEFAULT_PITCH, rate: TARGET_SPEED };" +
             "    }" +
             "    if (pref === 'default') {" +
-            "      return { voice: ko[0], pitch: 1.0, rate: TARGET_SPEED };" +
+            "      return { voice: ko[0], pitch: DEFAULT_PITCH, rate: TARGET_SPEED };" +
             "    }" +
             "    // Default / Male:" +
             "    const injoon = ko.find(function(v) {" +
@@ -2114,7 +2116,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      });" +
             "      return { voice: naturalOrOnline || nonSunHiVoices[0], pitch: 0.75, rate: 1.25 };" +
             "    }" +
-            "    return { voice: ko[0], pitch: 0.72, rate: 1.25 };" +
+            "    return { voice: ko[0], pitch: DEFAULT_PITCH, rate: 1.25 };" +
             "  }" +
             "  function enforceSpeedOnAudio(aud) {" +
             "    if (!aud) return;" +
@@ -2156,7 +2158,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "        u.voice = vp.voice;" +
             "        if (vp.voice.lang) u.lang = vp.voice.lang;" +
             "      }" +
-            "      u.pitch = vp.pitch !== undefined ? vp.pitch : 0.90;" +
+            "      u.pitch = vp.pitch !== undefined ? vp.pitch : 0.85;" +
             "      u.rate = vp.rate !== undefined ? vp.rate : TARGET_SPEED;" +
             "      u.onend = function() {" +
             "        window._blakeActiveUtterance = null;" +
@@ -2225,14 +2227,16 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      }" +
             "    }, delayMs);" +
             "  }" +
+            "  let presenterRetryCount = 0;" +
             "  function tryEnterPresenter() {" +
             "    if (isPresenterStarted) return;" +
-            "    if (document.querySelector('.bento-present-overlay') || document.querySelector('.present')) {" +
+            "    if (document.querySelector('.bento-present-overlay') || document.querySelector('.present') || document.querySelector('.reveal.ready')) {" +
             "      isPresenterStarted = true;" +
             "      return;" +
             "    }" +
             "    var pBtn = document.querySelector('.ed-pill-main') || " +
             "               document.querySelector('.ed-present-pill button') || " +
+            "               document.querySelector('.ed-present-pill') || " +
             "               document.querySelector('.ed-playgo') || " +
             "               document.querySelector('[title*=Slideshow]') || " +
             "               document.querySelector('[title*=Present]') || " +
@@ -2241,19 +2245,24 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      try { pBtn.click(); isPresenterStarted = true; } catch(e) {}" +
             "    }" +
             "  }" +
+            "  const presenterPoller = setInterval(function() {" +
+            "    presenterRetryCount++;" +
+            "    tryEnterPresenter();" +
+            "    if (isPresenterStarted || presenterRetryCount > 80) {" +
+            "      clearInterval(presenterPoller);" +
+            "    }" +
+            "  }, 60);" +
             "  const observer = new MutationObserver(function() {" +
+            "    tryEnterPresenter();" +
             "    handleSlideChange();" +
             "  });" +
             "  window.addEventListener('load', function() {" +
             "    tryEnterPresenter();" +
             "    observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });" +
-            "    setTimeout(tryEnterPresenter, 50);" +
-            "    setTimeout(tryEnterPresenter, 150);" +
-            "    setTimeout(tryEnterPresenter, 300);" +
-            "    setTimeout(tryEnterPresenter, 600);" +
             "    setTimeout(function() { handleSlideChange(); }, 200);" +
             "  });" +
             "  setInterval(function() {" +
+            "    tryEnterPresenter();" +
             "    handleSlideChange();" +
             "    document.querySelectorAll('audio').forEach(function(a) { enforceSpeedOnAudio(a); });" +
             "    const activeSlide = document.querySelector('.present') || document.querySelector('section.active');" +
