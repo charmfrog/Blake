@@ -771,10 +771,11 @@ function pushUndoState() {
         slideCards.forEach(card => {
             const cardId = card.id.replace('slide-card-', '');
             const f = fileStore[cardId];
+            const txtInput = card.querySelector('.slide-text');
             slides.push({
                 id: cardId,
                 title: `장면 ${cardId}`,
-                text: card.querySelector('.slide-text') ? card.querySelector('.slide-text').value : '',
+                text: txtInput ? txtInput.value : '',
                 fileInfo: f ? { name: f.name, type: f.type, thumbUri: f.thumbUri } : null,
                 narration: narrationStore[cardId] ? { mode: narrationStore[cardId].mode } : { mode: 'tts' }
             });
@@ -811,8 +812,8 @@ function undoLastAction() {
             const btn = document.getElementById('btn-sub-toggle');
             if (toggleInput) toggleInput.checked = data.showSubtitle;
             if (btn) {
-                btn.innerText = data.showSubtitle ? '💬 자막 ON' : '💬 자막 OFF';
-                btn.style.color = data.showSubtitle ? '#A7F3D0' : '#94A3B8';
+                btn.innerText = data.showSubtitle ? 'ON' : 'OFF';
+                btn.className = data.showSubtitle ? 'btn-menu-toggle' : 'btn-menu-toggle off';
             }
         }
         
@@ -828,7 +829,7 @@ function undoLastAction() {
                 createSlideCard(sId, {
                     text: s.text,
                     file: existingFile,
-                    narration: narrationStore[sId] || s.narration
+                    narration: s.narration || narrationStore[sId]
                 }, idx === 0);
             });
             slideCounter = maxId;
@@ -1169,14 +1170,6 @@ function updateSnippet(slideNum) {
     if (snippetSpan) {
         snippetSpan.innerText = txt.trim() ? (txt.trim().substring(0, 18) + (txt.length > 18 ? '...' : '')) : '대본 없음';
     }
-    
-    // If currently in note mode, dynamically update memo button text
-    if (narrationStore[slideNum] && narrationStore[slideNum].mode === 'note') {
-        const btnNote = document.getElementById(`btn-choice-note-${slideNum}`);
-        if (btnNote) {
-            btnNote.innerText = txt.trim().length > 0 ? '메모보기 📝' : '메모작성 ✏️';
-        }
-    }
 }
 
 function addSlide() {
@@ -1216,7 +1209,6 @@ function selectVoiceMode(num, mode) {
             btnRec.classList.add('active');
             btnRec.innerText = hasRec ? '음성녹음 ✅' : '음성녹음';
         }
-        if (btnNote) btnNote.innerText = '메모생성';
         if (textInput) {
             textInput.classList.remove('expanded-memo');
             textInput.placeholder = userMockupPlaceholder;
@@ -1224,26 +1216,23 @@ function selectVoiceMode(num, mode) {
         if (labelHeader) labelHeader.innerText = '텍스트 입력';
         toggleRecording(num);
     } else if (mode === 'note') {
-        if (btnNote) {
-            btnNote.classList.add('active');
-            const txt = (textInput ? textInput.value : '').trim();
-            btnNote.innerText = txt ? '메모보기 📝' : '메모작성 ✏️';
-        }
+        if (btnNote) btnNote.classList.add('active');
         if (textInput) {
             textInput.classList.add('expanded-memo');
             textInput.placeholder = notePlaceholder;
             textInput.focus();
         }
-        if (labelHeader) labelHeader.innerText = '📝 발표자 메모 (슬라이드 자막/음성 제외)';
+        if (labelHeader) labelHeader.innerText = '📝 메모 입력 (발표자 노트)';
     } else {
         if (btnTts) btnTts.classList.add('active');
-        if (btnNote) btnNote.innerText = '메모생성';
         if (textInput) {
             textInput.classList.remove('expanded-memo');
             textInput.placeholder = userMockupPlaceholder;
         }
         if (labelHeader) labelHeader.innerText = '텍스트 입력';
     }
+    
+    updateSnippet(num);
     saveDraft();
     pushUndoState();
 }
@@ -1348,11 +1337,8 @@ function createSlideCard(num, data, isOpen) {
     const recText = hasRec ? '음성녹음 ✅' : '음성녹음';
     
     const isNoteMode = (narrMode === 'note');
-    const hasNoteText = textVal.trim().length > 0;
-    const noteBtnLabel = isNoteMode ? (hasNoteText ? '메모보기 📝' : '메모작성 ✏️') : '메모생성';
-    const headerLabel = isNoteMode ? '📝 발표자 메모 (슬라이드 자막/음성 제외)' : '텍스트 입력';
+    const headerLabel = isNoteMode ? '📝 메모 입력 (발표자 노트)' : '텍스트 입력';
     
-    // Perfectly fit user placeholder without orphan word wrap
     const userMockupPlaceholder = "AI음성일 때는 스크립트 입력, 녹음할 때는 상황 설명용 텍스트를 입력하세요.";
     const notePlaceholder = "발표자 노트에만 저장되는 긴 메모를 입력하세요. (자막/AI음성 미출력)";
     const currentPlaceholder = isNoteMode ? notePlaceholder : userMockupPlaceholder;
@@ -1381,7 +1367,7 @@ function createSlideCard(num, data, isOpen) {
                     <div class="voice-btn-group">
                         <button type="button" class="btn-voice-choice ${narrMode === 'tts' ? 'active' : ''}" id="btn-choice-tts-${num}" onclick="selectVoiceMode(${num}, 'tts')">AI 음성</button>
                         <button type="button" class="btn-voice-choice ${narrMode === 'record' ? 'active' : ''}" id="btn-choice-rec-${num}" onclick="selectVoiceMode(${num}, 'record')">${recText}</button>
-                        <button type="button" class="btn-voice-choice ${narrMode === 'note' ? 'active' : ''}" id="btn-choice-note-${num}" onclick="selectVoiceMode(${num}, 'note')">${noteBtnLabel}</button>
+                        <button type="button" class="btn-voice-choice ${narrMode === 'note' ? 'active' : ''}" id="btn-choice-note-${num}" onclick="selectVoiceMode(${num}, 'note')">메모</button>
                     </div>
                 </div>
                 <input type="file" id="file-audio-${num}" accept="audio/*" capture="microphone" style="display:none;" onchange="handleAudioFileSelect(${num}, event)" onclick="event.stopPropagation()">
@@ -1662,13 +1648,14 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             const slideNum = targetIdx;
             const cardId = card.id.replace('slide-card-', '');
             const sTitle = `장면 ${slideNum}`;
-            const sText = card.querySelector('.slide-text').value || '';
+            const txtEl = card.querySelector('.slide-text');
+            const sText = txtEl ? txtEl.value : '';
             const narrData = narrationStore[cardId] || { mode: 'tts', recAudioDataUri: null };
             
             if (narrData.mode === 'tts') {
                 slideTextMap[targetIdx] = sText;
             } else {
-                slideTextMap[targetIdx] = ''; // Block TTS for recorded audio
+                slideTextMap[targetIdx] = ''; // Block TTS for recorded audio or note
             }
             
             const mediaKey = `photo_${slideNum}`;
@@ -1761,12 +1748,10 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
                 }
             ];
             
-            if (showSubtitle && narrData.mode !== 'note') {
-                const txtLen = sText ? sText.length : 0;
+            if (showSubtitle && narrData.mode !== 'note' && sText) {
+                const txtLen = sText.length;
                 let captionHtml = `<div id="sub-box-${targetIdx}" class="blake-sub-box" data-text-len="${txtLen}" style="text-align: center; max-width: 92%; margin: 0 auto; background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 18px 30px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.16); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);">`;
-                if (sText) {
-                    captionHtml += `<div style="font-size: 24px; font-weight: 500; color: #F8FAFC; line-height: 1.55; text-shadow: 0 2px 4px rgba(0,0,0,0.9); word-break: keep-all;">${sText}</div>`;
-                }
+                captionHtml += `<div style="font-size: 24px; font-weight: 500; color: #F8FAFC; line-height: 1.55; text-shadow: 0 2px 4px rgba(0,0,0,0.9); word-break: keep-all;">${sText}</div>`;
                 captionHtml += `</div>`;
                 
                 elements.push({
