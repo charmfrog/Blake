@@ -1877,9 +1877,6 @@ function generateMobileBento(startSlideNum, isPreviewMode = false) {
             "      isPresenterStarted = true;" +
             "      return;" +
             "    }" +
-            "    if (window.location.hash !== '#present') {" +
-            "      try { window.location.hash = 'present'; } catch(e) {}" +
-            "    }" +
             "    var pBtn = document.querySelector('.ed-pill-main') || " +
             "               document.querySelector('.ed-present-pill button') || " +
             "               document.querySelector('.ed-playgo') || " +
