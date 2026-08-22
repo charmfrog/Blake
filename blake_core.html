@@ -687,7 +687,20 @@
                         </div>
                     </div>
 
-                    <!-- 3. Ken Burns Motion -->
+                    <!-- 3. AI Voice Preference & Tester -->
+                    <div class="setting-row" style="flex-direction:column; align-items:flex-start; gap:6px;">
+                        <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+                            <span class="setting-label">AI 목소리</span>
+                            <button type="button" class="btn-menu-secondary" style="padding:4px 10px; font-size:0.8rem;" onclick="testSelectedVoice()">🔊 목소리 시험</button>
+                        </div>
+                        <select id="ai-voice-select" class="setting-select" style="width:100%; text-align:left; font-size:0.85rem;" onchange="notifySettingSaved(); saveDraft();">
+                            <option value="male" selected>⭐ 인준 / 차분한 남성 (권장)</option>
+                            <option value="female">선희 / 부드러운 여성</option>
+                            <option value="default">스마트폰 기본 음성</option>
+                        </select>
+                    </div>
+
+                    <!-- 4. Ken Burns Motion -->
                     <div class="setting-row">
                         <span class="setting-label">켄번즈 모션</span>
                         <select id="kenburns-speed-select" class="setting-select" onchange="notifySettingSaved()">
@@ -698,7 +711,7 @@
                         </select>
                     </div>
 
-                    <!-- 4. Subtitle Size -->
+                    <!-- 5. Subtitle Size -->
                     <div class="setting-row">
                         <span class="setting-label">자막크기</span>
                         <select id="subtitle-size-select" class="setting-select" onchange="notifySettingSaved()">
@@ -1039,6 +1052,9 @@ function flushSaveDraft() {
         const subSizeEl = document.getElementById('subtitle-size-select');
         const subtitleSize = subSizeEl ? subSizeEl.value : 'medium';
 
+        const aiVoiceEl = document.getElementById('ai-voice-select');
+        const aiVoice = aiVoiceEl ? aiVoiceEl.value : 'male';
+
         const slideCards = document.querySelectorAll('.accordion-card');
         const slides = [];
         
@@ -1063,9 +1079,44 @@ function flushSaveDraft() {
             });
         });
         
-        const draftObj = { title, showSubtitle, nextFile, kenburnsSpeed, subtitleSize, slides };
+        const draftObj = { title, showSubtitle, nextFile, kenburnsSpeed, subtitleSize, aiVoice, slides };
         saveDraftIndexedDB(draftObj);
     } catch(e) {}
+}
+
+function testSelectedVoice() {
+    const vPref = document.getElementById('ai-voice-select') ? document.getElementById('ai-voice-select').value : 'male';
+    const sampleText = "안녕하세요. Blake AI 내레이션 목소리입니다.";
+    
+    if (!window.speechSynthesis) {
+        showToast("⚠️ 이 브라우저는 음성 재생을 지원하지 않습니다.");
+        return;
+    }
+    
+    try {
+        window.speechSynthesis.cancel();
+        if (window.speechSynthesis.paused) {
+            try { window.speechSynthesis.resume(); } catch(e) {}
+        }
+        const voices = getVoicesSafe();
+        const u = new SpeechSynthesisUtterance(sampleText);
+        window._blakeActiveUtterance = u;
+        u.lang = 'ko-KR';
+        const vp = selectVoiceAndPitch(voices, vPref);
+        if (vp.voice) {
+            u.voice = vp.voice;
+            if (vp.voice.lang) u.lang = vp.voice.lang;
+            if (vp.voice.voiceURI) u.voiceURI = vp.voice.voiceURI;
+        }
+        u.pitch = vp.pitch || 0.90;
+        u.rate = vp.rate || 1.35;
+        window.speechSynthesis.speak(u);
+        
+        const vName = vp.voice ? (vp.voice.name || vp.voice.voiceURI) : '시스템 기본';
+        showToast('🔊 목소리 시험: ' + vName);
+    } catch(e) {
+        showToast('음성 테스트 오류: ' + e.message);
+    }
 }
 
 function manualSaveDraft() {
@@ -1125,6 +1176,9 @@ function loadDraft() {
             }
             if (data.subtitleSize && document.getElementById('subtitle-size-select')) {
                 document.getElementById('subtitle-size-select').value = data.subtitleSize;
+            }
+            if (data.aiVoice && document.getElementById('ai-voice-select')) {
+                document.getElementById('ai-voice-select').value = data.aiVoice;
             }
             if (data.slides && data.slides.length > 0) {
                 let maxId = 0;
@@ -1859,12 +1913,16 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
         const nextFileEl = document.getElementById('next-file-input');
         const nextFile = nextFileEl ? nextFileEl.value.trim() : '';
 
+        const aiVoiceEl = document.getElementById('ai-voice-select');
+        const aiVoicePref = aiVoiceEl ? aiVoiceEl.value : 'male';
+
         // Blake 1.1g Official Baseline Engine (Voice + Slide Index Tracking + Playlist Chaining)
         const audioEngineScript = "<script>" +
             "(function() {" +
             "  const TARGET_SPEED = 1.35;" +
             "  const SLIDE_TEXTS = " + JSON.stringify(slideTextMap) + ";" +
             "  const NEXT_FILE_URL = " + JSON.stringify(nextFile) + ";" +
+            "  const VOICE_PREF = " + JSON.stringify(aiVoicePref) + ";" +
             "  let currentSlideNum = 0;" +
             "  let speechDelayTimer = null;" +
             "  let isPresenterStarted = false;" +
@@ -1918,8 +1976,11 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "           str.includes('standard-c') || str.includes('wavenet-c') || str.includes('neural2-c') ||" +
             "           str.includes('standard-d') || str.includes('wavenet-d') || str.includes('neural2-d');" +
             "  }" +
-            "  function selectVoiceAndPitch(voices) {" +
-            "    if (!voices || voices.length === 0) return { voice: null, pitch: 0.90, rate: TARGET_SPEED };" +
+            "  function selectVoiceAndPitch(voices, pref = VOICE_PREF) {" +
+            "    if (!voices || voices.length === 0) {" +
+            "      if (pref === 'male') return { voice: null, pitch: 0.72, rate: 1.25 };" +
+            "      return { voice: null, pitch: 0.95, rate: TARGET_SPEED };" +
+            "    }" +
             "    const ko = voices.filter(function(v) {" +
             "      const l = (v.lang || '').toLowerCase().replace(/_/g, '-');" +
             "      const n = (v.name || '').toLowerCase();" +
@@ -1928,23 +1989,37 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "             n.includes('korean') || n.includes('한국어') || n.includes('korea') ||" +
             "             u.includes('ko-kr') || u.includes('ko_kr');" +
             "    });" +
-            "    if (ko.length === 0) return { voice: null, pitch: 0.90, rate: TARGET_SPEED };" +
+            "    if (ko.length === 0) {" +
+            "      if (pref === 'male') return { voice: null, pitch: 0.72, rate: 1.25 };" +
+            "      return { voice: null, pitch: 0.95, rate: TARGET_SPEED };" +
+            "    }" +
+            "    if (pref === 'female') {" +
+            "      const female = ko.find(function(v) {" +
+            "        const s = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
+            "        return s.includes('sunhi') || s.includes('선희') || s.includes('female') || s.includes('여성') || s.includes('yuna') || s.includes('heami');" +
+            "      });" +
+            "      return { voice: female || ko[0], pitch: 1.0, rate: TARGET_SPEED };" +
+            "    }" +
+            "    if (pref === 'default') {" +
+            "      return { voice: ko[0], pitch: 1.0, rate: TARGET_SPEED };" +
+            "    }" +
+            "    // Default / Male:" +
             "    const injoon = ko.find(function(v) {" +
             "      const str = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
             "      return str.includes('injoon') || str.includes('인준');" +
             "    });" +
-            "    if (injoon) return { voice: injoon, pitch: 0.90, rate: TARGET_SPEED };" +
+            "    if (injoon) return { voice: injoon, pitch: 1.0, rate: TARGET_SPEED };" +
             "    const maleVoice = ko.find(isMaleVoice);" +
-            "    if (maleVoice) return { voice: maleVoice, pitch: 0.90, rate: TARGET_SPEED };" +
+            "    if (maleVoice) return { voice: maleVoice, pitch: 1.0, rate: TARGET_SPEED };" +
             "    const nonSunHiVoices = ko.filter(function(v) { return !isSunHiVoice(v); });" +
             "    if (nonSunHiVoices.length > 0) {" +
             "      const naturalOrOnline = nonSunHiVoices.find(function(v) {" +
             "        const str = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
             "        return str.includes('natural') || str.includes('online');" +
             "      });" +
-            "      return { voice: naturalOrOnline || nonSunHiVoices[0], pitch: 0.90, rate: TARGET_SPEED };" +
+            "      return { voice: naturalOrOnline || nonSunHiVoices[0], pitch: 0.75, rate: 1.25 };" +
             "    }" +
-            "    return { voice: ko[0], pitch: 0.90, rate: TARGET_SPEED };" +
+            "    return { voice: ko[0], pitch: 0.72, rate: 1.25 };" +
             "  }" +
             "  function enforceSpeedOnAudio(aud) {" +
             "    if (!aud) return;" +
@@ -1981,7 +2056,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      const u = new SpeechSynthesisUtterance(txt.trim());" +
             "      window._blakeActiveUtterance = u;" +
             "      u.lang = 'ko-KR';" +
-            "      const vp = selectVoiceAndPitch(voices);" +
+            "      const vp = selectVoiceAndPitch(voices, VOICE_PREF);" +
             "      if (vp.voice) {" +
             "        u.voice = vp.voice;" +
             "        if (vp.voice.lang) u.lang = vp.voice.lang;" +
