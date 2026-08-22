@@ -1501,11 +1501,11 @@ function generateAndPlayDirectly() {
 function previewSingleSlide(targetSlideNum, event) {
     if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
     saveDraft();
-    generateMobileBento(targetSlideNum, true);
+    generateMobileBento(targetSlideNum, true, true);
     playInApp(1);
 }
 
-function generateMobileBento(startSlideNum, isPreviewMode = false) {
+function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleScene = false) {
     try {
         const title = document.getElementById('doc-title').value || '나의 배낭여행 기록';
         const showSubtitle = document.getElementById('doc-subtitle-toggle').checked;
@@ -1522,14 +1522,24 @@ function generateMobileBento(startSlideNum, isPreviewMode = false) {
         const bentoSlides = [];
         const slideTextMap = {};
         
-        // Start rendering directly from requested slide (startSlideNum - 1)
-        const startIdx = (startSlideNum && startSlideNum >= 1) ? (startSlideNum - 1) : 0;
+        // Robustly locate target card index matching targetSlideNum
+        let targetCardIndex = 0;
+        if (startSlideNum) {
+            slideCards.forEach((c, i) => {
+                if (c.id === `slide-card-${startSlideNum}`) {
+                    targetCardIndex = i;
+                }
+            });
+        }
+        
+        const startIdx = onlySingleScene ? targetCardIndex : 0;
+        const endIdx = onlySingleScene ? (targetCardIndex + 1) : slideCards.length;
         
         let targetIdx = 0;
-        for (let idx = startIdx; idx < slideCards.length; idx++) {
+        for (let idx = startIdx; idx < endIdx; idx++) {
             targetIdx++;
             const card = slideCards[idx];
-            const slideNum = idx + 1;
+            const slideNum = targetIdx;
             const cardId = card.id.replace('slide-card-', '');
             const sTitle = `장면 ${slideNum}`;
             const sText = card.querySelector('.slide-text').value || '';
