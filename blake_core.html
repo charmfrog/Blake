@@ -289,25 +289,26 @@
 
         .voice-btn-group {
             display: flex;
-            gap: 10px; /* Wider spacing between buttons */
+            gap: 8px;
         }
 
         .btn-voice-choice {
             background: #0F172A;
             color: #94A3B8;
             border: 1px solid var(--border);
-            padding: 6px 18px; /* Wider buttons */
+            padding: 6px 12px;
             border-radius: 6px;
-            font-size: 0.92rem; /* +2pt Larger */
+            font-size: 0.84rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease;
+            white-space: nowrap;
         }
 
         .btn-voice-choice.active {
             background: #182234;
             color: var(--accent);
-            border: 2px solid var(--accent);
+            border: 1.5px solid var(--accent);
             box-shadow: 0 2px 8px rgba(255, 158, 138, 0.25);
         }
 
@@ -326,7 +327,14 @@
             height: 72px;
             box-shadow: 0 4px 14px rgba(255, 158, 138, 0.22);
             outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: height 0.25s ease, background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+
+        textarea.slide-text.expanded-memo {
+            height: 216px; /* 3x expansion for ~2 paragraphs of detailed presenter notes */
+            background: #FFFDF5; /* Warm soft ivory memo paper tone */
+            border-color: #F59E0B; /* Warm amber memo accent */
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.22);
         }
 
         textarea.slide-text:focus {
@@ -463,11 +471,11 @@
 
         .more-modal-card {
             background: #1E293B;
-            border: 1px solid var(--border);
+            border: 2px solid #FEF08A;
             border-radius: 14px;
             width: 100%;
-            max-width: 360px;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+            max-width: 370px;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.75), 0 0 24px rgba(254, 240, 138, 0.15);
             overflow: hidden;
             animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -481,15 +489,37 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 18px;
+            padding: 12px 16px;
             background: #0F172A;
             border-bottom: 1px solid var(--border);
+            gap: 8px;
         }
 
         .more-modal-title {
             font-size: 1.0rem;
             font-weight: 800;
             color: #F8FAFC;
+            white-space: nowrap;
+        }
+
+        .modal-save-indicator {
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: #A7F3D0;
+            background: rgba(6, 78, 59, 0.9);
+            border: 1px solid #059669;
+            padding: 3px 8px;
+            border-radius: 12px;
+            opacity: 0;
+            transform: translateY(-2px);
+            transition: all 0.25s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .modal-save-indicator.show {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .btn-close-modal {
@@ -530,14 +560,23 @@
             color: #E2E8F0;
         }
 
+        .btn-menu-toggle, .setting-select {
+            width: 86px;
+            height: 34px;
+            box-sizing: border-box;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 7px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
         .btn-menu-toggle {
             background: #064E3B;
             color: #A7F3D0;
             border: 1px solid #059669;
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-size: 0.88rem;
-            font-weight: 800;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -552,10 +591,7 @@
             background: #0F172A;
             border: 1px solid var(--border);
             color: #F8FAFC;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 0.88rem;
-            font-weight: 600;
+            padding: 4px 8px;
             outline: none;
             cursor: pointer;
         }
@@ -572,7 +608,7 @@
             color: #FCA5A5;
             border: 1px solid #991B1B;
             padding: 9px;
-            border-radius: 6px;
+            border-radius: 7px;
             font-size: 0.88rem;
             font-weight: 700;
             cursor: pointer;
@@ -581,6 +617,30 @@
 
         .btn-menu-danger:active {
             background: #7F1D1D;
+        }
+
+        .btn-menu-secondary {
+            flex: 1;
+            background: #0F172A;
+            color: #CBD5E1;
+            border: 1px solid var(--border);
+            padding: 8px 4px;
+            border-radius: 7px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-menu-secondary:hover {
+            background: #334155;
+            color: #FFF;
+            border-color: #64748B;
         }
     </style>
 </head>
@@ -606,6 +666,7 @@
             <div class="more-modal-card">
                 <div class="more-modal-header">
                     <span class="more-modal-title">설정</span>
+                    <span id="modal-save-indicator" class="modal-save-indicator">💾 설정이 저장되었습니다.</span>
                     <button type="button" class="btn-close-modal" onclick="closeMoreMenu()">✕</button>
                 </div>
                 <div class="more-modal-body">
@@ -620,7 +681,7 @@
                         <span class="setting-label">이어보기</span>
                         <div style="display:flex; align-items:center; gap:8px;">
                             <span id="next-file-name-badge" style="font-size:0.85rem; color:#94A3B8; max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
-                            <button type="button" class="btn-menu-toggle off" style="padding:6px 12px; font-size:0.85rem;" onclick="document.getElementById('next-file-picker').click()">파일선택</button>
+                            <button type="button" class="btn-menu-toggle off" onclick="document.getElementById('next-file-picker').click()">파일선택</button>
                             <input type="text" id="next-file-input" style="display:none;" oninput="saveDraft()">
                             <input type="file" id="next-file-picker" accept=".html,.htm" style="display:none;" onchange="handleNextFileSelected(event)">
                         </div>
@@ -629,7 +690,7 @@
                     <!-- 3. Ken Burns Motion -->
                     <div class="setting-row">
                         <span class="setting-label">켄번즈 모션</span>
-                        <select id="kenburns-speed-select" class="setting-select" onchange="saveDraft()">
+                        <select id="kenburns-speed-select" class="setting-select" onchange="notifySettingSaved()">
                             <option value="normal" selected>기본</option>
                             <option value="slow">느리게</option>
                             <option value="fast">빠르게</option>
@@ -640,7 +701,7 @@
                     <!-- 4. Subtitle Size -->
                     <div class="setting-row">
                         <span class="setting-label">자막크기</span>
-                        <select id="subtitle-size-select" class="setting-select" onchange="saveDraft()">
+                        <select id="subtitle-size-select" class="setting-select" onchange="notifySettingSaved()">
                             <option value="medium" selected>보통</option>
                             <option value="large">크게</option>
                             <option value="small">작게</option>
@@ -652,6 +713,12 @@
                     <!-- 5. Reset -->
                     <div class="setting-row">
                         <button type="button" class="btn-menu-danger" onclick="clearDraft(); closeMoreMenu();">초기화</button>
+                    </div>
+
+                    <!-- 6. Help & Cafe Links -->
+                    <div class="setting-row" style="gap: 8px; margin-top: 2px;">
+                        <button type="button" class="btn-menu-secondary" onclick="showToast('📖 도움말 문서는 곧 연결될 예정입니다.');">📖 도움말 (추후 연결)</button>
+                        <a href="https://cafe.naver.com/blackeboard?iframe_url=/MyCafeIntro.nhn%3Fclubid=31772994" target="_blank" rel="noopener noreferrer" class="btn-menu-secondary" style="text-decoration:none;">☕ 카페 바로가기</a>
                     </div>
                 </div>
             </div>
@@ -866,6 +933,18 @@ function closeMoreMenu() {
     if (modal) modal.classList.remove('active');
 }
 
+function notifySettingSaved() {
+    saveDraft();
+    const ind = document.getElementById('modal-save-indicator');
+    if (ind) {
+        ind.classList.add('show');
+        if (window._settingSaveTimer) clearTimeout(window._settingSaveTimer);
+        window._settingSaveTimer = setTimeout(() => {
+            ind.classList.remove('show');
+        }, 1600);
+    }
+}
+
 function toggleSubtitleButton() {
     pushUndoState();
     const toggleInput = document.getElementById('doc-subtitle-toggle');
@@ -874,7 +953,7 @@ function toggleSubtitleButton() {
         toggleInput.checked = !toggleInput.checked;
         btn.innerText = toggleInput.checked ? 'ON' : 'OFF';
         btn.className = toggleInput.checked ? 'btn-menu-toggle' : 'btn-menu-toggle off';
-        saveDraft();
+        notifySettingSaved();
     }
 }
 
@@ -892,7 +971,7 @@ function handleNextFileSelected(event) {
     const reader = new FileReader();
     reader.onload = function(e) {
         window._blakeNextFileContent = e.target.result;
-        saveDraft();
+        notifySettingSaved();
         showToast(`[${file.name}] 연결됨`);
     };
     reader.readAsText(file);
@@ -1084,10 +1163,19 @@ function toggleAccordion(slideNum) {
 function updateSnippet(slideNum) {
     const card = document.getElementById(`slide-card-${slideNum}`);
     if (!card) return;
-    const txt = card.querySelector('.slide-text').value || '';
+    const txtInput = card.querySelector('.slide-text');
+    const txt = txtInput ? txtInput.value : '';
     const snippetSpan = document.getElementById(`snippet-${slideNum}`);
     if (snippetSpan) {
         snippetSpan.innerText = txt.trim() ? (txt.trim().substring(0, 18) + (txt.length > 18 ? '...' : '')) : '대본 없음';
+    }
+    
+    // If currently in note mode, dynamically update memo button text
+    if (narrationStore[slideNum] && narrationStore[slideNum].mode === 'note') {
+        const btnNote = document.getElementById(`btn-choice-note-${slideNum}`);
+        if (btnNote) {
+            btnNote.innerText = txt.trim().length > 0 ? '메모보기 📝' : '메모작성 ✏️';
+        }
     }
 }
 
@@ -1111,26 +1199,50 @@ function selectVoiceMode(num, mode) {
     
     const btnTts = document.getElementById(`btn-choice-tts-${num}`);
     const btnRec = document.getElementById(`btn-choice-rec-${num}`);
+    const btnNote = document.getElementById(`btn-choice-note-${num}`);
     const textInput = document.getElementById(`text-input-${num}`);
+    const labelHeader = document.getElementById(`label-text-header-${num}`);
     const hasRec = !!narrationStore[num].recAudioDataUri;
     
-    // Perfectly fit user placeholder without orphan word wrap
     const userMockupPlaceholder = "AI음성일 때는 스크립트 입력, 녹음할 때는 상황 설명용 텍스트를 입력하세요.";
+    const notePlaceholder = "발표자 노트에만 저장되는 긴 메모를 입력하세요. (자막/AI음성 미출력)";
+
+    if (btnTts) btnTts.classList.remove('active');
+    if (btnRec) btnRec.classList.remove('active');
+    if (btnNote) btnNote.classList.remove('active');
 
     if (mode === 'record') {
-        if (btnTts) btnTts.classList.remove('active');
         if (btnRec) {
             btnRec.classList.add('active');
             btnRec.innerText = hasRec ? '음성녹음 ✅' : '음성녹음';
         }
-        if (textInput) textInput.placeholder = userMockupPlaceholder;
-        
-        // 1-Tap Recording Trigger
+        if (btnNote) btnNote.innerText = '메모생성';
+        if (textInput) {
+            textInput.classList.remove('expanded-memo');
+            textInput.placeholder = userMockupPlaceholder;
+        }
+        if (labelHeader) labelHeader.innerText = '텍스트 입력';
         toggleRecording(num);
+    } else if (mode === 'note') {
+        if (btnNote) {
+            btnNote.classList.add('active');
+            const txt = (textInput ? textInput.value : '').trim();
+            btnNote.innerText = txt ? '메모보기 📝' : '메모작성 ✏️';
+        }
+        if (textInput) {
+            textInput.classList.add('expanded-memo');
+            textInput.placeholder = notePlaceholder;
+            textInput.focus();
+        }
+        if (labelHeader) labelHeader.innerText = '📝 발표자 메모 (슬라이드 자막/음성 제외)';
     } else {
-        if (btnRec) btnRec.classList.remove('active');
         if (btnTts) btnTts.classList.add('active');
-        if (textInput) textInput.placeholder = userMockupPlaceholder;
+        if (btnNote) btnNote.innerText = '메모생성';
+        if (textInput) {
+            textInput.classList.remove('expanded-memo');
+            textInput.placeholder = userMockupPlaceholder;
+        }
+        if (labelHeader) labelHeader.innerText = '텍스트 입력';
     }
     saveDraft();
     pushUndoState();
@@ -1235,8 +1347,15 @@ function createSlideCard(num, data, isOpen) {
     const hasRec = !!narrationStore[num].recAudioDataUri;
     const recText = hasRec ? '음성녹음 ✅' : '음성녹음';
     
+    const isNoteMode = (narrMode === 'note');
+    const hasNoteText = textVal.trim().length > 0;
+    const noteBtnLabel = isNoteMode ? (hasNoteText ? '메모보기 📝' : '메모작성 ✏️') : '메모생성';
+    const headerLabel = isNoteMode ? '📝 발표자 메모 (슬라이드 자막/음성 제외)' : '텍스트 입력';
+    
     // Perfectly fit user placeholder without orphan word wrap
     const userMockupPlaceholder = "AI음성일 때는 스크립트 입력, 녹음할 때는 상황 설명용 텍스트를 입력하세요.";
+    const notePlaceholder = "발표자 노트에만 저장되는 긴 메모를 입력하세요. (자막/AI음성 미출력)";
+    const currentPlaceholder = isNoteMode ? notePlaceholder : userMockupPlaceholder;
 
     card.innerHTML = `
         <div class="accordion-header" onclick="toggleAccordion(${num})">
@@ -1262,14 +1381,15 @@ function createSlideCard(num, data, isOpen) {
                     <div class="voice-btn-group">
                         <button type="button" class="btn-voice-choice ${narrMode === 'tts' ? 'active' : ''}" id="btn-choice-tts-${num}" onclick="selectVoiceMode(${num}, 'tts')">AI 음성</button>
                         <button type="button" class="btn-voice-choice ${narrMode === 'record' ? 'active' : ''}" id="btn-choice-rec-${num}" onclick="selectVoiceMode(${num}, 'record')">${recText}</button>
+                        <button type="button" class="btn-voice-choice ${narrMode === 'note' ? 'active' : ''}" id="btn-choice-note-${num}" onclick="selectVoiceMode(${num}, 'note')">${noteBtnLabel}</button>
                     </div>
                 </div>
                 <input type="file" id="file-audio-${num}" accept="audio/*" capture="microphone" style="display:none;" onchange="handleAudioFileSelect(${num}, event)" onclick="event.stopPropagation()">
             </div>
 
             <div class="form-group">
-                <label id="label-text-header-${num}">텍스트 입력</label>
-                <textarea class="slide-text" id="text-input-${num}" placeholder="${userMockupPlaceholder}" onfocus="pushUndoState()" oninput="updateSnippet(${num}); saveDraft();">${textVal}</textarea>
+                <label id="label-text-header-${num}">${headerLabel}</label>
+                <textarea class="slide-text ${isNoteMode ? 'expanded-memo' : ''}" id="text-input-${num}" placeholder="${currentPlaceholder}" onfocus="pushUndoState()" oninput="updateSnippet(${num}); saveDraft();">${textVal}</textarea>
             </div>
             
             <div class="card-actions-bar">
@@ -1641,7 +1761,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
                 }
             ];
             
-            if (showSubtitle) {
+            if (showSubtitle && narrData.mode !== 'note') {
                 const txtLen = sText ? sText.length : 0;
                 let captionHtml = `<div id="sub-box-${targetIdx}" class="blake-sub-box" data-text-len="${txtLen}" style="text-align: center; max-width: 92%; margin: 0 auto; background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 18px 30px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.16); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);">`;
                 if (sText) {
@@ -1831,38 +1951,9 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      window.speechSynthesis.speak(u);" +
             "    } catch(e) { if (onEnd) onEnd(); }" +
             "  }" +
-            "  function triggerNextChapterRelay() {" +
-            "    if (!NEXT_FILE_URL || !NEXT_FILE_URL.trim()) return;" +
-            "    if (document.getElementById('blake-next-banner')) return;" +
-            "    const banner = document.createElement('div');" +
-            "    banner.id = 'blake-next-banner';" +
-            "    banner.style.cssText = 'position:fixed; bottom:36px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.94); border:2px solid #FF9E8A; color:#FFF; padding:12px 22px; border-radius:30px; font-weight:bold; font-size:15px; box-shadow:0 8px 32px rgba(0,0,0,0.75); z-index:999999; display:flex; align-items:center; gap:14px; backdrop-filter:blur(8px); cursor:pointer; font-family:sans-serif;';" +
-            "    let cd = 3;" +
-            "    banner.innerHTML = '<span>🎬 다음 챕터(' + NEXT_FILE_URL + ')로 이동 (<b id=\"blake-cd\">' + cd + '</b>초)</span><button style=\"background:#FF9E8A; color:#0F172A; border:none; padding:6px 14px; border-radius:20px; font-weight:800; cursor:pointer;\">지금 보기</button>';" +
-            "    function goNext() {" +
-            "      if (nextChapterTimer) clearInterval(nextChapterTimer);" +
-            "      if (window.parent && typeof window.parent.playNextChapterHtml === 'function' && window.parent._blakeNextFileContent) {" +
-            "        window.parent.playNextChapterHtml(window.parent._blakeNextFileContent);" +
-            "        return;" +
-            "      }" +
-            "      const target = NEXT_FILE_URL.includes('#') ? NEXT_FILE_URL : (NEXT_FILE_URL + '#present');" +
-            "      window.location.href = target;" +
-            "    }" +
-            "    banner.onclick = goNext;" +
-            "    document.body.appendChild(banner);" +
-            "    nextChapterTimer = setInterval(function() {" +
-            "      cd--;" +
-            "      const cdEl = document.getElementById('blake-cd');" +
-            "      if (cdEl) cdEl.innerText = cd;" +
-            "      if (cd <= 0) { goNext(); }" +
-            "    }, 1000);" +
-            "  }" +
             "  function handleEsc(e) {" +
             "    if (e.key === 'Escape' || e.keyCode === 27 || e.code === 'Escape') {" +
             "      stopAllAudio();" +
-            "      if (nextChapterTimer) clearInterval(nextChapterTimer);" +
-            "      const b = document.getElementById('blake-next-banner');" +
-            "      if (b) b.remove();" +
             "    }" +
             "  }" +
             "  window.addEventListener('keydown', handleEsc, false);" +
@@ -1893,9 +1984,6 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    }" +
             "    function onNarrationComplete() {" +
             "      if (video) { try { video.volume = 1.0; } catch(e) {} }" +
-            "      if (slideNum >= totalSlideCount && NEXT_FILE_URL && NEXT_FILE_URL.trim()) {" +
-            "        setTimeout(triggerNextChapterRelay, 1200);" +
-            "      }" +
             "    }" +
             "    const audio = activeSection ? activeSection.querySelector('audio') : null;" +
             "    const targetText = SLIDE_TEXTS[slideNum] || '';" +
