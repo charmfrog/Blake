@@ -748,6 +748,8 @@ function getBentoTemplate() {
 }
 
 const fileStore = {};
+const scriptStore = {}; // Subtitle / voice script per slide
+const memoStore = {};   // Presenter private notes per slide
 const narrationStore = {};
 const mediaRecorders = {};
 const recChunks = {};
@@ -772,12 +774,21 @@ function pushUndoState() {
             const cardId = card.id.replace('slide-card-', '');
             const f = fileStore[cardId];
             const txtInput = card.querySelector('.slide-text');
+            const narr = narrationStore[cardId] || { mode: 'tts', recAudioDataUri: null };
+            if (txtInput) {
+                if (narr.mode === 'note') {
+                    memoStore[cardId] = txtInput.value;
+                } else {
+                    scriptStore[cardId] = txtInput.value;
+                }
+            }
             slides.push({
                 id: cardId,
                 title: `장면 ${cardId}`,
-                text: txtInput ? txtInput.value : '',
+                script: scriptStore[cardId] || '',
+                memo: memoStore[cardId] || '',
                 fileInfo: f ? { name: f.name, type: f.type, thumbUri: f.thumbUri } : null,
-                narration: narrationStore[cardId] ? { mode: narrationStore[cardId].mode } : { mode: 'tts' }
+                narration: { mode: narr.mode, recAudioDataUri: narr.recAudioDataUri }
             });
         });
         
@@ -825,17 +836,20 @@ function undoLastAction() {
             data.slides.forEach((s, idx) => {
                 const sId = parseInt(s.id) || (idx + 1);
                 if (sId > maxId) maxId = sId;
+                scriptStore[sId] = s.script || s.text || '';
+                memoStore[sId] = s.memo || '';
                 const existingFile = fileStore[sId] || (s.fileInfo ? { name: s.fileInfo.name, type: s.fileInfo.type, thumbUri: s.fileInfo.thumbUri, dataUri: s.fileInfo.thumbUri } : null);
                 createSlideCard(sId, {
-                    text: s.text,
+                    script: scriptStore[sId],
+                    memo: memoStore[sId],
                     file: existingFile,
                     narration: s.narration || narrationStore[sId]
                 }, idx === 0);
             });
             slideCounter = maxId;
         } else {
-            createSlideCard(1, { text: "" }, true);
-            createSlideCard(2, { text: "" }, false);
+            createSlideCard(1, { script: "", memo: "" }, true);
+            createSlideCard(2, { script: "", memo: "" }, false);
             slideCounter = 2;
         }
         
@@ -1031,12 +1045,21 @@ function flushSaveDraft() {
         slideCards.forEach(card => {
             const cardId = card.id.replace('slide-card-', '');
             const txtEl = card.querySelector('.slide-text');
+            const narr = narrationStore[cardId] || { mode: 'tts', recAudioDataUri: null };
+            if (txtEl) {
+                if (narr.mode === 'note') {
+                    memoStore[cardId] = txtEl.value;
+                } else {
+                    scriptStore[cardId] = txtEl.value;
+                }
+            }
             slides.push({
                 id: cardId,
                 title: `장면 ${cardId}`,
-                text: txtEl ? txtEl.value : '',
+                script: scriptStore[cardId] || '',
+                memo: memoStore[cardId] || '',
                 file: fileStore[cardId] || null,
-                narration: narrationStore[cardId] || { mode: 'tts', recAudioDataUri: null }
+                narration: narr
             });
         });
         
@@ -1108,6 +1131,8 @@ function loadDraft() {
                 data.slides.forEach((s, idx) => {
                     const sId = parseInt(s.id) || (idx + 1);
                     if (sId > maxId) maxId = sId;
+                    scriptStore[sId] = s.script || s.text || '';
+                    memoStore[sId] = s.memo || '';
                     createSlideCard(sId, s, idx === 0);
                 });
                 slideCounter = maxId;
@@ -1121,7 +1146,8 @@ function loadDraft() {
         const defaultSlide1 = {
             id: '1',
             title: '장면 1',
-            text: '3️⃣ "차분한 AI 음성으로 기록하려면 자막을, 당신의 목소리를 넣으려면 음성녹음을 누르세요. 긴 메모도 가능합니다."\n⬇️ 준비가 되셨다면, 아래 "장면 미리보기"를 눌러주세요!',
+            script: '3️⃣ "차분한 AI 음성으로 기록하려면 자막을, 당신의 목소리를 넣으려면 음성녹음을 누르세요. 긴 메모도 가능합니다."\n⬇️ 준비가 되셨다면, 아래 "장면 미리보기"를 눌러주세요!',
+            memo: '',
             file: {
                 name: 'blake사용법.jpg',
                 dataUri: guideSvg,
@@ -1129,6 +1155,8 @@ function loadDraft() {
             },
             narration: { mode: 'tts', recAudioDataUri: null }
         };
+        scriptStore[1] = defaultSlide1.script;
+        memoStore[1] = '';
         createSlideCard(1, defaultSlide1, true);
         slideCounter = 1;
         pushUndoState();
@@ -1161,14 +1189,27 @@ function toggleAccordion(slideNum) {
     }
 }
 
-function updateSnippet(slideNum) {
-    const card = document.getElementById(`slide-card-${slideNum}`);
+function handleTextInput(num) {
+    const card = document.getElementById(`slide-card-${num}`);
     if (!card) return;
     const txtInput = card.querySelector('.slide-text');
-    const txt = txtInput ? txtInput.value : '';
+    const val = txtInput ? txtInput.value : '';
+    const narrMode = (narrationStore[num] && narrationStore[num].mode) || 'tts';
+    if (narrMode === 'note') {
+        memoStore[num] = val;
+    } else {
+        scriptStore[num] = val;
+    }
+    updateSnippet(num);
+    saveDraft();
+}
+
+function updateSnippet(slideNum) {
+    const narrMode = (narrationStore[slideNum] && narrationStore[slideNum].mode) || 'tts';
+    const textVal = (narrMode === 'note') ? (memoStore[slideNum] || '') : (scriptStore[slideNum] || '');
     const snippetSpan = document.getElementById(`snippet-${slideNum}`);
     if (snippetSpan) {
-        snippetSpan.innerText = txt.trim() ? (txt.trim().substring(0, 18) + (txt.length > 18 ? '...' : '')) : '대본 없음';
+        snippetSpan.innerText = textVal.trim() ? (textVal.trim().substring(0, 18) + (textVal.length > 18 ? '...' : '')) : (narrMode === 'note' ? '메모 없음' : '대본 없음');
     }
 }
 
@@ -1188,17 +1229,28 @@ function addSlide() {
 function selectVoiceMode(num, mode) {
     pushUndoState();
     if (!narrationStore[num]) narrationStore[num] = { mode: 'tts', recAudioDataUri: null };
+    const prevMode = narrationStore[num].mode;
+    
+    // Save current textarea content to its store before switching
+    const textInput = document.getElementById(`text-input-${num}`);
+    if (textInput) {
+        if (prevMode === 'note') {
+            memoStore[num] = textInput.value;
+        } else {
+            scriptStore[num] = textInput.value;
+        }
+    }
+    
     narrationStore[num].mode = mode;
     
     const btnTts = document.getElementById(`btn-choice-tts-${num}`);
     const btnRec = document.getElementById(`btn-choice-rec-${num}`);
     const btnNote = document.getElementById(`btn-choice-note-${num}`);
-    const textInput = document.getElementById(`text-input-${num}`);
     const labelHeader = document.getElementById(`label-text-header-${num}`);
     const hasRec = !!narrationStore[num].recAudioDataUri;
     
-    const userMockupPlaceholder = "AI음성일 때는 스크립트 입력, 녹음할 때는 상황 설명용 텍스트를 입력하세요.";
-    const notePlaceholder = "발표자 노트에만 저장되는 긴 메모를 입력하세요. (자막/AI음성 미출력)";
+    const scriptPlaceholder = "AI음성일 때는 스크립트 입력, 녹음할 때는 상황 설명용 텍스트를 입력하세요.";
+    const memoPlaceholder = "발표자 노트에만 저장되는 긴 메모를 입력하세요. (자막/AI음성 미출력)";
 
     if (btnTts) btnTts.classList.remove('active');
     if (btnRec) btnRec.classList.remove('active');
@@ -1211,15 +1263,18 @@ function selectVoiceMode(num, mode) {
         }
         if (textInput) {
             textInput.classList.remove('expanded-memo');
-            textInput.placeholder = userMockupPlaceholder;
+            textInput.value = scriptStore[num] || '';
+            textInput.placeholder = scriptPlaceholder;
         }
         if (labelHeader) labelHeader.innerText = '텍스트 입력';
-        toggleRecording(num);
+        // Open native smartphone microphone recorder directly
+        triggerAudioFileInput(num);
     } else if (mode === 'note') {
         if (btnNote) btnNote.classList.add('active');
         if (textInput) {
             textInput.classList.add('expanded-memo');
-            textInput.placeholder = notePlaceholder;
+            textInput.value = memoStore[num] || '';
+            textInput.placeholder = memoPlaceholder;
             textInput.focus();
         }
         if (labelHeader) labelHeader.innerText = '📝 메모 입력 (발표자 노트)';
@@ -1227,7 +1282,8 @@ function selectVoiceMode(num, mode) {
         if (btnTts) btnTts.classList.add('active');
         if (textInput) {
             textInput.classList.remove('expanded-memo');
-            textInput.placeholder = userMockupPlaceholder;
+            textInput.value = scriptStore[num] || '';
+            textInput.placeholder = scriptPlaceholder;
         }
         if (labelHeader) labelHeader.innerText = '텍스트 입력';
     }
@@ -1267,62 +1323,32 @@ function triggerAudioFileInput(slideId) {
     if (fileInput) fileInput.click();
 }
 
-function toggleRecording(slideId) {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        triggerAudioFileInput(slideId);
-        return;
-    }
-    
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-        const mr = new MediaRecorder(stream);
-        mediaRecorders[slideId] = mr;
-        recChunks[slideId] = [];
-        
-        mr.ondataavailable = e => { if (e.data.size > 0) recChunks[slideId].push(e.data); };
-        mr.onstop = () => {
-            pushUndoState();
-            const blob = new Blob(recChunks[slideId], { type: 'audio/webm' });
-            const reader = new FileReader();
-            reader.onload = e => {
-                if (!narrationStore[slideId]) narrationStore[slideId] = { mode: 'record', recAudioDataUri: null };
-                narrationStore[slideId].recAudioDataUri = e.target.result;
-                
-                const btnRec = document.getElementById(`btn-choice-rec-${slideId}`);
-                if (btnRec) btnRec.innerText = '음성녹음 ✅';
-                
-                saveDraft();
-                pushUndoState();
-                showToast('🎤 녹음이 저장되었습니다!');
-            };
-            reader.readAsDataURL(blob);
-            stream.getTracks().forEach(track => track.stop());
-        };
-        
-        mr.start();
-        showToast('🔴 녹음 시작... 터치 시 저장됩니다.');
-    }).catch(err => {
-        triggerAudioFileInput(slideId);
-    });
-}
-
 function createSlideCard(num, data, isOpen) {
     const container = document.getElementById('slides-container');
     const card = document.createElement('div');
     card.className = `accordion-card ${isOpen ? 'active' : ''}`;
     card.id = `slide-card-${num}`;
     
-    const textVal = data ? data.text : '';
-    const snippetText = textVal.trim() ? (textVal.trim().substring(0, 18) + (textVal.length > 18 ? '...' : '')) : '대본 없음';
-    
-    if (data && data.file) {
-        fileStore[num] = data.file;
-    }
-    
-    if (data && data.narration) {
-        narrationStore[num] = data.narration;
+    if (data) {
+        if (data.script !== undefined) scriptStore[num] = data.script;
+        else if (data.text !== undefined) scriptStore[num] = data.text;
+        else if (scriptStore[num] === undefined) scriptStore[num] = '';
+        
+        if (data.memo !== undefined) memoStore[num] = data.memo;
+        else if (memoStore[num] === undefined) memoStore[num] = '';
+        
+        if (data.file) fileStore[num] = data.file;
+        if (data.narration) narrationStore[num] = data.narration;
+        else narrationStore[num] = { mode: 'tts', recAudioDataUri: null };
     } else {
+        if (scriptStore[num] === undefined) scriptStore[num] = '';
+        if (memoStore[num] === undefined) memoStore[num] = '';
         narrationStore[num] = { mode: 'tts', recAudioDataUri: null };
     }
+    
+    const narrMode = narrationStore[num].mode || 'tts';
+    const isNoteMode = (narrMode === 'note');
+    const currentVal = isNoteMode ? (memoStore[num] || '') : (scriptStore[num] || '');
     
     const isVideo = fileStore[num] && fileStore[num].type === 'video';
     const badgeIcon = isVideo ? '🎬' : '🖼️';
@@ -1332,16 +1358,15 @@ function createSlideCard(num, data, isOpen) {
     
     const deleteBtnText = fileName ? `🗑️ 장면 삭제 (${fileName})` : `🗑️ 장면 삭제`;
     
-    const narrMode = narrationStore[num].mode || 'tts';
     const hasRec = !!narrationStore[num].recAudioDataUri;
     const recText = hasRec ? '음성녹음 ✅' : '음성녹음';
     
-    const isNoteMode = (narrMode === 'note');
     const headerLabel = isNoteMode ? '📝 메모 입력 (발표자 노트)' : '텍스트 입력';
+    const scriptPlaceholder = "AI음성일 때는 스크립트 입력, 녹음할 때는 상황 설명용 텍스트를 입력하세요.";
+    const memoPlaceholder = "발표자 노트에만 저장되는 긴 메모를 입력하세요. (자막/AI음성 미출력)";
+    const currentPlaceholder = isNoteMode ? memoPlaceholder : scriptPlaceholder;
     
-    const userMockupPlaceholder = "AI음성일 때는 스크립트 입력, 녹음할 때는 상황 설명용 텍스트를 입력하세요.";
-    const notePlaceholder = "발표자 노트에만 저장되는 긴 메모를 입력하세요. (자막/AI음성 미출력)";
-    const currentPlaceholder = isNoteMode ? notePlaceholder : userMockupPlaceholder;
+    const snippetText = currentVal.trim() ? (currentVal.trim().substring(0, 18) + (currentVal.length > 18 ? '...' : '')) : (isNoteMode ? '메모 없음' : '대본 없음');
 
     card.innerHTML = `
         <div class="accordion-header" onclick="toggleAccordion(${num})">
@@ -1375,7 +1400,7 @@ function createSlideCard(num, data, isOpen) {
 
             <div class="form-group">
                 <label id="label-text-header-${num}">${headerLabel}</label>
-                <textarea class="slide-text ${isNoteMode ? 'expanded-memo' : ''}" id="text-input-${num}" placeholder="${currentPlaceholder}" onfocus="pushUndoState()" oninput="updateSnippet(${num}); saveDraft();">${textVal}</textarea>
+                <textarea class="slide-text ${isNoteMode ? 'expanded-memo' : ''}" id="text-input-${num}" placeholder="${currentPlaceholder}" onfocus="pushUndoState()" oninput="handleTextInput(${num});">${currentVal}</textarea>
             </div>
             
             <div class="card-actions-bar">
@@ -1649,11 +1674,19 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             const cardId = card.id.replace('slide-card-', '');
             const sTitle = `장면 ${slideNum}`;
             const txtEl = card.querySelector('.slide-text');
-            const sText = txtEl ? txtEl.value : '';
             const narrData = narrationStore[cardId] || { mode: 'tts', recAudioDataUri: null };
             
+            // Sync current active card value
+            if (txtEl) {
+                if (narrData.mode === 'note') memoStore[cardId] = txtEl.value;
+                else scriptStore[cardId] = txtEl.value;
+            }
+            
+            const scriptText = scriptStore[cardId] || '';
+            const memoText = memoStore[cardId] || '';
+            
             if (narrData.mode === 'tts') {
-                slideTextMap[targetIdx] = sText;
+                slideTextMap[targetIdx] = scriptText;
             } else {
                 slideTextMap[targetIdx] = ''; // Block TTS for recorded audio or note
             }
@@ -1748,10 +1781,10 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
                 }
             ];
             
-            if (showSubtitle && narrData.mode !== 'note' && sText) {
-                const txtLen = sText.length;
+            if (showSubtitle && narrData.mode !== 'note' && scriptText) {
+                const txtLen = scriptText.length;
                 let captionHtml = `<div id="sub-box-${targetIdx}" class="blake-sub-box" data-text-len="${txtLen}" style="text-align: center; max-width: 92%; margin: 0 auto; background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 18px 30px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.16); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);">`;
-                captionHtml += `<div style="font-size: 24px; font-weight: 500; color: #F8FAFC; line-height: 1.55; text-shadow: 0 2px 4px rgba(0,0,0,0.9); word-break: keep-all;">${sText}</div>`;
+                captionHtml += `<div style="font-size: 24px; font-weight: 500; color: #F8FAFC; line-height: 1.55; text-shadow: 0 2px 4px rgba(0,0,0,0.9); word-break: keep-all;">${scriptText}</div>`;
                 captionHtml += `</div>`;
                 
                 elements.push({
@@ -1788,7 +1821,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
                 "id": `slide-doc-${targetIdx}`,
                 "background": "#0D1B2E",
                 "transition": targetIdx > 1 ? "morph" : "fade",
-                "notes": sText,
+                "notes": memoText || scriptText,
                 "elements": elements
             });
         }
@@ -1810,7 +1843,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "slides": bentoSlides
         };
         
-        const jsonStr = JSON.stringify(docObj).replace(/</g, '\u003c');
+        const jsonStr = JSON.stringify(docObj).replace(/</g, '\\u003c');
         
         const startMarker = '<script type="application/bento+json" id="bento-doc">';
         const endMarker = '</' + 'script>';
@@ -1836,6 +1869,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "  let speechDelayTimer = null;" +
             "  let isPresenterStarted = false;" +
             "  let nextChapterTimer = null;" +
+            "  let isInitialSlidePlayed = false;" +
             "  const totalSlideCount = Object.keys(SLIDE_TEXTS).length;" +
             "  let cachedVoices = [];" +
             "  function getVoicesSafe() {" +
@@ -1857,34 +1891,35 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    try { cachedVoices = window.speechSynthesis.getVoices() || []; } catch(e) {}" +
             "  }" +
             "  function selectVoiceAndPitch(voices) {" +
+            "    if (!voices || voices.length === 0) return { voice: null, pitch: 0.68, rate: 1.20 };" +
             "    const ko = voices.filter(function(v) {" +
             "      const l = (v.lang || '').toLowerCase().replace(/_/g, '-');" +
-            "      return l.startsWith('ko') || l.includes('kr') || l.includes('kor');" +
+            "      const n = (v.name || '').toLowerCase();" +
+            "      return l.startsWith('ko') || l.includes('kr') || l.includes('kor') || n.includes('korean') || n.includes('한국어');" +
             "    });" +
-            "    if (ko.length === 0) return { voice: null, pitch: 0.75 };" +
+            "    if (ko.length === 0) return { voice: null, pitch: 0.68, rate: 1.20 };" +
             "    const injoon = ko.find(function(v) {" +
             "      const str = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
             "      return str.includes('injoon') || str.includes('인준');" +
             "    });" +
-            "    if (injoon) return { voice: injoon, pitch: 1.0 };" +
+            "    if (injoon) return { voice: injoon, pitch: 1.0, rate: TARGET_SPEED };" +
             "    const maleVoice = ko.find(function(v) {" +
             "      const str = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
             "      if (str.includes('female') || str.includes('여성')) return false;" +
             "      return str.includes('bongjin') || str.includes('봉진') ||" +
             "             str.includes('gookmin') || str.includes('국민') || str.includes('ism') || str.includes('koc') ||" +
-            "             str.includes('kod') || str.includes('sm2') || str.includes('남성') ||" +
-            "             str.includes('voice 2') || str.includes('voice2') || str.includes('_2') || str.includes('#2');" +
+            "             str.includes('kod') || str.includes('sm2') || str.includes('남성') || str.includes('male') ||" +
+            "             str.includes('voice 2') || str.includes('voice2') || str.includes('_2') || str.includes('#2') ||" +
+            "             str.includes('x-ism') || str.includes('x-koc') || str.includes('x-kod');" +
             "    });" +
-            "    if (maleVoice) return { voice: maleVoice, pitch: 1.0 };" +
-            "    const nonFemale = ko.find(function(v) {" +
+            "    if (maleVoice) return { voice: maleVoice, pitch: 1.0, rate: TARGET_SPEED };" +
+            "    const nonSunHi = ko.find(function(v) {" +
             "      const str = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
             "      return !str.includes('sunhi') && !str.includes('선희') && !str.includes('sun-hi') &&" +
             "             !str.includes('heami') && !str.includes('혜미') && !str.includes('yuna') &&" +
-            "             !str.includes('유나') && !str.includes('female') && !str.includes('여성') &&" +
-            "             !str.includes('kob') && !str.includes('koe');" +
+            "             !str.includes('유나') && !str.includes('female') && !str.includes('여성');" +
             "    });" +
-            "    if (nonFemale) return { voice: nonFemale, pitch: 0.95 };" +
-            "    return { voice: ko[0], pitch: 0.75 };" +
+            "    return { voice: nonSunHi || ko[0], pitch: 0.68, rate: 1.20 };" +
             "  }" +
             "  function enforceSpeedOnAudio(aud) {" +
             "    if (!aud) return;" +
@@ -1911,17 +1946,13 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "        try { window.speechSynthesis.resume(); } catch(e) {}" +
             "      }" +
             "      const voices = getVoicesSafe();" +
-            "      if (voices.length === 0) {" +
-            "        setTimeout(function() { speakTextReliably(txt, onEnd); }, 100);" +
-            "        return;" +
-            "      }" +
             "      const u = new SpeechSynthesisUtterance(txt.trim());" +
             "      window._blakeActiveUtterance = u;" +
             "      u.lang = 'ko-KR';" +
-            "      u.rate = TARGET_SPEED;" +
             "      const vp = selectVoiceAndPitch(voices);" +
             "      if (vp.voice) { u.voice = vp.voice; }" +
-            "      u.pitch = vp.pitch;" +
+            "      u.pitch = vp.pitch || 0.68;" +
+            "      u.rate = vp.rate || TARGET_SPEED;" +
             "      u.onend = function() {" +
             "        window._blakeActiveUtterance = null;" +
             "        if (onEnd) onEnd();" +
@@ -1972,6 +2003,8 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    }" +
             "    const audio = activeSection ? activeSection.querySelector('audio') : null;" +
             "    const targetText = SLIDE_TEXTS[slideNum] || '';" +
+            "    const delayMs = isInitialSlidePlayed ? 500 : 750;" +
+            "    isInitialSlidePlayed = true;" +
             "    speechDelayTimer = setTimeout(function() {" +
             "      if (audio) {" +
             "        enforceSpeedOnAudio(audio);" +
@@ -1983,7 +2016,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      } else {" +
             "        onNarrationComplete();" +
             "      }" +
-            "    }, 150);" +
+            "    }, delayMs);" +
             "  }" +
             "  function tryEnterPresenter() {" +
             "    if (isPresenterStarted) return;" +
