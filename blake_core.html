@@ -590,7 +590,7 @@
         <!-- Harmonized Uniform Top Control Header -->
         <div class="top-bar">
             <div class="top-row-title">
-                <input type="text" id="doc-title" class="title-input" value="나의 키르기즈스탄 배낭여행" placeholder="여행 메인 제목 입력" oninput="saveDraft()">
+                <input type="text" id="doc-title" class="title-input" value="1️⃣ 이곳에 넣은 제목이 곧 &quot;파일명&quot;이 됩니다." placeholder="여행 메인 제목 입력" oninput="saveDraft()">
                 <button type="button" class="btn-title-preview" onclick="generateAndPlayDirectly()">👁️ 미리보기</button>
             </div>
             <div class="top-row-actions">
@@ -975,6 +975,26 @@ function manualSaveDraft() {
     }
 }
 
+function getGuideImageSvgDataUri() {
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">' +
+        '<defs>' +
+        '<linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">' +
+        '<stop offset="0%" stop-color="#FEF9C3"/>' +
+        '<stop offset="100%" stop-color="#FEF08A"/>' +
+        '</linearGradient>' +
+        '</defs>' +
+        '<rect x="10" y="10" width="780" height="430" rx="20" fill="url(#bgGrad)" stroke="#FACC15" stroke-width="2"/>' +
+        '<text x="40" y="70" font-size="28" fill="#B45309">✦</text>' +
+        '<text x="740" y="390" font-size="28" fill="#B45309">✦</text>' +
+        '<text x="400" y="105" font-family="sans-serif" font-size="24" font-weight="900" fill="#78350F" text-anchor="middle">2️⃣ "이곳을 눌러 갤러리의 이미지나 영상을 가져오세요. 🎥</text>' +
+        '<text x="400" y="175" font-family="sans-serif" font-size="21" font-weight="700" fill="#854D0E" text-anchor="middle">— 빠른 동작을 위해 영상은 10초 이내를 권장하며,</text>' +
+        '<text x="400" y="230" font-family="sans-serif" font-size="21" font-weight="700" fill="#854D0E" text-anchor="middle">— 전체 용량은 가급적 200MB를 유지해 주세요.</text>' +
+        '<text x="400" y="285" font-family="sans-serif" font-size="21" font-weight="700" fill="#854D0E" text-anchor="middle">— 여러개의 프로젝트로 나눠서 작성해도 넷플릭스</text>' +
+        '<text x="400" y="340" font-family="sans-serif" font-size="22" font-weight="800" fill="#78350F" text-anchor="middle">보듯이 연속 감상이 가능합니다." ☕✨</text>' +
+        '</svg>';
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
 function loadDraft() {
     loadDraftIndexedDB(function(data) {
         const container = document.getElementById('slides-container');
@@ -1016,10 +1036,21 @@ function loadDraft() {
             }
         }
         
-        // Default clean initial cards
-        createSlideCard(1, { text: "" }, true);
-        createSlideCard(2, { text: "" }, false);
-        slideCounter = 2;
+        // Default clean initial onboarding guide card
+        const guideSvg = getGuideImageSvgDataUri();
+        const defaultSlide1 = {
+            id: '1',
+            title: '장면 1',
+            text: '3️⃣ "차분한 AI 음성으로 기록하려면 자막을, 당신의 목소리를 넣으려면 음성녹음을 누르세요. 긴 메모도 가능합니다."\n⬇️ 준비가 되셨다면, 아래 "장면 미리보기"를 눌러주세요!',
+            file: {
+                name: 'blake사용법.jpg',
+                dataUri: guideSvg,
+                type: 'image'
+            },
+            narration: { mode: 'tts', recAudioDataUri: null }
+        };
+        createSlideCard(1, defaultSlide1, true);
+        slideCounter = 1;
         pushUndoState();
     });
 }
