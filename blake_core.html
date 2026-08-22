@@ -1881,6 +1881,15 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    }" +
             "    return cachedVoices;" +
             "  }" +
+            "  function warmUpVoices() {" +
+            "    if (window.speechSynthesis) {" +
+            "      try {" +
+            "        const v = window.speechSynthesis.getVoices();" +
+            "        if (v && v.length > 0) cachedVoices = v;" +
+            "      } catch(e) {}" +
+            "    }" +
+            "  }" +
+            "  warmUpVoices();" +
             "  if (window.speechSynthesis) {" +
             "    window.speechSynthesis.onvoiceschanged = function() {" +
             "      try {" +
@@ -1889,6 +1898,25 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      } catch(e) {}" +
             "    };" +
             "    try { cachedVoices = window.speechSynthesis.getVoices() || []; } catch(e) {}" +
+            "  }" +
+            "  function isSunHiVoice(v) {" +
+            "    if (!v) return false;" +
+            "    const str = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
+            "    return str.includes('sunhi') || str.includes('선희') || str.includes('sun-hi');" +
+            "  }" +
+            "  function isMaleVoice(v) {" +
+            "    if (!v) return false;" +
+            "    const str = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
+            "    if (str.includes('female') || str.includes('여성') || str.includes('woman') || str.includes('girl') || isSunHiVoice(v)) return false;" +
+            "    return str.includes('injoon') || str.includes('인준') ||" +
+            "           str.includes('bongjin') || str.includes('봉진') ||" +
+            "           str.includes('gookmin') || str.includes('국민') ||" +
+            "           str.includes('ism') || str.includes('koc') || str.includes('kod') ||" +
+            "           str.includes('sm2') || str.includes('남성') || str.includes('male') || str.includes('man') ||" +
+            "           str.includes('voice 2') || str.includes('voice2') || str.includes('_2') || str.includes('#2') ||" +
+            "           str.includes('x-ism') || str.includes('x-koc') || str.includes('x-kod') ||" +
+            "           str.includes('standard-c') || str.includes('wavenet-c') || str.includes('neural2-c') ||" +
+            "           str.includes('standard-d') || str.includes('wavenet-d') || str.includes('neural2-d');" +
             "  }" +
             "  function selectVoiceAndPitch(voices) {" +
             "    if (!voices || voices.length === 0) return { voice: null, pitch: 0.90, rate: TARGET_SPEED };" +
@@ -1906,22 +1934,17 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      return str.includes('injoon') || str.includes('인준');" +
             "    });" +
             "    if (injoon) return { voice: injoon, pitch: 0.90, rate: TARGET_SPEED };" +
-            "    const maleVoice = ko.find(function(v) {" +
-            "      const str = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
-            "      if (str.includes('female') || str.includes('여성') || str.includes('woman') || str.includes('girl')) return false;" +
-            "      return str.includes('bongjin') || str.includes('봉진') ||" +
-            "             str.includes('gookmin') || str.includes('국민') ||" +
-            "             str.includes('ism') || str.includes('koc') || str.includes('kod') ||" +
-            "             str.includes('sm2') || str.includes('남성') || str.includes('male') || str.includes('man') ||" +
-            "             str.includes('voice 2') || str.includes('voice2') || str.includes('_2') || str.includes('#2') ||" +
-            "             str.includes('x-ism') || str.includes('x-koc') || str.includes('x-kod') || str.includes('standard-c') || str.includes('wavenet-c');" +
-            "    });" +
+            "    const maleVoice = ko.find(isMaleVoice);" +
             "    if (maleVoice) return { voice: maleVoice, pitch: 0.90, rate: TARGET_SPEED };" +
-            "    const nonSunHi = ko.find(function(v) {" +
-            "      const str = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
-            "      return !str.includes('sunhi') && !str.includes('선희') && !str.includes('sun-hi');" +
-            "    });" +
-            "    return { voice: nonSunHi || ko[0], pitch: 0.90, rate: TARGET_SPEED };" +
+            "    const nonSunHiVoices = ko.filter(function(v) { return !isSunHiVoice(v); });" +
+            "    if (nonSunHiVoices.length > 0) {" +
+            "      const naturalOrOnline = nonSunHiVoices.find(function(v) {" +
+            "        const str = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
+            "        return str.includes('natural') || str.includes('online');" +
+            "      });" +
+            "      return { voice: naturalOrOnline || nonSunHiVoices[0], pitch: 0.90, rate: TARGET_SPEED };" +
+            "    }" +
+            "    return { voice: ko[0], pitch: 0.90, rate: TARGET_SPEED };" +
             "  }" +
             "  function enforceSpeedOnAudio(aud) {" +
             "    if (!aud) return;" +
@@ -1939,6 +1962,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    document.querySelectorAll('video').forEach(function(v) { try { v.pause(); v.currentTime = 0; v.muted = true; } catch(e) {} });" +
             "  }" +
             "  window._blakeActiveUtterance = null;" +
+            "  window._blakeVoiceRetry = 0;" +
             "  function speakTextReliably(txt, onEnd) {" +
             "    if (!txt || !txt.trim()) { if (onEnd) onEnd(); return; }" +
             "    if (!window.speechSynthesis) { if (onEnd) onEnd(); return; }" +
@@ -1947,12 +1971,22 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      if (window.speechSynthesis.paused) {" +
             "        try { window.speechSynthesis.resume(); } catch(e) {}" +
             "      }" +
-            "      const voices = getVoicesSafe();" +
+            "      let voices = getVoicesSafe();" +
+            "      if ((!voices || voices.length === 0) && window._blakeVoiceRetry < 5) {" +
+            "        window._blakeVoiceRetry++;" +
+            "        setTimeout(function() { speakTextReliably(txt, onEnd); }, 80);" +
+            "        return;" +
+            "      }" +
+            "      window._blakeVoiceRetry = 0;" +
             "      const u = new SpeechSynthesisUtterance(txt.trim());" +
             "      window._blakeActiveUtterance = u;" +
             "      u.lang = 'ko-KR';" +
             "      const vp = selectVoiceAndPitch(voices);" +
-            "      if (vp.voice) { u.voice = vp.voice; }" +
+            "      if (vp.voice) {" +
+            "        u.voice = vp.voice;" +
+            "        if (vp.voice.lang) u.lang = vp.voice.lang;" +
+            "        if (vp.voice.voiceURI) u.voiceURI = vp.voice.voiceURI;" +
+            "      }" +
             "      u.pitch = vp.pitch || 0.90;" +
             "      u.rate = vp.rate || TARGET_SPEED;" +
             "      u.onend = function() {" +
@@ -1976,6 +2010,8 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "  }" +
             "  window.addEventListener('keydown', handleEsc, false);" +
             "  document.addEventListener('keydown', handleEsc, false);" +
+            "  window.addEventListener('pointerdown', warmUpVoices, { passive: true });" +
+            "  window.addEventListener('touchstart', warmUpVoices, { passive: true });" +
             "  function handleSlideChange() {" +
             "    const allSections = Array.from(document.querySelectorAll('.slides > section'));" +
             "    const activeSection = document.querySelector('.slides > section.present') || document.querySelector('section.present') || document.querySelector('section.active');" +
