@@ -324,14 +324,14 @@
             border: 2px solid var(--accent);
             border-radius: 10px;
             resize: vertical;
-            height: 72px;
+            height: 98px; /* comfortably accommodates 3 full lines */
             box-shadow: 0 4px 14px rgba(255, 158, 138, 0.22);
             outline: none;
             transition: height 0.25s ease, background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
         }
 
         textarea.slide-text.expanded-memo {
-            height: 216px; /* 3x expansion for ~2 paragraphs of detailed presenter notes */
+            height: 220px; /* 3x expansion for ~2 paragraphs of detailed presenter notes */
             background: #FFFDF5; /* Warm soft ivory memo paper tone */
             border-color: #F59E0B; /* Warm amber memo accent */
             box-shadow: 0 6px 20px rgba(245, 158, 11, 0.22);
@@ -1891,35 +1891,37 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    try { cachedVoices = window.speechSynthesis.getVoices() || []; } catch(e) {}" +
             "  }" +
             "  function selectVoiceAndPitch(voices) {" +
-            "    if (!voices || voices.length === 0) return { voice: null, pitch: 0.68, rate: 1.20 };" +
+            "    if (!voices || voices.length === 0) return { voice: null, pitch: 0.90, rate: TARGET_SPEED };" +
             "    const ko = voices.filter(function(v) {" +
             "      const l = (v.lang || '').toLowerCase().replace(/_/g, '-');" +
             "      const n = (v.name || '').toLowerCase();" +
-            "      return l.startsWith('ko') || l.includes('kr') || l.includes('kor') || n.includes('korean') || n.includes('한국어');" +
+            "      const u = (v.voiceURI || '').toLowerCase();" +
+            "      return l.startsWith('ko') || l.includes('kr') || l.includes('kor') ||" +
+            "             n.includes('korean') || n.includes('한국어') || n.includes('korea') ||" +
+            "             u.includes('ko-kr') || u.includes('ko_kr');" +
             "    });" +
-            "    if (ko.length === 0) return { voice: null, pitch: 0.68, rate: 1.20 };" +
+            "    if (ko.length === 0) return { voice: null, pitch: 0.90, rate: TARGET_SPEED };" +
             "    const injoon = ko.find(function(v) {" +
             "      const str = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
             "      return str.includes('injoon') || str.includes('인준');" +
             "    });" +
-            "    if (injoon) return { voice: injoon, pitch: 1.0, rate: TARGET_SPEED };" +
+            "    if (injoon) return { voice: injoon, pitch: 0.90, rate: TARGET_SPEED };" +
             "    const maleVoice = ko.find(function(v) {" +
             "      const str = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
-            "      if (str.includes('female') || str.includes('여성')) return false;" +
+            "      if (str.includes('female') || str.includes('여성') || str.includes('woman') || str.includes('girl')) return false;" +
             "      return str.includes('bongjin') || str.includes('봉진') ||" +
-            "             str.includes('gookmin') || str.includes('국민') || str.includes('ism') || str.includes('koc') ||" +
-            "             str.includes('kod') || str.includes('sm2') || str.includes('남성') || str.includes('male') ||" +
+            "             str.includes('gookmin') || str.includes('국민') ||" +
+            "             str.includes('ism') || str.includes('koc') || str.includes('kod') ||" +
+            "             str.includes('sm2') || str.includes('남성') || str.includes('male') || str.includes('man') ||" +
             "             str.includes('voice 2') || str.includes('voice2') || str.includes('_2') || str.includes('#2') ||" +
-            "             str.includes('x-ism') || str.includes('x-koc') || str.includes('x-kod');" +
+            "             str.includes('x-ism') || str.includes('x-koc') || str.includes('x-kod') || str.includes('standard-c') || str.includes('wavenet-c');" +
             "    });" +
-            "    if (maleVoice) return { voice: maleVoice, pitch: 1.0, rate: TARGET_SPEED };" +
+            "    if (maleVoice) return { voice: maleVoice, pitch: 0.90, rate: TARGET_SPEED };" +
             "    const nonSunHi = ko.find(function(v) {" +
             "      const str = ((v.name || '') + ' ' + (v.voiceURI || '')).toLowerCase();" +
-            "      return !str.includes('sunhi') && !str.includes('선희') && !str.includes('sun-hi') &&" +
-            "             !str.includes('heami') && !str.includes('혜미') && !str.includes('yuna') &&" +
-            "             !str.includes('유나') && !str.includes('female') && !str.includes('여성');" +
+            "      return !str.includes('sunhi') && !str.includes('선희') && !str.includes('sun-hi');" +
             "    });" +
-            "    return { voice: nonSunHi || ko[0], pitch: 0.68, rate: 1.20 };" +
+            "    return { voice: nonSunHi || ko[0], pitch: 0.90, rate: TARGET_SPEED };" +
             "  }" +
             "  function enforceSpeedOnAudio(aud) {" +
             "    if (!aud) return;" +
@@ -1951,7 +1953,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      u.lang = 'ko-KR';" +
             "      const vp = selectVoiceAndPitch(voices);" +
             "      if (vp.voice) { u.voice = vp.voice; }" +
-            "      u.pitch = vp.pitch || 0.68;" +
+            "      u.pitch = vp.pitch || 0.90;" +
             "      u.rate = vp.rate || TARGET_SPEED;" +
             "      u.onend = function() {" +
             "        window._blakeActiveUtterance = null;" +
@@ -2003,7 +2005,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    }" +
             "    const audio = activeSection ? activeSection.querySelector('audio') : null;" +
             "    const targetText = SLIDE_TEXTS[slideNum] || '';" +
-            "    const delayMs = isInitialSlidePlayed ? 500 : 750;" +
+            "    const delayMs = isInitialSlidePlayed ? 1000 : 1500;" +
             "    isInitialSlidePlayed = true;" +
             "    speechDelayTimer = setTimeout(function() {" +
             "      if (audio) {" +
