@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
  * ============================================================================
- * Blake Core Engine (v1.2 Quine & Cross-Editing Edition)
+ * Blake Core Engine (v1.2 Quine & Lazy Hydration Edition)
  * Copyright (c) 2026 홀로트레커. All rights reserved.
  * 
  * Licensed under CC BY-NC-SA 4.0 (Creative Commons Attribution-NonCommercial-ShareAlike 4.0)
@@ -12,7 +12,7 @@
  * [버전 및 개선 이력 (Version History)]
  * - Blake 1.0  (2026. 8. 4.)  : 홀로트레커, 안제민 개발실장(Antigravity), 임진호 수석연구원(Notebook LM) - 최초 개발
  * - Blake 1.1g (2026. 8. 22.) : 구제민 상임고문(구글 Gemini) - 플레이리스트 순차 연결 및 안정성 최적화
- * - Blake 1.2  (2026. 8. 24.) : Quine 방식 산출물 자체 재편집, 최소 재생 보장 가드, 클린 리셋 임포트, Bento-Blake 양방향 상호 호환 아키텍처
+ * - Blake 1.2  (2026. 8. 24.) : Quine 방식 산출물 자체 재편집, 지연 렌더링(Lazy DOM) & 시네마틱 스플래시, 모바일 Autoplay 가드
  * ============================================================================
 -->
 <html lang="ko">
@@ -45,13 +45,127 @@
             overflow-x: hidden;
         }
 
-        #blake-editor-view {
-            padding: 0;
-            max-width: 600px;
-            margin: 0 auto;
-            padding-bottom: 90px;
+        /* 1. Cinematic Splash Screen (Lazy Hydration Launch Cover) */
+        #blake-cinematic-splash {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 32%, #1E293B 0%, #0D1B2E 65%, #060D1A 100%);
+            z-index: 500000;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px 20px;
+            box-sizing: border-box;
+            text-align: center;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
+        .splash-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .splash-badge {
+            background: rgba(255, 158, 138, 0.15);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-splash-edit {
+            background: rgba(30, 41, 59, 0.85);
+            color: #CBD5E1;
+            border: 1px solid var(--border);
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 0.86rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .btn-splash-edit:active {
+            background: #334155;
+            color: #FFF;
+            transform: scale(0.96);
+        }
+
+        .splash-center-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            max-width: 520px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .splash-title {
+            font-size: 1.65rem;
+            font-weight: 900;
+            color: #FFFFFF;
+            margin-bottom: 12px;
+            line-height: 1.35;
+            text-shadow: 0 4px 16px rgba(0,0,0,0.6);
+            word-break: keep-all;
+        }
+
+        .splash-sub {
+            font-size: 0.95rem;
+            color: #94A3B8;
+            margin-bottom: 36px;
+            font-weight: 500;
+            line-height: 1.5;
+            word-break: keep-all;
+        }
+
+        .btn-splash-play {
+            background: linear-gradient(135deg, #FF9E8A 0%, #FF6B4A 100%);
+            color: #0F172A;
+            border: none;
+            padding: 16px 36px;
+            border-radius: 36px;
+            font-size: 1.15rem;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(255, 107, 74, 0.45);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            animation: splashPulse 2.4s infinite ease-in-out;
+        }
+
+        @keyframes splashPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 8px 32px rgba(255, 107, 74, 0.45); }
+            50% { transform: scale(1.03); box-shadow: 0 12px 42px rgba(255, 107, 74, 0.7); }
+        }
+
+        .btn-splash-play:active {
+            transform: scale(0.96) !important;
+        }
+
+        .splash-scene-count {
+            margin-top: 24px;
+            font-size: 0.86rem;
+            color: #64748B;
+            font-weight: 600;
+        }
+
+        /* 2. Bento Presentation View */
         #blake-bento-view {
             display: none;
             position: fixed;
@@ -64,7 +178,7 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* Repositioned Floating Back Button: Top 85% Center Direct Hit Target */
+        /* Floating Back Button: Top 85% Center Target */
         #parent-back-btn {
             position: fixed;
             top: 85%;
@@ -97,7 +211,14 @@
             border: none; display: block;
         }
 
-        /* Harmonized Uniform Top Control Header */
+        /* 3. Blake Editor View */
+        #blake-editor-view {
+            padding: 0;
+            max-width: 600px;
+            margin: 0 auto;
+            padding-bottom: 90px;
+        }
+
         .top-bar {
             position: sticky;
             top: 0;
@@ -118,7 +239,6 @@
             width: 100%;
         }
 
-        /* Guaranteed Mobile Bounds Fit with min-width: 0 */
         .title-input {
             flex: 1;
             min-width: 0;
@@ -190,7 +310,6 @@
             padding-top: 10px;
         }
 
-        /* Ultra-compact Accordion Cards */
         .accordion-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
@@ -597,105 +716,126 @@
     <script id="blake-initial-data" type="application/json">{}</script>
     <script id="bento-doc" type="application/bento+json">{}</script>
 
-    <div id="blake-editor-view">
-        <!-- Harmonized Uniform Top Control Header -->
-        <div class="top-bar">
-            <div class="top-row-title">
-                <input type="text" id="doc-title" class="title-input" value="제목이 곧 파일명입니다." placeholder="여행 메인 제목 입력" title="길게 누르거나(모바일 800ms) 우클릭(PC)하면 저장된 HTML 파일을 불러옵니다." oninput="saveDraft()">
-                <button type="button" class="btn-title-preview" onclick="primeMobileSpeech(); generateAndPlayDirectly();">👁️ 미리보기</button>
-            </div>
-            <div class="top-row-actions">
-                <button type="button" class="btn-top-bar" id="btn-undo" onclick="undoLastAction()">↪️ 작업취소</button>
-                <button type="button" class="btn-top-bar" onclick="manualSaveDraft()">💾 저장</button>
-                <button type="button" class="btn-top-bar" id="btn-more-menu" onclick="openMoreMenu()">설정 •••</button>
-                <input type="checkbox" id="doc-subtitle-toggle" checked style="display:none;" onchange="saveDraft()">
-                <!-- Hidden Universal HTML File Importer -->
-                <input type="file" id="import-html-picker" accept=".html,.htm" style="display:none;" onchange="handleImportHtmlFile(event)">
-            </div>
+    <!-- 1. Cinematic Splash Screen (Hero Play Screen for Direct File Opening) -->
+    <div id="blake-cinematic-splash" style="display: none;">
+        <div class="splash-top-bar">
+            <span class="splash-badge" id="splash-badge">🎬 Blake 1.2</span>
+            <button type="button" class="btn-splash-edit" onclick="openEditorFromSplash()">✏️ 편집기 열기</button>
         </div>
-
-        <!-- Glassmorphism Settings Modal -->
-        <div id="more-modal" class="more-modal-backdrop" onclick="if(event.target===this)closeMoreMenu()">
-            <div class="more-modal-card">
-                <div class="more-modal-header">
-                    <span class="more-modal-title">설정</span>
-                    <span id="modal-save-indicator" class="modal-save-indicator">💾 설정이 저장되었습니다.</span>
-                    <button type="button" class="btn-close-modal" onclick="closeMoreMenu()">✕</button>
-                </div>
-                <div class="more-modal-body">
-                    <!-- 0. HTML Import (Direct Button) -->
-                    <div class="setting-row">
-                        <button type="button" class="btn-menu-secondary" style="border-color:var(--accent); color:var(--accent);" onclick="triggerHtmlImport(); closeMoreMenu();">📂 저장된 HTML 불러오기 (Import)</button>
-                    </div>
-
-                    <!-- 1. Subtitle -->
-                    <div class="setting-row">
-                        <span class="setting-label">자막</span>
-                        <button type="button" id="btn-sub-toggle" class="btn-menu-toggle" onclick="toggleSubtitleButton()">ON</button>
-                    </div>
-
-                    <!-- 2. Next File (Playlist) -->
-                    <div class="setting-row">
-                        <span class="setting-label">이어보기</span>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span id="next-file-name-badge" style="font-size:0.85rem; color:#94A3B8; max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
-                            <button type="button" class="btn-menu-toggle off" onclick="document.getElementById('next-file-picker').click()">파일선택</button>
-                            <input type="text" id="next-file-input" style="display:none;" oninput="saveDraft()">
-                            <input type="file" id="next-file-picker" accept=".html,.htm" style="display:none;" onchange="handleNextFileSelected(event)">
-                        </div>
-                    </div>
-
-                    <!-- 3. Ken Burns Motion -->
-                    <div class="setting-row">
-                        <span class="setting-label">켄번즈 모션</span>
-                        <select id="kenburns-speed-select" class="setting-select" onchange="notifySettingSaved()">
-                            <option value="normal" selected>기본</option>
-                            <option value="slow">느리게</option>
-                            <option value="fast">빠르게</option>
-                            <option value="off">끄기</option>
-                        </select>
-                    </div>
-
-                    <!-- 4. Subtitle Size -->
-                    <div class="setting-row">
-                        <span class="setting-label">자막크기</span>
-                        <select id="subtitle-size-select" class="setting-select" onchange="notifySettingSaved()">
-                            <option value="medium" selected>보통</option>
-                            <option value="large">크게</option>
-                            <option value="small">작게</option>
-                        </select>
-                    </div>
-
-                    <hr class="setting-divider">
-
-                    <!-- 5. Reset -->
-                    <div class="setting-row">
-                        <button type="button" class="btn-menu-danger" onclick="clearDraft(); closeMoreMenu();">초기화</button>
-                    </div>
-
-                    <!-- 6. Help & Cafe Links -->
-                    <div class="setting-row" style="gap: 8px; margin-top: 2px;">
-                        <button type="button" class="btn-menu-secondary" onclick="showToast('📖 도움말 문서는 곧 연결될 예정입니다.');">📖 도움말</button>
-                        <a href="https://cafe.naver.com/blackeboard?iframe_url=/MyCafeIntro.nhn%3Fclubid=31772994" target="_blank" rel="noopener noreferrer" class="btn-menu-secondary" style="text-decoration:none;">☕ 카페 바로가기</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="main-content">
-            <!-- Accordion Slide Deck Container -->
-            <div id="slides-container">
-                <!-- Initial cards created by JS -->
-            </div>
-
-            <button type="button" class="btn-add-deck" onclick="addSlide()">+ 새로운 미디어 추가하기</button>
+        <div class="splash-center-content">
+            <h1 class="splash-title" id="splash-title">제목이 곧 파일명입니다.</h1>
+            <p class="splash-sub" id="splash-sub">음성과 자막이 자동으로 흐르는 시네마틱 영상메모장</p>
+            <button type="button" class="btn-splash-play" onclick="startCinematicFromSplash()">
+                <span style="font-size:1.3rem;">▶</span>
+                <span>시네마틱 시작하기</span>
+            </button>
+            <div class="splash-scene-count" id="splash-scene-count">📷 3개의 장면이 준비되어 있습니다</div>
         </div>
     </div>
 
+    <!-- 2. Bento Presentation View (Active during Slideshow) -->
     <div id="blake-bento-view">
         <button type="button" id="parent-back-btn" onclick="closeBentoView()">⬅️ Blake 편집기로 돌아가기</button>
         <iframe id="bento-frame" title="Bento Presentation Frame"></iframe>
     </div>
+
+    <!-- 3. Lazy Hydration Editor Template (Dormant until needed) -->
+    <template id="blake-editor-template">
+        <div id="blake-editor-view">
+            <!-- Harmonized Uniform Top Control Header -->
+            <div class="top-bar">
+                <div class="top-row-title">
+                    <input type="text" id="doc-title" class="title-input" value="제목이 곧 파일명입니다." placeholder="여행 메인 제목 입력" title="길게 누르거나(모바일 800ms) 우클릭(PC)하면 저장된 HTML 파일을 불러옵니다." oninput="saveDraft()">
+                    <button type="button" class="btn-title-preview" onclick="primeMobileSpeech(); generateAndPlayDirectly();">👁️ 미리보기</button>
+                </div>
+                <div class="top-row-actions">
+                    <button type="button" class="btn-top-bar" id="btn-undo" onclick="undoLastAction()">↪️ 작업취소</button>
+                    <button type="button" class="btn-top-bar" onclick="manualSaveDraft()">💾 저장</button>
+                    <button type="button" class="btn-top-bar" id="btn-more-menu" onclick="openMoreMenu()">설정 •••</button>
+                    <input type="checkbox" id="doc-subtitle-toggle" checked style="display:none;" onchange="saveDraft()">
+                    <!-- Hidden Universal HTML File Importer -->
+                    <input type="file" id="import-html-picker" accept=".html,.htm" style="display:none;" onchange="handleImportHtmlFile(event)">
+                </div>
+            </div>
+
+            <!-- Glassmorphism Settings Modal -->
+            <div id="more-modal" class="more-modal-backdrop" onclick="if(event.target===this)closeMoreMenu()">
+                <div class="more-modal-card">
+                    <div class="more-modal-header">
+                        <span class="more-modal-title">설정</span>
+                        <span id="modal-save-indicator" class="modal-save-indicator">💾 설정이 저장되었습니다.</span>
+                        <button type="button" class="btn-close-modal" onclick="closeMoreMenu()">✕</button>
+                    </div>
+                    <div class="more-modal-body">
+                        <!-- 0. HTML Import (Direct Button) -->
+                        <div class="setting-row">
+                            <button type="button" class="btn-menu-secondary" style="border-color:var(--accent); color:var(--accent);" onclick="triggerHtmlImport(); closeMoreMenu();">📂 저장된 HTML 불러오기 (Import)</button>
+                        </div>
+
+                        <!-- 1. Subtitle -->
+                        <div class="setting-row">
+                            <span class="setting-label">자막</span>
+                            <button type="button" id="btn-sub-toggle" class="btn-menu-toggle" onclick="toggleSubtitleButton()">ON</button>
+                        </div>
+
+                        <!-- 2. Next File (Playlist) -->
+                        <div class="setting-row">
+                            <span class="setting-label">이어보기</span>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span id="next-file-name-badge" style="font-size:0.85rem; color:#94A3B8; max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+                                <button type="button" class="btn-menu-toggle off" onclick="document.getElementById('next-file-picker').click()">파일선택</button>
+                                <input type="text" id="next-file-input" style="display:none;" oninput="saveDraft()">
+                                <input type="file" id="next-file-picker" accept=".html,.htm" style="display:none;" onchange="handleNextFileSelected(event)">
+                            </div>
+                        </div>
+
+                        <!-- 3. Ken Burns Motion -->
+                        <div class="setting-row">
+                            <span class="setting-label">켄번즈 모션</span>
+                            <select id="kenburns-speed-select" class="setting-select" onchange="notifySettingSaved()">
+                                <option value="normal" selected>기본</option>
+                                <option value="slow">느리게</option>
+                                <option value="fast">빠르게</option>
+                                <option value="off">끄기</option>
+                            </select>
+                        </div>
+
+                        <!-- 4. Subtitle Size -->
+                        <div class="setting-row">
+                            <span class="setting-label">자막크기</span>
+                            <select id="subtitle-size-select" class="setting-select" onchange="notifySettingSaved()">
+                                <option value="medium" selected>보통</option>
+                                <option value="large">크게</option>
+                                <option value="small">작게</option>
+                            </select>
+                        </div>
+
+                        <hr class="setting-divider">
+
+                        <!-- 5. Reset -->
+                        <div class="setting-row">
+                            <button type="button" class="btn-menu-danger" onclick="clearDraft(); closeMoreMenu();">초기화</button>
+                        </div>
+
+                        <!-- 6. Help & Cafe Links -->
+                        <div class="setting-row" style="gap: 8px; margin-top: 2px;">
+                            <button type="button" class="btn-menu-secondary" onclick="showToast('📖 도움말 문서는 곧 연결될 예정입니다.');">📖 도움말</button>
+                            <a href="https://cafe.naver.com/blackeboard?iframe_url=/MyCafeIntro.nhn%3Fclubid=31772994" target="_blank" rel="noopener noreferrer" class="btn-menu-secondary" style="text-decoration:none;">☕ 카페 바로가기</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <!-- Accordion Slide Deck Container -->
+                <div id="slides-container">
+                    <!-- Initial cards created by JS -->
+                </div>
+
+                <button type="button" class="btn-add-deck" onclick="addSlide()">+ 새로운 미디어 추가하기</button>
+            </div>
+        </div>
+    </template>
 
     <div id="toast-msg">💾 저장되었습니다.</div>
 
@@ -711,8 +851,48 @@ const memoStore = {};   // Presenter private notes per slide
 const narrationStore = {};
 const bentoRawElementsStore = {}; // Bento layout pass-through store
 let lastGeneratedHtml = '';
+let currentInitialData = null;
 
 let slideCounter = 1;
+
+// Lazy Hydration Mount Engine
+function mountEditor() {
+    const splash = document.getElementById('blake-cinematic-splash');
+    if (splash) splash.style.display = 'none';
+
+    let editorView = document.getElementById('blake-editor-view');
+    if (!editorView) {
+        const template = document.getElementById('blake-editor-template');
+        if (template) {
+            const clone = template.content.cloneNode(true);
+            document.body.appendChild(clone);
+        }
+        setupTitleImportListeners();
+    }
+    editorView = document.getElementById('blake-editor-view');
+    if (editorView) editorView.style.display = 'block';
+}
+
+function openEditorFromSplash() {
+    mountEditor();
+    if (currentInitialData) {
+        restoreBlakeDraftState(currentInitialData);
+    }
+}
+
+function startCinematicFromSplash() {
+    primeMobileSpeech();
+    const splash = document.getElementById('blake-cinematic-splash');
+    if (splash) splash.style.display = 'none';
+
+    if (currentInitialData) {
+        restoreBlakeDraftState(currentInitialData);
+        generateMobileBento(1, false, false);
+        playInApp(1);
+    } else {
+        generateAndPlayDirectly();
+    }
+}
 
 // Clean State Reset on Import (Constraint 3)
 function resetAppStateForImport() {
@@ -1093,7 +1273,6 @@ function extractScriptTagJson(htmlText, tagIdentifier) {
         if (tagHeader.includes(tagIdentifier)) {
             if (scriptClose !== -1) {
                 let content = htmlText.substring(tagEnd + 1, scriptClose).trim();
-                // Strip literal backslash-n sequences if present
                 if (content.startsWith('\\\\n')) content = content.substring(2).trim();
                 if (content.endsWith('\\\\n')) content = content.substring(0, content.length - 2).trim();
                 
@@ -1145,8 +1324,8 @@ function extractAnySlidesJson(htmlText) {
                 } catch(e1) {
                     try {
                         const unescaped = content
-                            .replace(/\\u003c/g, '<')
-                            .replace(/\\u003e/g, '>')
+                            .replace(/\\\\u003c/g, '<')
+                            .replace(/\\\\u003e/g, '>')
                             .replace(/&quot;/g, '"')
                             .replace(/&amp;/g, '&')
                             .replace(/&lt;/g, '<')
@@ -1167,11 +1346,11 @@ function extractAnySlidesJson(htmlText) {
 // Universal Robust Parser for Blake & Bento Files (Clean Reset + Dual Fallback)
 function parseBlakeOrBentoHtml(htmlText, fileName) {
     try {
-        // 1. Complete Memory & DOM Clean Reset (Constraint 3)
+        mountEditor();
         resetAppStateForImport();
         pushUndoState();
 
-        // 2. Extract Blake Quine Draft Data
+        // 1. Extract Blake Quine Draft Data
         let blakeData = extractScriptTagJson(htmlText, 'id="blake-initial-data"') ||
                         extractScriptTagJson(htmlText, 'blake-initial-data');
 
@@ -1184,7 +1363,7 @@ function parseBlakeOrBentoHtml(htmlText, fileName) {
             return;
         }
 
-        // 3. Extract Bento Document Data (Handles pure Bento Decks & Previous Blake Exports)
+        // 2. Extract Bento Document Data
         let bentoDoc = extractScriptTagJson(htmlText, 'id="bento-doc"') ||
                        extractScriptTagJson(htmlText, 'type="application/bento+json"') ||
                        extractScriptTagJson(htmlText, 'id="bento-payload"') ||
@@ -1199,7 +1378,7 @@ function parseBlakeOrBentoHtml(htmlText, fileName) {
             return;
         }
 
-        // 4. Broad Fallback Search
+        // 3. Broad Fallback Search
         let anyData = extractAnySlidesJson(htmlText);
         if (anyData) {
             if (anyData.format === 'bento/slides' || anyData.docId || (anyData.theme && anyData.assets)) {
@@ -1221,6 +1400,7 @@ function parseBlakeOrBentoHtml(htmlText, fileName) {
 }
 
 function restoreBlakeDraftState(data) {
+    mountEditor();
     if (data.title && document.getElementById('doc-title')) {
         document.getElementById('doc-title').value = data.title;
     }
@@ -1277,6 +1457,7 @@ function restoreBlakeDraftState(data) {
 }
 
 function restoreFromBentoDoc(docObj, fileName) {
+    mountEditor();
     const defaultTitle = (fileName || 'Bento_Project').replace(/\\.html?$/i, '');
     const title = docObj.title || defaultTitle;
     if (document.getElementById('doc-title')) {
@@ -1391,6 +1572,7 @@ function restoreFromBentoDoc(docObj, fileName) {
 // ==========================================
 function generateBlakeQuineHtml() {
     try {
+        mountEditor();
         flushSaveDraft();
         const titleEl = document.getElementById('doc-title');
         const title = titleEl ? titleEl.value.trim() : '나의 배낭여행 기록';
@@ -1538,12 +1720,14 @@ function generateBlakeQuineHtml() {
         const bentoJsonStr = JSON.stringify(bentoDocObj).replace(/<\/(script)/gi, '<\\/$1>');
 
         // Temporarily reset view styles for pristine serialization
+        const splashView = document.getElementById('blake-cinematic-splash');
         const bentoView = document.getElementById('blake-bento-view');
         const editorView = document.getElementById('blake-editor-view');
         const bentoFrame = document.getElementById('bento-frame');
         
+        if (splashView) splashView.style.display = 'flex';
         if (bentoView) bentoView.style.display = 'none';
-        if (editorView) editorView.style.display = 'block';
+        if (editorView) editorView.style.display = 'none';
         if (bentoFrame) bentoFrame.removeAttribute('srcdoc');
 
         let fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
@@ -1567,6 +1751,9 @@ function generateBlakeQuineHtml() {
         } else {
             fullHtml = fullHtml.replace('</head>', cleanBentoTag + '\n</head>');
         }
+
+        if (splashView) splashView.style.display = 'none';
+        if (editorView) editorView.style.display = 'block';
 
         return fullHtml;
     } catch(e) {
@@ -1672,8 +1859,6 @@ function getGuideImageSvgDataUri() {
 }
 
 function loadDraft() {
-    setupTitleImportListeners();
-
     // Check embedded Initial Data in Quine container first
     const initScript = document.getElementById('blake-initial-data');
     let initData = null;
@@ -1684,15 +1869,28 @@ function loadDraft() {
     }
 
     if (initData && initData.slides && initData.slides.length > 0) {
-        restoreBlakeDraftState(initData);
-        pushUndoState();
+        currentInitialData = initData;
         if (initData.isExportedQuine) {
-            setTimeout(function() {
-                generateAndPlayDirectly();
-            }, 100);
+            // Lazy Hydration: Show Cinematic Splash Screen!
+            const splash = document.getElementById('blake-cinematic-splash');
+            const splashTitle = document.getElementById('splash-title');
+            const splashCount = document.getElementById('splash-scene-count');
+            if (splash) {
+                if (splashTitle) splashTitle.innerText = initData.title || '나의 배낭여행 기록';
+                if (splashCount) splashCount.innerText = `📷 ${initData.slides.length}개의 장면이 준비되어 있습니다`;
+                splash.style.display = 'flex';
+            }
+            return;
+        } else {
+            mountEditor();
+            restoreBlakeDraftState(initData);
+            pushUndoState();
+            return;
         }
-        return;
     }
+
+    // Direct Editor Mode
+    mountEditor();
 
     // Fallback to IndexedDB draft
     loadDraftIndexedDB(function(data) {
@@ -1778,6 +1976,7 @@ function updateSnippet(slideNum) {
 
 function addSlide() {
     try {
+        mountEditor();
         pushUndoState();
         slideCounter++;
         document.querySelectorAll('.accordion-card').forEach(card => card.classList.remove('active'));
@@ -1886,6 +2085,8 @@ function triggerAudioFileInput(slideId) {
 
 function createSlideCard(num, data, isOpen) {
     const container = document.getElementById('slides-container');
+    if (!container) return;
+
     const card = document.createElement('div');
     card.className = `accordion-card ${isOpen ? 'active' : ''}`;
     card.id = `slide-card-${num}`;
@@ -2181,6 +2382,7 @@ function generateVideoThumbnail(videoDataUri, callback) {
 
 function generateAndPlayDirectly() {
     primeMobileSpeech();
+    mountEditor();
     saveDraft();
     generateMobileBento(1, false, false);
     playInApp(1);
@@ -2189,6 +2391,7 @@ function generateAndPlayDirectly() {
 function previewSingleSlide(targetSlideNum, event) {
     if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
     primeMobileSpeech();
+    mountEditor();
     saveDraft();
     generateMobileBento(targetSlideNum, true, true);
     playInApp(1);
@@ -2196,11 +2399,12 @@ function previewSingleSlide(targetSlideNum, event) {
 
 function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleScene = false) {
     try {
-        const title = document.getElementById('doc-title').value || '나의 배낭여행 기록';
-        const showSubtitle = document.getElementById('doc-subtitle-toggle').checked;
+        mountEditor();
+        const title = (document.getElementById('doc-title') && document.getElementById('doc-title').value) || (currentInitialData && currentInitialData.title) || '나의 배낭여행 기록';
+        const showSubtitle = document.getElementById('doc-subtitle-toggle') ? document.getElementById('doc-subtitle-toggle').checked : true;
         
         const slideCards = document.querySelectorAll('.accordion-card');
-        if (slideCards.length === 0) {
+        if (slideCards.length === 0 && (!currentInitialData || !currentInitialData.slides || currentInitialData.slides.length === 0)) {
             alert('최소 1개 이상의 장면을 추가해주세요.');
             return;
         }
@@ -2221,22 +2425,26 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
         }
         
         const startIdx = onlySingleScene ? targetCardIndex : 0;
-        const endIdx = onlySingleScene ? (targetCardIndex + 1) : slideCards.length;
+        const endIdx = onlySingleScene ? (targetCardIndex + 1) : (slideCards.length > 0 ? slideCards.length : (currentInitialData ? currentInitialData.slides.length : 0));
         
         let targetIdx = 0;
         for (let idx = startIdx; idx < endIdx; idx++) {
             targetIdx++;
             const card = slideCards[idx];
             const slideNum = targetIdx;
-            const cardId = card.id.replace('slide-card-', '');
-            const txtEl = card.querySelector('.slide-text');
-            const narrData = narrationStore[cardId] || { mode: 'tts', recAudioDataUri: null };
+            let cardId = card ? card.id.replace('slide-card-', '') : String(slideNum);
             
-            if (txtEl) {
-                if (narrData.mode === 'note') memoStore[cardId] = txtEl.value;
-                else scriptStore[cardId] = txtEl.value;
+            if (card) {
+                const txtEl = card.querySelector('.slide-text');
+                const narrData = narrationStore[cardId] || { mode: 'tts', recAudioDataUri: null };
+                
+                if (txtEl) {
+                    if (narrData.mode === 'note') memoStore[cardId] = txtEl.value;
+                    else scriptStore[cardId] = txtEl.value;
+                }
             }
             
+            const narrData = narrationStore[cardId] || { mode: 'tts', recAudioDataUri: null };
             const scriptText = scriptStore[cardId] || '';
             const memoText = memoStore[cardId] || '';
             
@@ -2430,7 +2638,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
         const nextFileEl = document.getElementById('next-file-input');
         const nextFile = nextFileEl ? nextFileEl.value.trim() : '';
 
-        // Blake 1.2 Enhanced Audio & Slide Narration Engine with Minimum Playback Guarantee
+        // Blake 1.2 Enhanced Audio & Slide Narration Engine with Natural Duration Tracking
         const audioEngineScript = "\n<" + "script>\n" +
             "(function() {" +
             "  const TARGET_SPEED = 1.25;" +
@@ -2672,6 +2880,11 @@ function playInApp(targetSlideNum) {
         }
         const bentoView = document.getElementById('blake-bento-view');
         const editorView = document.getElementById('blake-editor-view');
+        const splashView = document.getElementById('blake-cinematic-splash');
+        
+        if (splashView) splashView.style.display = 'none';
+        if (editorView) editorView.style.display = 'none';
+        
         let frame = document.getElementById('bento-frame');
         if (!frame) {
             frame = document.createElement('iframe');
@@ -2682,7 +2895,6 @@ function playInApp(targetSlideNum) {
             bentoView.appendChild(frame);
         }
         
-        editorView.style.display = 'none';
         bentoView.style.display = 'block';
         
         const backBtn = document.getElementById('parent-back-btn');
@@ -2706,7 +2918,6 @@ function playInApp(targetSlideNum) {
 function closeBentoView() {
     try {
         const bentoView = document.getElementById('blake-bento-view');
-        const editorView = document.getElementById('blake-editor-view');
         const frame = document.getElementById('bento-frame');
         const backBtn = document.getElementById('parent-back-btn');
         
@@ -2727,7 +2938,8 @@ function closeBentoView() {
         }
         if (backBtn) backBtn.style.display = 'none';
         bentoView.style.display = 'none';
-        editorView.style.display = 'block';
+        
+        mountEditor();
     } catch(e) {}
 }
 
