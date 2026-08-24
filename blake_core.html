@@ -1167,6 +1167,20 @@ function restoreBlakeDraftState(data) {
             createSlideCard(sId, s, idx === 0);
         });
         slideCounter = maxId;
+    } else {
+        // Guaranteed fallback so editor is never blank
+        const defaultSlide = {
+            id: '1',
+            title: '장면 1',
+            script: '3️⃣ "차분한 AI 음성으로 기록하려면 자막을, 당신의 목소리를 넣으려면 음성녹음을 누르세요. 긴 메모도 가능합니다."\\n⬇️ 준비가 되셨다면, 아래 "장면 미리보기"를 눌러주세요!',
+            memo: '',
+            file: { name: 'blake사용법.jpg', dataUri: getGuideImageSvgDataUri(), type: 'image' },
+            narration: { mode: 'tts', recAudioDataUri: null }
+        };
+        scriptStore[1] = defaultSlide.script;
+        memoStore[1] = '';
+        createSlideCard(1, defaultSlide, true);
+        slideCounter = 1;
     }
 }
 
@@ -1484,7 +1498,7 @@ function loadDraft() {
         const container = document.getElementById('slides-container');
         if (container) container.innerHTML = '';
         
-        if (data) {
+        if (data && data.slides && data.slides.length > 0) {
             restoreBlakeDraftState(data);
             pushUndoState();
             return;
@@ -2214,6 +2228,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "  let speechDelayTimer = null;" +
             "  let isPresenterStarted = false;" +
             "  let isInitialSlidePlayed = false;" +
+            "  try { if (!window.location.hash || window.location.hash === '' || window.location.hash === '#') { window.location.hash = 'present'; } } catch(e) {}" +
             "  function injectBentoBackButton() {" +
             "    if (document.getElementById('bento-embedded-blake-back-btn')) return;" +
             "    const btn = document.createElement('button');" +
@@ -2230,12 +2245,17 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    };" +
             "    document.body.appendChild(btn);" +
             "  }" +
-            "  function getVoicesSafe() {" +
-            "    if (!window.speechSynthesis) return [];" +
-            "    return window.speechSynthesis.getVoices() || [];" +
+            "  function getSpeechSynth() {" +
+            "    return (window.parent && window.parent.speechSynthesis) ? window.parent.speechSynthesis : window.speechSynthesis;" +
             "  }" +
-            "  if (window.speechSynthesis) {" +
-            "    window.speechSynthesis.onvoiceschanged = function() { getVoicesSafe(); };" +
+            "  function getVoicesSafe() {" +
+            "    const synth = getSpeechSynth();" +
+            "    if (!synth) return [];" +
+            "    return synth.getVoices() || [];" +
+            "  }" +
+            "  const synthInstance = getSpeechSynth();" +
+            "  if (synthInstance) {" +
+            "    synthInstance.onvoiceschanged = function() { getVoicesSafe(); };" +
             "  }" +
             "  function selectVoiceAndPitch(voices) {" +
             "    if (!voices || voices.length === 0) return { voice: null, pitch: 0.95, rate: TARGET_SPEED };" +
@@ -2258,9 +2278,10 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    } catch(e) {}" +
             "  }" +
             "  function stopAllAudio() {" +
-            "    if (window.speechSynthesis) {" +
-            "      try { window.speechSynthesis.cancel(); } catch(e) {}" +
-            "      try { if (window.speechSynthesis.paused) window.speechSynthesis.resume(); } catch(e) {}" +
+            "    const synth = getSpeechSynth();" +
+            "    if (synth) {" +
+            "      try { synth.cancel(); } catch(e) {}" +
+            "      try { if (synth.paused) synth.resume(); } catch(e) {}" +
             "    }" +
             "    document.querySelectorAll('audio').forEach(function(a) { try { a.pause(); a.currentTime = 0; } catch(e) {} });" +
             "    document.querySelectorAll('video').forEach(function(v) { try { v.pause(); v.currentTime = 0; v.muted = true; } catch(e) {} });" +
@@ -2268,11 +2289,12 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "  window._blakeActiveUtterance = null;" +
             "  function speakTextReliably(txt, onEnd) {" +
             "    if (!txt || !txt.trim()) { if (onEnd) onEnd(); return; }" +
-            "    if (!window.speechSynthesis) { if (onEnd) onEnd(); return; }" +
+            "    const synth = getSpeechSynth();" +
+            "    if (!synth) { if (onEnd) onEnd(); return; }" +
             "    try {" +
-            "      window.speechSynthesis.cancel();" +
-            "      if (window.speechSynthesis.paused) {" +
-            "        try { window.speechSynthesis.resume(); } catch(e) {}" +
+            "      synth.cancel();" +
+            "      if (synth.paused) {" +
+            "        try { synth.resume(); } catch(e) {}" +
             "      }" +
             "      const voices = getVoicesSafe();" +
             "      const cleanText = txt.trim();" +
@@ -2292,11 +2314,11 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      }" +
             "      u.onend = finish;" +
             "      u.onerror = finish;" +
-            "      window.speechSynthesis.speak(u);" +
+            "      synth.speak(u);" +
             "      const safeDuration = Math.max(3000, cleanText.length * 350);" +
             "      setTimeout(function() {" +
-            "        if (!isFinished && window.speechSynthesis && window.speechSynthesis.speaking) {" +
-            "          try { window.speechSynthesis.pause(); window.speechSynthesis.resume(); } catch(err) {}" +
+            "        if (!isFinished && synth && synth.speaking) {" +
+            "          try { synth.pause(); synth.resume(); } catch(err) {}" +
             "        }" +
             "      }, 6000);" +
             "    } catch(e) { if (onEnd) onEnd(); }" +
@@ -2365,11 +2387,12 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    }" +
             "  }" +
             "  function unlockIframeTouchAudio() {" +
-            "    if (window.speechSynthesis) {" +
+            "    const synth = getSpeechSynth();" +
+            "    if (synth) {" +
             "      try {" +
             "        const u = new SpeechSynthesisUtterance(' ');" +
             "        u.volume = 0.01;" +
-            "        window.speechSynthesis.speak(u);" +
+            "        synth.speak(u);" +
             "      } catch(e) {}" +
             "    }" +
             "  }" +
@@ -2406,7 +2429,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "        } catch(e) {}" +
             "      }" +
             "    }" +
-            "  }, 100);" +
+            "  }, 80);" +
             "})();" +
             "\\n<" + "/script>";
         
@@ -2470,6 +2493,9 @@ function closeBentoView() {
                 frame.contentWindow.document.querySelectorAll('audio').forEach(a => a.pause());
                 frame.contentWindow.document.querySelectorAll('video').forEach(v => v.pause());
             } catch(e) {}
+        }
+        if (window.speechSynthesis) {
+            try { window.speechSynthesis.cancel(); } catch(e) {}
         }
         
         if (frame) {
