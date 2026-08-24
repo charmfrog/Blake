@@ -602,7 +602,7 @@
         <div class="top-bar">
             <div class="top-row-title">
                 <input type="text" id="doc-title" class="title-input" value="제목이 곧 파일명입니다." placeholder="여행 메인 제목 입력" title="길게 누르거나(모바일 800ms) 우클릭(PC)하면 저장된 HTML 파일을 불러옵니다." oninput="saveDraft()">
-                <button type="button" class="btn-title-preview" onclick="generateAndPlayDirectly()">👁️ 미리보기</button>
+                <button type="button" class="btn-title-preview" onclick="primeMobileSpeech(); generateAndPlayDirectly();">👁️ 미리보기</button>
             </div>
             <div class="top-row-actions">
                 <button type="button" class="btn-top-bar" id="btn-undo" onclick="undoLastAction()">↪️ 작업취소</button>
@@ -713,6 +713,18 @@ const bentoRawElementsStore = {}; // Bento layout pass-through store
 let lastGeneratedHtml = '';
 
 let slideCounter = 2;
+
+// Mobile Audio & TTS Gesture Priming
+function primeMobileSpeech() {
+    if (window.speechSynthesis) {
+        try {
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(' ');
+            u.volume = 0.01;
+            window.speechSynthesis.speak(u);
+        } catch(e) {}
+    }
+}
 
 // 5-Level Undo Stack Mechanism
 const undoStack = [];
@@ -1041,111 +1053,49 @@ function handleImportHtmlFile(event) {
     reader.readAsText(file);
 }
 
-// Universal Robust Multi-Tier Parser for Blake & Bento Files
+// Universal High-Performance Script Tag Extractor (Immune to Comments and File Sizes up to 100MB)
+function extractScriptTagJson(htmlText, tagIdentifier) {
+    let searchPos = 0;
+    while (searchPos < htmlText.length) {
+        const scriptIdx = htmlText.indexOf('<' + 'script', searchPos);
+        if (scriptIdx === -1) break;
+
+        const tagEnd = htmlText.indexOf('>', scriptIdx);
+        if (tagEnd === -1) break;
+
+        const tagHeader = htmlText.substring(scriptIdx, tagEnd + 1);
+        if (tagHeader.includes(tagIdentifier)) {
+            const scriptClose = htmlText.indexOf('<' + '/script>', tagEnd);
+            if (scriptClose !== -1) {
+                const content = htmlText.substring(tagEnd + 1, scriptClose).trim();
+                if (!content) return null;
+                try {
+                    return JSON.parse(content);
+                } catch(e1) {
+                    try {
+                        const unescaped = content.replace(/\\u003c/g, '<').replace(/\\u003e/g, '>');
+                        return JSON.parse(unescaped);
+                    } catch(e2) {
+                        return null;
+                    }
+                }
+            }
+        }
+        searchPos = tagEnd + 1;
+    }
+    return null;
+}
+
+// Universal Robust Parser for Blake & Bento Files
 function parseBlakeOrBentoHtml(htmlText, fileName) {
     try {
         pushUndoState();
 
-        let blakeData = null;
-        let bentoDoc = null;
+        // 1. Extract Blake Quine Draft Data
+        let blakeData = extractScriptTagJson(htmlText, 'id="blake-initial-data"') ||
+                        extractScriptTagJson(htmlText, 'id=\\'blake-initial-data\\'') ||
+                        extractScriptTagJson(htmlText, 'blake-initial-data');
 
-        function safeParseJson(str) {
-            if (!str || !str.trim()) return null;
-            try {
-                return JSON.parse(str.trim());
-            } catch(e1) {
-                try {
-                    const unescaped = str.trim().replace(/\\u003c/g, '<').replace(/\\u003e/g, '>');
-                    return JSON.parse(unescaped);
-                } catch(e2) {
-                    return null;
-                }
-            }
-        }
-
-        // Tier 1: Native DOMParser (100% standards-compliant in browsers)
-        if (typeof DOMParser !== 'undefined') {
-            try {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(htmlText, 'text/html');
-                
-                const blakeEl = doc.getElementById('blake-initial-data');
-                if (blakeEl && blakeEl.textContent) {
-                    const parsed = safeParseJson(blakeEl.textContent);
-                    if (parsed && (parsed.slides || parsed.title)) {
-                        blakeData = parsed;
-                    }
-                }
-
-                if (!blakeData) {
-                    const bentoEl = doc.getElementById('bento-doc') || 
-                                    doc.getElementById('bento-payload') || 
-                                    doc.querySelector('script[type="application/bento+json"]') ||
-                                    doc.querySelector('script[id*="bento"]');
-                    if (bentoEl && bentoEl.textContent) {
-                        const parsed = safeParseJson(bentoEl.textContent);
-                        if (parsed && (parsed.slides || parsed.format === 'bento/slides')) {
-                            bentoDoc = parsed;
-                        }
-                    }
-                }
-            } catch(domErr) {}
-        }
-
-        // Tier 2: Regex Tag Pattern Matcher (handles non-DOM or raw text strings)
-        if (!blakeData || !blakeData.slides || blakeData.slides.length === 0) {
-            const blakeTagRegex = new RegExp('<' + 'script\\\\b[^>]*\\\\bid=[\"\\\']blake-initial-data[\"\\\'][^>]*>([\\\\s\\\\S]*?)<' + '/script>', 'i');
-            const blakeMatch = htmlText.match(blakeTagRegex);
-            if (blakeMatch) {
-                const parsed = safeParseJson(blakeMatch[1]);
-                if (parsed && (parsed.slides || parsed.title)) {
-                    blakeData = parsed;
-                }
-            }
-        }
-
-        if ((!blakeData || !blakeData.slides || blakeData.slides.length === 0) && (!bentoDoc || !bentoDoc.slides || bentoDoc.slides.length === 0)) {
-            const bentoTagRegexes = [
-                new RegExp('<' + 'script\\\\b[^>]*\\\\bid=[\"\\\']bento-doc[\"\\\'][^>]*>([\\\\s\\\\S]*?)<' + '/script>', 'i'),
-                new RegExp('<' + 'script\\\\b[^>]*\\\\bid=[\"\\\']bento-payload[\"\\\'][^>]*>([\\\\s\\\\S]*?)<' + '/script>', 'i'),
-                new RegExp('<' + 'script\\\\b[^>]*\\\\btype=[\"\\\']application\\\\/bento\\\\+json[\"\\\'][^>]*>([\\\\s\\\\S]*?)<' + '/script>', 'i')
-            ];
-            for (let i = 0; i < bentoTagRegexes.length; i++) {
-                const m = htmlText.match(bentoTagRegexes[i]);
-                if (m) {
-                    const parsed = safeParseJson(m[1]);
-                    if (parsed && (parsed.slides || parsed.format === 'bento/slides')) {
-                        bentoDoc = parsed;
-                        break;
-                    }
-                }
-            }
-        }
-
-        // Tier 3: Deep Scan for Embedded Bento/Blake JSON Payload Markers
-        if ((!blakeData || !blakeData.slides) && (!bentoDoc || !bentoDoc.slides)) {
-            const markers = ['bento-doc', 'bento-payload', 'blake-initial-data'];
-            for (let mIdx = 0; mIdx < markers.length; mIdx++) {
-                const marker = markers[mIdx];
-                const idPos = htmlText.indexOf(marker);
-                if (idPos !== -1) {
-                    const tagEnd = htmlText.indexOf('>', idPos);
-                    if (tagEnd !== -1) {
-                        const scriptEnd = htmlText.indexOf('<' + '/script>', tagEnd);
-                        if (scriptEnd !== -1) {
-                            const content = htmlText.substring(tagEnd + 1, scriptEnd);
-                            const parsed = safeParseJson(content);
-                            if (parsed) {
-                                if (marker === 'blake-initial-data' && parsed.slides) blakeData = parsed;
-                                else if (parsed.slides || parsed.format === 'bento/slides') bentoDoc = parsed;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Apply Restored Data
         if (blakeData && blakeData.slides && blakeData.slides.length > 0) {
             restoreBlakeDraftState(blakeData);
             saveDraft();
@@ -1154,6 +1104,13 @@ function parseBlakeOrBentoHtml(htmlText, fileName) {
             showToast(`📂 [${fileName}] Blake 프로젝트(${blakeData.slides.length}개 장면)를 불러왔습니다!`);
             return;
         }
+
+        // 2. Extract Bento Document Data (Handles pure Bento Decks & Previous Blake Exports)
+        let bentoDoc = extractScriptTagJson(htmlText, 'id="bento-doc"') ||
+                       extractScriptTagJson(htmlText, 'id=\\'bento-doc\\'') ||
+                       extractScriptTagJson(htmlText, 'type="application/bento+json"') ||
+                       extractScriptTagJson(htmlText, 'id="bento-payload"') ||
+                       extractScriptTagJson(htmlText, 'bento-doc');
 
         if (bentoDoc && bentoDoc.slides && bentoDoc.slides.length > 0) {
             restoreFromBentoDoc(bentoDoc, fileName);
@@ -1214,7 +1171,7 @@ function restoreBlakeDraftState(data) {
 }
 
 function restoreFromBentoDoc(docObj, fileName) {
-    const defaultTitle = (fileName || 'Bento_Project').replace(/\.html?$/i, '');
+    const defaultTitle = (fileName || 'Bento_Project').replace(/\\.html?$/i, '');
     const title = docObj.title || defaultTitle;
     if (document.getElementById('doc-title')) {
         document.getElementById('doc-title').value = title;
@@ -1235,9 +1192,10 @@ function restoreFromBentoDoc(docObj, fileName) {
 
         let primaryFile = null;
         let scriptText = '';
-        let memoText = slide.notes || '';
+        let memoText = '';
         let recAudioUri = null;
 
+        // 1. Search for primary image or video
         elements.forEach(el => {
             if (el.type === 'image' || (el.type === 'media' && el.kind === 'video')) {
                 let src = el.src || '';
@@ -1261,22 +1219,45 @@ function restoreFromBentoDoc(docObj, fileName) {
                     aSrc = assets[key] || '';
                 }
                 if (aSrc) recAudioUri = aSrc;
-            } else if (el.type === 'text') {
+            }
+        });
+
+        // 2. Search for caption / subtitle text
+        elements.forEach(el => {
+            if (el.type === 'text') {
                 const html = el.html || '';
-                if (html.includes('blake-sub-box') || html.includes('caption-text')) {
-                    const divTemp = document.createElement('div');
-                    divTemp.innerHTML = html;
-                    scriptText = divTemp.textContent || divTemp.innerText || '';
-                } else if (!scriptText && !html.includes('titleCapsuleHtml') && !html.includes('shared-kicker')) {
+                if (html.includes('blake-sub-box') || html.includes('caption-text') || (el.id && el.id.startsWith('caption-text'))) {
                     const divTemp = document.createElement('div');
                     divTemp.innerHTML = html;
                     const plain = (divTemp.textContent || divTemp.innerText || '').trim();
-                    if (plain && plain !== title) {
-                        scriptText = plain;
-                    }
+                    if (plain) scriptText = plain;
                 }
             }
         });
+
+        // 3. Fallback: Search general non-header text elements
+        if (!scriptText) {
+            elements.forEach(el => {
+                if (el.type === 'text') {
+                    const html = el.html || '';
+                    if (!html.includes('titleCapsuleHtml') && !html.includes('shared-kicker') && !html.includes('shared-slide-counter') && !html.includes('{{page')) {
+                        const divTemp = document.createElement('div');
+                        divTemp.innerHTML = html;
+                        const plain = (divTemp.textContent || divTemp.innerText || '').trim();
+                        if (plain && plain !== title && plain.length > 5) {
+                            scriptText = plain;
+                        }
+                    }
+                }
+            });
+        }
+
+        // 4. Fallback: If still no text, use slide.notes as scriptText for AI Voice
+        if (!scriptText && slide.notes && slide.notes.trim()) {
+            scriptText = slide.notes.trim();
+        } else if (slide.notes && slide.notes.trim() !== scriptText) {
+            memoText = slide.notes.trim();
+        }
 
         scriptStore[sId] = scriptText;
         memoStore[sId] = memoText;
@@ -1284,8 +1265,6 @@ function restoreFromBentoDoc(docObj, fileName) {
         let narr = { mode: 'tts', recAudioDataUri: null };
         if (recAudioUri) {
             narr = { mode: 'record', recAudioDataUri: recAudioUri };
-        } else if (memoText && !scriptText) {
-            narr = { mode: 'note', recAudioDataUri: null };
         }
         narrationStore[sId] = narr;
         if (primaryFile) fileStore[sId] = primaryFile;
@@ -1354,7 +1333,7 @@ function generateBlakeQuineHtml() {
         // Update DOM element directly
         const initScript = document.getElementById('blake-initial-data');
         if (initScript) {
-            initScript.textContent = '\n' + draftJsonStr + '\n';
+            initScript.textContent = '\\n' + draftJsonStr + '\\n';
         }
 
         const bentoFrame = document.getElementById('bento-frame');
@@ -1362,7 +1341,7 @@ function generateBlakeQuineHtml() {
             bentoFrame.removeAttribute('srcdoc');
         }
 
-        let fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+        let fullHtml = '<!DOCTYPE html>\\n' + document.documentElement.outerHTML;
 
         // Ensure <script id="blake-initial-data"> is accurately replaced in outerHTML string
         const quineTagRegex = new RegExp('<' + 'script\\\\b[^>]*\\\\bid=[\"\\\']blake-initial-data[\"\\\'][^>]*>[\\\\s\\\\S]*?<' + '/script>', 'i');
@@ -1371,7 +1350,7 @@ function generateBlakeQuineHtml() {
         if (quineTagRegex.test(fullHtml)) {
             fullHtml = fullHtml.replace(quineTagRegex, cleanTag);
         } else {
-            fullHtml = fullHtml.replace('</head>', cleanTag + '\n</head>');
+            fullHtml = fullHtml.replace('</head>', cleanTag + '\\n</head>');
         }
 
         return fullHtml;
@@ -1516,7 +1495,7 @@ function loadDraft() {
         const defaultSlide1 = {
             id: '1',
             title: '장면 1',
-            script: '3️⃣ "차분한 AI 음성으로 기록하려면 자막을, 당신의 목소리를 넣으려면 음성녹음을 누르세요. 긴 메모도 가능합니다."\n⬇️ 준비가 되셨다면, 아래 "장면 미리보기"를 눌러주세요!',
+            script: '3️⃣ "차분한 AI 음성으로 기록하려면 자막을, 당신의 목소리를 넣으려면 음성녹음을 누르세요. 긴 메모도 가능합니다."\\n⬇️ 준비가 되셨다면, 아래 "장면 미리보기"를 눌러주세요!',
             memo: '',
             file: {
                 name: 'blake사용법.jpg',
@@ -1772,7 +1751,7 @@ function createSlideCard(num, data, isOpen) {
             </div>
             
             <div class="card-actions-bar">
-                <button type="button" class="btn-scene-preview" onclick="previewSingleSlide(${num}, event); event.stopPropagation(); event.stopImmediatePropagation();">👁️ 장면 미리보기</button>
+                <button type="button" class="btn-scene-preview" onclick="primeMobileSpeech(); previewSingleSlide(${num}, event); event.stopPropagation(); event.stopImmediatePropagation();">👁️ 장면 미리보기</button>
                 <button type="button" class="btn-remove" id="btn-remove-${num}" onclick="removeSlide(${num}); event.stopPropagation();">${deleteBtnText}</button>
             </div>
         </div>
@@ -1986,6 +1965,7 @@ function generateVideoThumbnail(videoDataUri, callback) {
 }
 
 function generateAndPlayDirectly() {
+    primeMobileSpeech();
     saveDraft();
     generateMobileBento(1, true);
     playInApp(1);
@@ -1993,6 +1973,7 @@ function generateAndPlayDirectly() {
 
 function previewSingleSlide(targetSlideNum, event) {
     if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+    primeMobileSpeech();
     saveDraft();
     generateMobileBento(targetSlideNum, true, true);
     playInApp(1);
@@ -2223,10 +2204,10 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
         const nextFileEl = document.getElementById('next-file-input');
         const nextFile = nextFileEl ? nextFileEl.value.trim() : '';
 
-        // Blake 1.2 Official Baseline Engine + Floating Embedded Back Button
+        // Blake 1.2 Official Baseline Engine + Floating Embedded Back Button + Mobile TTS Unlock
         const audioEngineScript = "\\n<" + "script>\\n" +
             "(function() {" +
-            "  const TARGET_SPEED = 1.35;" +
+            "  const TARGET_SPEED = 1.25;" +
             "  const SLIDE_TEXTS = " + JSON.stringify(slideTextMap) + ";" +
             "  const NEXT_FILE_URL = " + JSON.stringify(nextFile) + ";" +
             "  let currentSlideNum = 0;" +
@@ -2257,7 +2238,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    window.speechSynthesis.onvoiceschanged = function() { getVoicesSafe(); };" +
             "  }" +
             "  function selectVoiceAndPitch(voices) {" +
-            "    if (!voices || voices.length === 0) return { voice: null, pitch: 0.85, rate: TARGET_SPEED };" +
+            "    if (!voices || voices.length === 0) return { voice: null, pitch: 0.95, rate: TARGET_SPEED };" +
             "    const ko = voices.filter(function(v) {" +
             "      const l = (v.lang || '').toLowerCase().replace(/_/g, '-');" +
             "      const n = (v.name || '').toLowerCase();" +
@@ -2266,8 +2247,8 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "             n.includes('korean') || n.includes('한국어') || n.includes('korea') ||" +
             "             u.includes('ko-kr') || u.includes('ko_kr');" +
             "    });" +
-            "    if (ko.length === 0) return { voice: null, pitch: 0.85, rate: TARGET_SPEED };" +
-            "    return { voice: ko[0], pitch: 0.85, rate: TARGET_SPEED };" +
+            "    if (ko.length === 0) return { voice: null, pitch: 0.95, rate: TARGET_SPEED };" +
+            "    return { voice: ko[0], pitch: 0.95, rate: TARGET_SPEED };" +
             "  }" +
             "  function enforceSpeedOnAudio(aud) {" +
             "    if (!aud) return;" +
@@ -2294,22 +2275,30 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "        try { window.speechSynthesis.resume(); } catch(e) {}" +
             "      }" +
             "      const voices = getVoicesSafe();" +
-            "      const u = new SpeechSynthesisUtterance(txt.trim());" +
+            "      const cleanText = txt.trim();" +
+            "      const u = new SpeechSynthesisUtterance(cleanText);" +
             "      window._blakeActiveUtterance = u;" +
             "      u.lang = 'ko-KR';" +
             "      const vp = selectVoiceAndPitch(voices);" +
             "      if (vp.voice) { u.voice = vp.voice; }" +
-            "      u.pitch = 0.85;" +
+            "      u.pitch = 0.95;" +
             "      u.rate = TARGET_SPEED;" +
-            "      u.onend = function() {" +
+            "      let isFinished = false;" +
+            "      function finish() {" +
+            "        if (isFinished) return;" +
+            "        isFinished = true;" +
             "        window._blakeActiveUtterance = null;" +
             "        if (onEnd) onEnd();" +
-            "      };" +
-            "      u.onerror = function() {" +
-            "        window._blakeActiveUtterance = null;" +
-            "        if (onEnd) onEnd();" +
-            "      };" +
+            "      }" +
+            "      u.onend = finish;" +
+            "      u.onerror = finish;" +
             "      window.speechSynthesis.speak(u);" +
+            "      const safeDuration = Math.max(3000, cleanText.length * 350);" +
+            "      setTimeout(function() {" +
+            "        if (!isFinished && window.speechSynthesis && window.speechSynthesis.speaking) {" +
+            "          try { window.speechSynthesis.pause(); window.speechSynthesis.resume(); } catch(err) {}" +
+            "        }" +
+            "      }, 6000);" +
             "    } catch(e) { if (onEnd) onEnd(); }" +
             "  }" +
             "  function handleSlideChange() {" +
@@ -2342,7 +2331,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    }" +
             "    const audio = activeSection ? activeSection.querySelector('audio') : null;" +
             "    const targetText = SLIDE_TEXTS[slideNum] || '';" +
-            "    const delayMs = isInitialSlidePlayed ? 1000 : 1500;" +
+            "    const delayMs = isInitialSlidePlayed ? 600 : 900;" +
             "    isInitialSlidePlayed = true;" +
             "    speechDelayTimer = setTimeout(function() {" +
             "      if (audio) {" +
@@ -2359,7 +2348,8 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "  }" +
             "  function tryEnterPresenter() {" +
             "    if (isPresenterStarted) return;" +
-            "    if (document.querySelector('.bento-present-overlay') || document.querySelector('.present')) {" +
+            "    const overlay = document.querySelector('.bento-present-overlay') || document.querySelector('.present') || document.querySelector('section.present');" +
+            "    if (overlay && overlay.style.display !== 'none') {" +
             "      isPresenterStarted = true;" +
             "      return;" +
             "    }" +
@@ -2368,11 +2358,23 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "               document.querySelector('.ed-playgo') || " +
             "               document.querySelector('[title*=Slideshow]') || " +
             "               document.querySelector('[title*=Present]') || " +
-            "               document.querySelector('button[title*=슬라이드쇼]');" +
+            "               document.querySelector('button[title*=슬라이드쇼]') || " +
+            "               document.querySelector('.ed-btn-play');" +
             "    if (pBtn) {" +
             "      try { pBtn.click(); isPresenterStarted = true; } catch(e) {}" +
             "    }" +
             "  }" +
+            "  function unlockIframeTouchAudio() {" +
+            "    if (window.speechSynthesis) {" +
+            "      try {" +
+            "        const u = new SpeechSynthesisUtterance(' ');" +
+            "        u.volume = 0.01;" +
+            "        window.speechSynthesis.speak(u);" +
+            "      } catch(e) {}" +
+            "    }" +
+            "  }" +
+            "  document.addEventListener('touchstart', unlockIframeTouchAudio, { once: true, capture: true });" +
+            "  document.addEventListener('click', unlockIframeTouchAudio, { once: true, capture: true });" +
             "  const observer = new MutationObserver(function() {" +
             "    handleSlideChange();" +
             "  });" +
@@ -2389,6 +2391,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    setTimeout(function() { handleSlideChange(); }, 200);" +
             "  });" +
             "  setInterval(function() {" +
+            "    tryEnterPresenter();" +
             "    injectBentoBackButton();" +
             "    handleSlideChange();" +
             "    document.querySelectorAll('audio').forEach(function(a) { enforceSpeedOnAudio(a); });" +
@@ -2403,7 +2406,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "        } catch(e) {}" +
             "      }" +
             "    }" +
-            "  }, 300);" +
+            "  }, 100);" +
             "})();" +
             "\\n<" + "/script>";
         
