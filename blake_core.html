@@ -2515,33 +2515,37 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      u.pitch = 0.95;" +
             "      u.rate = TARGET_SPEED;" +
             "      const startTime = Date.now();" +
-            "      const minPlayMs = Math.max(2200, cleanText.length * 260);" +
-            "      const maxSafeMs = Math.max(4500, cleanText.length * 450);" +
-            "      let onEndCalled = false;" +
-            "      function attemptFinish() {" +
-            "        if (onEndCalled) return;" +
+            "      const pausesCount = (cleanText.match(/[,.!?~…\\n]/g) || []).length;" +
+            "      const estDurationMs = Math.max(2600, (cleanText.length * 280) + (pausesCount * 400) + 1000);" +
+            "      const maxTimeoutMs = Math.round(estDurationMs * 1.8 + 2500);" +
+            "      let isDone = false;" +
+            "      function completePlayback() {" +
+            "        if (isDone) return;" +
             "        const elapsed = Date.now() - startTime;" +
-            "        if (elapsed < minPlayMs) {" +
-            "          setTimeout(attemptFinish, minPlayMs - elapsed);" +
+            "        if (window.speechSynthesis && window.speechSynthesis.speaking) {" +
+            "          if (elapsed < maxTimeoutMs) {" +
+            "            setTimeout(completePlayback, 300);" +
+            "            return;" +
+            "          }" +
+            "        }" +
+            "        if (elapsed < (estDurationMs * 0.75)) {" +
+            "          setTimeout(completePlayback, Math.round(estDurationMs * 0.75 - elapsed + 200));" +
             "          return;" +
             "        }" +
-            "        onEndCalled = true;" +
+            "        isDone = true;" +
             "        window._blakeActiveUtterance = null;" +
             "        if (onEnd) onEnd();" +
             "      }" +
-            "      u.onend = function() { attemptFinish(); };" +
-            "      u.onerror = function() { attemptFinish(); };" +
+            "      u.onend = function() {" +
+            "        setTimeout(completePlayback, 800);" +
+            "      };" +
+            "      u.onerror = function() {" +
+            "        setTimeout(completePlayback, 600);" +
+            "      };" +
             "      window.speechSynthesis.speak(u);" +
-            "      const pauseFixTimer = setInterval(function() {" +
-            "        if (onEndCalled) { clearInterval(pauseFixTimer); return; }" +
-            "        if (window.speechSynthesis && window.speechSynthesis.speaking) {" +
-            "          try { window.speechSynthesis.pause(); window.speechSynthesis.resume(); } catch(err) {}" +
-            "        }" +
-            "      }, 4000);" +
             "      setTimeout(function() {" +
-            "        clearInterval(pauseFixTimer);" +
-            "        if (!onEndCalled) { attemptFinish(); }" +
-            "      }, maxSafeMs);" +
+            "        if (!isDone) { completePlayback(); }" +
+            "      }, maxTimeoutMs);" +
             "    } catch(e) { if (onEnd) onEnd(); }" +
             "  }" +
             "  function handleSlideChange() {" +
