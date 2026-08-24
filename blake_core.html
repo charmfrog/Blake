@@ -1093,7 +1093,6 @@ function parseBlakeOrBentoHtml(htmlText, fileName) {
 
         // 1. Extract Blake Quine Draft Data
         let blakeData = extractScriptTagJson(htmlText, 'id="blake-initial-data"') ||
-                        extractScriptTagJson(htmlText, 'id=\\'blake-initial-data\\'') ||
                         extractScriptTagJson(htmlText, 'blake-initial-data');
 
         if (blakeData && blakeData.slides && blakeData.slides.length > 0) {
@@ -1107,7 +1106,6 @@ function parseBlakeOrBentoHtml(htmlText, fileName) {
 
         // 2. Extract Bento Document Data (Handles pure Bento Decks & Previous Blake Exports)
         let bentoDoc = extractScriptTagJson(htmlText, 'id="bento-doc"') ||
-                       extractScriptTagJson(htmlText, 'id=\\'bento-doc\\'') ||
                        extractScriptTagJson(htmlText, 'type="application/bento+json"') ||
                        extractScriptTagJson(htmlText, 'id="bento-payload"') ||
                        extractScriptTagJson(htmlText, 'bento-doc');
@@ -2219,7 +2217,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
         const nextFile = nextFileEl ? nextFileEl.value.trim() : '';
 
         // Blake 1.2 Official Baseline Engine + Floating Embedded Back Button + Mobile TTS Unlock
-        const audioEngineScript = "\\n<" + "script>\\n" +
+        const audioEngineScript = "\n<" + "script>\n" +
             "(function() {" +
             "  const TARGET_SPEED = 1.25;" +
             "  const SLIDE_TEXTS = " + JSON.stringify(slideTextMap) + ";" +
@@ -2431,7 +2429,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    }" +
             "  }, 80);" +
             "})();" +
-            "\\n<" + "/script>";
+            "\n<" + "/script>";
         
         lastGeneratedHtml = rawTemplate.substring(0, sIdx + startMarker.length) + "\n" + jsonStr + "\n    " + rawTemplate.substring(eIdx) + audioEngineScript;
         return lastGeneratedHtml;
