@@ -178,35 +178,33 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* Subtle Top-Left Return Badge: 100% Unobtrusive, No Subtitle Collision */
+        /* Floating Back Button: Original Battle-Tested Top 85% Center Position */
         #parent-back-btn {
             position: fixed;
-            top: 14px;
-            left: 16px;
+            top: 85%;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 2147483647 !important;
-            background: rgba(15, 23, 42, 0.40);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            color: #CBD5E1;
-            border: 1px solid rgba(255, 158, 138, 0.40);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.78rem;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            background: rgba(15, 23, 42, 0.94);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            color: #FF9E8A;
+            border: 1.5px solid #FF9E8A;
+            padding: 10px 20px;
+            border-radius: 26px;
+            font-weight: 800;
+            font-size: 0.88rem;
+            box-shadow: 0 6px 28px rgba(0, 0, 0, 0.85);
             cursor: pointer;
             white-space: nowrap;
-            opacity: 0.35;
+            display: none; /* Hidden during slideshow, visible upon exiting to Bento editor */
             pointer-events: auto !important;
-            transition: opacity 0.25s ease, background 0.2s ease, transform 0.15s ease;
+            transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
         }
 
-        #parent-back-btn:hover, #parent-back-btn:active, #parent-back-btn:focus {
-            opacity: 1;
-            background: rgba(15, 23, 42, 0.92);
-            color: #FF9E8A;
-            border-color: #FF9E8A;
-            transform: scale(1.02);
+        #parent-back-btn:active {
+            transform: translate(-50%, 0) scale(0.95);
+            background: rgba(30, 41, 59, 0.98);
         }
 
         #bento-frame {
@@ -879,23 +877,26 @@ function mountEditor() {
     if (splash) splash.style.display = 'none';
 
     let editorView = document.getElementById('blake-editor-view');
+    let isFirstMount = false;
     if (!editorView) {
         const template = document.getElementById('blake-editor-template');
         if (template) {
             const clone = template.content.cloneNode(true);
             document.body.appendChild(clone);
+            isFirstMount = true;
         }
         setupTitleImportListeners();
     }
     editorView = document.getElementById('blake-editor-view');
     if (editorView) editorView.style.display = 'block';
+
+    if (isFirstMount && currentInitialData) {
+        restoreBlakeDraftState(currentInitialData);
+    }
 }
 
 function openEditorFromSplash() {
     mountEditor();
-    if (currentInitialData) {
-        restoreBlakeDraftState(currentInitialData);
-    }
 }
 
 function startCinematicFromSplash() {
@@ -1470,9 +1471,8 @@ function restoreBlakeDraftState(data, htmlText) {
             memoStore[sId] = s.memo || '';
             if (s._rawElements) bentoRawElementsStore[sId] = s._rawElements;
             
-            // Resolve file from assetKey if dataUri is omitted (Lean 50% Storage)
+            let fileObj = s.file || null;
             if (s.file) {
-                let fileObj = s.file;
                 if (s.file.assetKey && bentoAssets[s.file.assetKey]) {
                     fileObj = {
                         name: s.file.name,
@@ -1485,8 +1485,8 @@ function restoreBlakeDraftState(data, htmlText) {
             }
             
             // Resolve audio from audioAssetKey
+            let narrObj = s.narration || { mode: 'tts', recAudioDataUri: null };
             if (s.narration) {
-                let narrObj = s.narration;
                 if (s.narration.audioAssetKey && bentoAssets[s.narration.audioAssetKey]) {
                     narrObj = {
                         mode: s.narration.mode,
@@ -1496,7 +1496,14 @@ function restoreBlakeDraftState(data, htmlText) {
                 narrationStore[sId] = narrObj;
             }
             
-            createSlideCard(sId, s, idx === 0);
+            createSlideCard(sId, {
+                id: sId,
+                script: scriptStore[sId],
+                memo: memoStore[sId],
+                file: fileObj,
+                narration: narrObj,
+                _rawElements: s._rawElements
+            }, idx === 0);
         });
         slideCounter = maxId;
     } else {
@@ -1942,7 +1949,11 @@ function loadDraft() {
 
     if (initData && initData.slides && initData.slides.length > 0) {
         currentInitialData = initData;
+        restoreBlakeDraftState(initData);
+        pushUndoState();
         if (initData.isExportedQuine) {
+            const editor = document.getElementById('blake-editor-view');
+            if (editor) editor.style.display = 'none';
             const splash = document.getElementById('blake-cinematic-splash');
             const splashTitle = document.getElementById('splash-title');
             const splashCount = document.getElementById('splash-scene-count');
@@ -1952,12 +1963,8 @@ function loadDraft() {
                 splash.style.display = 'flex';
             }
             return;
-        } else {
-            mountEditor();
-            restoreBlakeDraftState(initData);
-            pushUndoState();
-            return;
         }
+        return;
     }
 
     mountEditor();
@@ -2167,7 +2174,10 @@ function createSlideCard(num, data, isOpen) {
         if (data.memo !== undefined) memoStore[num] = data.memo;
         else if (memoStore[num] === undefined) memoStore[num] = '';
         
-        if (data.file) fileStore[num] = data.file;
+        if (data.file) {
+            if (data.file.dataUri) fileStore[num] = data.file;
+            else if (!fileStore[num]) fileStore[num] = data.file;
+        }
         if (data.narration) narrationStore[num] = data.narration;
         else narrationStore[num] = { mode: 'tts', recAudioDataUri: null };
         if (data._rawElements) bentoRawElementsStore[num] = data._rawElements;
@@ -2894,23 +2904,38 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      } catch(e) {}" +
             "    }" +
             "  }" +
+            "  function updateParentBackButtonVisibility() {" +
+            "    try {" +
+            "      const overlay = document.querySelector('.bento-present-overlay');" +
+            "      const isPresenting = !!(overlay && overlay.style.display !== 'none');" +
+            "      if (window.parent && window.parent.document) {" +
+            "        const btn = window.parent.document.getElementById('parent-back-btn');" +
+            "        if (btn) {" +
+            "          btn.style.display = isPresenting ? 'none' : 'block';" +
+            "        }" +
+            "      }" +
+            "    } catch(e) {}" +
+            "  }" +
             "  document.addEventListener('touchstart', unlockIframeTouchAudio, { once: true, capture: true });" +
             "  document.addEventListener('click', unlockIframeTouchAudio, { once: true, capture: true });" +
             "  const observer = new MutationObserver(function() {" +
             "    handleSlideChange();" +
+            "    updateParentBackButtonVisibility();" +
             "  });" +
             "  window.addEventListener('load', function() {" +
             "    tryEnterPresenter();" +
+            "    updateParentBackButtonVisibility();" +
             "    observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });" +
             "    setTimeout(tryEnterPresenter, 50);" +
             "    setTimeout(tryEnterPresenter, 150);" +
             "    setTimeout(tryEnterPresenter, 300);" +
             "    setTimeout(tryEnterPresenter, 600);" +
-            "    setTimeout(function() { handleSlideChange(); }, 200);" +
+            "    setTimeout(function() { handleSlideChange(); updateParentBackButtonVisibility(); }, 200);" +
             "  });" +
             "  setInterval(function() {" +
             "    tryEnterPresenter();" +
             "    handleSlideChange();" +
+            "    updateParentBackButtonVisibility();" +
             "    document.querySelectorAll('audio').forEach(function(a) { enforceSpeedOnAudio(a); });" +
             "    const activeSlide = document.querySelector('.present') || document.querySelector('section.active');" +
             "    if (activeSlide) {" +
@@ -2962,7 +2987,7 @@ function playInApp(targetSlideNum) {
         
         const backBtn = document.getElementById('parent-back-btn');
         if (backBtn) {
-            backBtn.style.display = 'block';
+            backBtn.style.display = 'none';
         }
 
         frame.srcdoc = lastGeneratedHtml;
