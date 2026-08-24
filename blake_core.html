@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
  * ============================================================================
- * Blake Core Engine (v1.2 Quine & Lazy Hydration Edition)
+ * Blake Core Engine (v1.2 Quine, Lean Storage & Cinematic Edition)
  * Copyright (c) 2026 홀로트레커. All rights reserved.
  * 
  * Licensed under CC BY-NC-SA 4.0 (Creative Commons Attribution-NonCommercial-ShareAlike 4.0)
@@ -12,7 +12,7 @@
  * [버전 및 개선 이력 (Version History)]
  * - Blake 1.0  (2026. 8. 4.)  : 홀로트레커, 안제민 개발실장(Antigravity), 임진호 수석연구원(Notebook LM) - 최초 개발
  * - Blake 1.1g (2026. 8. 22.) : 구제민 상임고문(구글 Gemini) - 플레이리스트 순차 연결 및 안정성 최적화
- * - Blake 1.2  (2026. 8. 24.) : Quine 방식 산출물 자체 재편집, 지연 렌더링(Lazy DOM) & 시네마틱 스플래시, 모바일 Autoplay 가드
+ * - Blake 1.2  (2026. 8. 24.) : Quine 자립성, 미디어 단일화 50% 다이어트, 네이티브 전체화면, 정밀 타이밍 엔진
  * ============================================================================
 -->
 <html lang="ko">
@@ -178,32 +178,35 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* Floating Back Button: Top 85% Center Target */
+        /* Subtle Top-Left Return Badge: 100% Unobtrusive, No Subtitle Collision */
         #parent-back-btn {
             position: fixed;
-            top: 85%;
-            left: 50%;
-            transform: translateX(-50%);
+            top: 14px;
+            left: 16px;
             z-index: 2147483647 !important;
-            background: rgba(15, 23, 42, 0.94);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            color: #FF9E8A;
-            border: 1.5px solid #FF9E8A;
-            padding: 10px 20px;
-            border-radius: 26px;
-            font-weight: 800;
-            font-size: 0.88rem;
-            box-shadow: 0 6px 28px rgba(0, 0, 0, 0.85);
+            background: rgba(15, 23, 42, 0.40);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: #CBD5E1;
+            border: 1px solid rgba(255, 158, 138, 0.40);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.78rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
             cursor: pointer;
             white-space: nowrap;
+            opacity: 0.35;
             pointer-events: auto !important;
-            transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+            transition: opacity 0.25s ease, background 0.2s ease, transform 0.15s ease;
         }
 
-        #parent-back-btn:active {
-            transform: translate(-50%, 0) scale(0.95);
-            background: rgba(30, 41, 59, 0.98);
+        #parent-back-btn:hover, #parent-back-btn:active, #parent-back-btn:focus {
+            opacity: 1;
+            background: rgba(15, 23, 42, 0.92);
+            color: #FF9E8A;
+            border-color: #FF9E8A;
+            transform: scale(1.02);
         }
 
         #bento-frame {
@@ -855,6 +858,21 @@ let currentInitialData = null;
 
 let slideCounter = 1;
 
+function requestFullscreenSafe() {
+    try {
+        const el = document.documentElement;
+        if (el.requestFullscreen) {
+            el.requestFullscreen().catch(function(){});
+        } else if (el.webkitRequestFullscreen) {
+            el.webkitRequestFullscreen();
+        } else if (el.mozRequestFullScreen) {
+            el.mozRequestFullScreen();
+        } else if (el.msRequestFullscreen) {
+            el.msRequestFullscreen();
+        }
+    } catch(e) {}
+}
+
 // Lazy Hydration Mount Engine
 function mountEditor() {
     const splash = document.getElementById('blake-cinematic-splash');
@@ -882,6 +900,7 @@ function openEditorFromSplash() {
 
 function startCinematicFromSplash() {
     primeMobileSpeech();
+    requestFullscreenSafe();
     const splash = document.getElementById('blake-cinematic-splash');
     if (splash) splash.style.display = 'none';
 
@@ -1355,7 +1374,7 @@ function parseBlakeOrBentoHtml(htmlText, fileName) {
                         extractScriptTagJson(htmlText, 'blake-initial-data');
 
         if (blakeData && blakeData.slides && blakeData.slides.length > 0) {
-            restoreBlakeDraftState(blakeData);
+            restoreBlakeDraftState(blakeData, htmlText);
             saveDraft();
             pushUndoState();
             closeBentoView();
@@ -1384,7 +1403,7 @@ function parseBlakeOrBentoHtml(htmlText, fileName) {
             if (anyData.format === 'bento/slides' || anyData.docId || (anyData.theme && anyData.assets)) {
                 restoreFromBentoDoc(anyData, fileName);
             } else {
-                restoreBlakeDraftState(anyData);
+                restoreBlakeDraftState(anyData, htmlText);
             }
             saveDraft();
             pushUndoState();
@@ -1399,7 +1418,7 @@ function parseBlakeOrBentoHtml(htmlText, fileName) {
     }
 }
 
-function restoreBlakeDraftState(data) {
+function restoreBlakeDraftState(data, htmlText) {
     mountEditor();
     if (data.title && document.getElementById('doc-title')) {
         document.getElementById('doc-title').value = data.title;
@@ -1424,6 +1443,21 @@ function restoreBlakeDraftState(data) {
         document.getElementById('subtitle-size-select').value = data.subtitleSize;
     }
 
+    // Extract Assets from bento-doc (De-duplication Resolution)
+    let bentoAssets = {};
+    if (htmlText) {
+        const bentoDoc = extractScriptTagJson(htmlText, 'id="bento-doc"');
+        if (bentoDoc && bentoDoc.assets) bentoAssets = bentoDoc.assets;
+    } else {
+        const bentoScript = document.getElementById('bento-doc');
+        if (bentoScript && bentoScript.textContent && bentoScript.textContent.trim()) {
+            try {
+                const bDoc = JSON.parse(bentoScript.textContent.trim());
+                if (bDoc && bDoc.assets) bentoAssets = bDoc.assets;
+            } catch(e) {}
+        }
+    }
+
     const container = document.getElementById('slides-container');
     if (container) container.innerHTML = '';
 
@@ -1435,8 +1469,33 @@ function restoreBlakeDraftState(data) {
             scriptStore[sId] = s.script || s.text || '';
             memoStore[sId] = s.memo || '';
             if (s._rawElements) bentoRawElementsStore[sId] = s._rawElements;
-            if (s.file) fileStore[sId] = s.file;
-            if (s.narration) narrationStore[sId] = s.narration;
+            
+            // Resolve file from assetKey if dataUri is omitted (Lean 50% Storage)
+            if (s.file) {
+                let fileObj = s.file;
+                if (s.file.assetKey && bentoAssets[s.file.assetKey]) {
+                    fileObj = {
+                        name: s.file.name,
+                        type: s.file.type,
+                        dataUri: bentoAssets[s.file.assetKey],
+                        thumbUri: s.file.thumbUri || bentoAssets[s.file.assetKey]
+                    };
+                }
+                fileStore[sId] = fileObj;
+            }
+            
+            // Resolve audio from audioAssetKey
+            if (s.narration) {
+                let narrObj = s.narration;
+                if (s.narration.audioAssetKey && bentoAssets[s.narration.audioAssetKey]) {
+                    narrObj = {
+                        mode: s.narration.mode,
+                        recAudioDataUri: bentoAssets[s.narration.audioAssetKey]
+                    };
+                }
+                narrationStore[sId] = narrObj;
+            }
+            
             createSlideCard(sId, s, idx === 0);
         });
         slideCounter = maxId;
@@ -1568,7 +1627,7 @@ function restoreFromBentoDoc(docObj, fileName) {
 }
 
 // ==========================================
-// 3. Clean Dual-Embedding Quine & Bento Generator (Constraint 2)
+// 3. Clean Dual-Embedding Quine & Bento Generator (50% Lean De-duplication)
 // ==========================================
 function generateBlakeQuineHtml() {
     try {
@@ -1586,49 +1645,21 @@ function generateBlakeQuineHtml() {
         const subtitleSize = subSizeEl ? subSizeEl.value : 'medium';
 
         const slideCards = document.querySelectorAll('.accordion-card');
-        const slides = [];
-        slideCards.forEach((card, idx) => {
-            const cardId = card.id.replace('slide-card-', '');
-            const txtEl = card.querySelector('.slide-text');
-            const narr = narrationStore[cardId] || { mode: 'tts', recAudioDataUri: null };
-            if (txtEl) {
-                if (narr.mode === 'note') memoStore[cardId] = txtEl.value;
-                else scriptStore[cardId] = txtEl.value;
-            }
-            slides.push({
-                id: cardId,
-                title: `장면 ${idx + 1}`,
-                script: scriptStore[cardId] || '',
-                memo: memoStore[cardId] || '',
-                file: fileStore[cardId] || null,
-                narration: narr,
-                _rawElements: bentoRawElementsStore[cardId] || null
-            });
-        });
-
-        const draftObj = {
-            title,
-            showSubtitle,
-            nextFile,
-            kenburnsSpeed,
-            subtitleSize,
-            slides,
-            isExportedQuine: true
-        };
-
-        // Dual Embedding: Generate Bento Doc representation as well
         const rawB64 = getBentoTemplate();
         const rawTemplate = atob(rawB64);
         const assetsDict = {};
         const bentoSlides = [];
+        const slides = [];
 
-        slides.forEach((s, idx) => {
+        slideCards.forEach((card, idx) => {
+            const cardId = card.id.replace('slide-card-', '');
             const slideNum = idx + 1;
             const mediaKey = `photo_${slideNum}`;
             const audioKey = `audio_${slideNum}`;
-            const f = s.file;
+            const f = fileStore[cardId];
             const isVideo = f && f.type === 'video';
 
+            // Store full binary ONLY ONCE inside assetsDict
             if (f && f.dataUri) {
                 assetsDict[mediaKey] = f.dataUri;
             } else {
@@ -1636,13 +1667,45 @@ function generateBlakeQuineHtml() {
                 assetsDict[mediaKey] = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgPlaceholder)))}`;
             }
 
-            if (s.narration && s.narration.mode === 'record' && s.narration.recAudioDataUri) {
-                assetsDict[audioKey] = s.narration.recAudioDataUri;
+            const txtEl = card.querySelector('.slide-text');
+            const narr = narrationStore[cardId] || { mode: 'tts', recAudioDataUri: null };
+            if (txtEl) {
+                if (narr.mode === 'note') memoStore[cardId] = txtEl.value;
+                else scriptStore[cardId] = txtEl.value;
             }
 
+            if (narr && narr.mode === 'record' && narr.recAudioDataUri) {
+                assetsDict[audioKey] = narr.recAudioDataUri;
+            }
+
+            // Lean Blake draft object: stores ONLY assetKey pointer, NO duplicate base64 binary!
+            const lightFile = f ? {
+                name: f.name,
+                type: f.type,
+                assetKey: mediaKey,
+                thumbUri: f.thumbUri || null
+            } : null;
+
+            const lightNarr = {
+                mode: narr.mode,
+                recAudioDataUri: null,
+                audioAssetKey: (narr.mode === 'record' && narr.recAudioDataUri) ? audioKey : null
+            };
+
+            slides.push({
+                id: cardId,
+                title: `장면 ${idx + 1}`,
+                script: scriptStore[cardId] || '',
+                memo: memoStore[cardId] || '',
+                file: lightFile,
+                narration: lightNarr,
+                _rawElements: bentoRawElementsStore[cardId] || null
+            });
+
+            // Build Bento Slides representation
             let elements = [];
-            if (s._rawElements && Array.isArray(s._rawElements) && s._rawElements.length > 0) {
-                elements = JSON.parse(JSON.stringify(s._rawElements));
+            if (bentoRawElementsStore[cardId] && Array.isArray(bentoRawElementsStore[cardId]) && bentoRawElementsStore[cardId].length > 0) {
+                elements = JSON.parse(JSON.stringify(bentoRawElementsStore[cardId]));
                 elements = elements.filter(el => !(el.type === 'media' && el.kind === 'audio') && el.id !== `caption-text-${slideNum}`);
                 const titleCapsuleHtml = `<div style="display:inline-block; background:rgba(255,255,255,0.50); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); padding:8px 22px; border-radius:14px; border:1px solid rgba(255,255,255,0.60); box-shadow:0 6px 20px rgba(0,0,0,0.35); font-size:26px; font-weight:900; color:#0F172A; letter-spacing:-0.5px; text-shadow:0 1px 2px rgba(255,255,255,0.8);">${title}</div>`;
                 elements.forEach(el => {
@@ -1682,13 +1745,13 @@ function generateBlakeQuineHtml() {
                 ];
             }
 
-            if (showSubtitle && s.script) {
+            if (showSubtitle && scriptStore[cardId]) {
                 elements.push({
                     "id": `caption-text-${slideNum}`,
                     "type": "text",
                     "x": 64, "y": 480, "w": 1152, "h": 180,
                     "rotation": 0, "opacity": 1,
-                    "html": `<div id="sub-box-${slideNum}" class="blake-sub-box" style="text-align: center; max-width: 92%; margin: 0 auto; background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 18px 30px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.16); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);"><div style="font-size: 24px; font-weight: 500; color: #F8FAFC; line-height: 1.55; text-shadow: 0 2px 4px rgba(0,0,0,0.9); word-break: keep-all;">${s.script}</div></div>`,
+                    "html": `<div id="sub-box-${slideNum}" class="blake-sub-box" style="text-align: center; max-width: 92%; margin: 0 auto; background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 18px 30px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.16); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);"><div style="font-size: 24px; font-weight: 500; color: #F8FAFC; line-height: 1.55; text-shadow: 0 2px 4px rgba(0,0,0,0.9); word-break: keep-all;">${scriptStore[cardId]}</div></div>`,
                     "fontSize": 24, "fontFamily": "'Noto Sans KR', sans-serif", "fontWeight": 400, "color": "#FFFFFF",
                     "align": "center", "valign": "bottom", "lineHeight": 1.4, "fx": {"enter": "fade-up", "order": 1}
                 });
@@ -1698,10 +1761,20 @@ function generateBlakeQuineHtml() {
                 "id": `slide-doc-${slideNum}`,
                 "background": "#0D1B2E",
                 "transition": slideNum > 1 ? "morph" : "fade",
-                "notes": s.memo || s.script,
+                "notes": memoStore[cardId] || scriptStore[cardId],
                 "elements": elements
             });
         });
+
+        const draftObj = {
+            title,
+            showSubtitle,
+            nextFile,
+            kenburnsSpeed,
+            subtitleSize,
+            slides,
+            isExportedQuine: true
+        };
 
         const bentoDocObj = {
             "format": "bento/slides",
@@ -1732,7 +1805,7 @@ function generateBlakeQuineHtml() {
 
         let fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 
-        // Replace <script id="blake-initial-data"> safely with function replacer (avoiding $ substitution bugs)
+        // Replace <script id="blake-initial-data"> safely
         const blakeTagRegex = new RegExp('<script[^>]*id=[\"\\\']blake-initial-data[\"\\\'][^>]*>[\\\\s\\\\S]*?<' + '/script>', 'i');
         const cleanBlakeTag = '<' + 'script id="blake-initial-data" type="application/json">\n' + draftJsonStr + '\n<' + '/script>';
         
@@ -1859,7 +1932,6 @@ function getGuideImageSvgDataUri() {
 }
 
 function loadDraft() {
-    // Check embedded Initial Data in Quine container first
     const initScript = document.getElementById('blake-initial-data');
     let initData = null;
     if (initScript && initScript.textContent && initScript.textContent.trim()) {
@@ -1871,7 +1943,6 @@ function loadDraft() {
     if (initData && initData.slides && initData.slides.length > 0) {
         currentInitialData = initData;
         if (initData.isExportedQuine) {
-            // Lazy Hydration: Show Cinematic Splash Screen!
             const splash = document.getElementById('blake-cinematic-splash');
             const splashTitle = document.getElementById('splash-title');
             const splashCount = document.getElementById('splash-scene-count');
@@ -1889,10 +1960,8 @@ function loadDraft() {
         }
     }
 
-    // Direct Editor Mode
     mountEditor();
 
-    // Fallback to IndexedDB draft
     loadDraftIndexedDB(function(data) {
         const container = document.getElementById('slides-container');
         if (container) container.innerHTML = '';
@@ -1903,7 +1972,6 @@ function loadDraft() {
             return;
         }
         
-        // Default clean initial onboarding guide card
         const guideSvg = getGuideImageSvgDataUri();
         const defaultSlide1 = {
             id: '1',
@@ -2129,7 +2197,7 @@ function createSlideCard(num, data, isOpen) {
     const memoPlaceholder = "발표자 노트에만 저장되는 긴 메모를 입력하세요. (자막/AI음성 미출력)";
     const currentPlaceholder = isNoteMode ? memoPlaceholder : scriptPlaceholder;
     
-    const snippetText = currentVal.trim() ? (currentVal.trim().substring(0, 18) + (currentVal.length > 18 ? '...' : '')) : (isNoteMode ? '메모 없음' : '대본 없음');
+    const snippetText = currentVal.trim() ? (currentVal.trim().substring(0, 18) + (textVal => textVal.length > 18 ? '...' : '')(currentVal.trim())) : (isNoteMode ? '메모 없음' : '대본 없음');
 
     card.innerHTML = `
         <div class="accordion-header" onclick="toggleAccordion(${num})">
@@ -2382,6 +2450,7 @@ function generateVideoThumbnail(videoDataUri, callback) {
 
 function generateAndPlayDirectly() {
     primeMobileSpeech();
+    requestFullscreenSafe();
     mountEditor();
     saveDraft();
     generateMobileBento(1, false, false);
@@ -2391,6 +2460,7 @@ function generateAndPlayDirectly() {
 function previewSingleSlide(targetSlideNum, event) {
     if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
     primeMobileSpeech();
+    requestFullscreenSafe();
     mountEditor();
     saveDraft();
     generateMobileBento(targetSlideNum, true, true);
@@ -2478,7 +2548,6 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
                 elements = JSON.parse(JSON.stringify(bentoRawElementsStore[cardId]));
                 elements = elements.filter(el => !(el.type === 'media' && el.kind === 'audio') && el.id !== `caption-text-${targetIdx}`);
                 
-                // Synchronize dynamic title capsule into shared-kicker
                 const titleCapsuleHtml = `<div style="display:inline-block; background:rgba(255,255,255,0.50); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); padding:8px 22px; border-radius:14px; border:1px solid rgba(255,255,255,0.60); box-shadow:0 6px 20px rgba(0,0,0,0.35); font-size:26px; font-weight:900; color:#0F172A; letter-spacing:-0.5px; text-shadow:0 1px 2px rgba(255,255,255,0.8);">${title}</div>`;
                 elements.forEach(el => {
                     if (el.id === 'shared-kicker' || (el.type === 'text' && el.html && el.html.includes('titleCapsuleHtml'))) {
@@ -2724,31 +2793,25 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      u.rate = TARGET_SPEED;" +
             "      const startTime = Date.now();" +
             "      const pausesCount = (cleanText.match(/[,.!?~…\\n]/g) || []).length;" +
-            "      const estDurationMs = Math.max(2600, (cleanText.length * 280) + (pausesCount * 400) + 1000);" +
-            "      const maxTimeoutMs = Math.round(estDurationMs * 1.8 + 2500);" +
+            "      const estDurationMs = Math.max(2200, (cleanText.length * 260) + (pausesCount * 350) + 600);" +
+            "      const maxTimeoutMs = Math.round(estDurationMs + 1800);" +
             "      let isDone = false;" +
             "      function completePlayback() {" +
             "        if (isDone) return;" +
-            "        const elapsed = Date.now() - startTime;" +
-            "        if (window.speechSynthesis && window.speechSynthesis.speaking) {" +
-            "          if (elapsed < maxTimeoutMs) {" +
-            "            setTimeout(completePlayback, 300);" +
-            "            return;" +
-            "          }" +
-            "        }" +
-            "        if (elapsed < (estDurationMs * 0.75)) {" +
-            "          setTimeout(completePlayback, Math.round(estDurationMs * 0.75 - elapsed + 200));" +
-            "          return;" +
-            "        }" +
             "        isDone = true;" +
             "        window._blakeActiveUtterance = null;" +
             "        if (onEnd) onEnd();" +
             "      }" +
             "      u.onend = function() {" +
-            "        setTimeout(completePlayback, 800);" +
+            "        const elapsed = Date.now() - startTime;" +
+            "        if (elapsed >= (estDurationMs * 0.65)) {" +
+            "          setTimeout(completePlayback, 600);" +
+            "        } else {" +
+            "          setTimeout(completePlayback, Math.max(300, estDurationMs * 0.65 - elapsed));" +
+            "        }" +
             "      };" +
             "      u.onerror = function() {" +
-            "        setTimeout(completePlayback, 600);" +
+            "        setTimeout(completePlayback, 400);" +
             "      };" +
             "      window.speechSynthesis.speak(u);" +
             "      setTimeout(function() {" +
@@ -2784,7 +2847,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    function onNarrationComplete() {" +
             "      if (video) { try { video.volume = 1.0; } catch(e) {} }" +
             "      if (!IS_SINGLE_PREVIEW && slideNum < allSections.length) {" +
-            "        setTimeout(advanceToNextSlide, 800);" +
+            "        setTimeout(advanceToNextSlide, 600);" +
             "      }" +
             "    }" +
             "    const audio = activeSection.querySelector('audio');" +
