@@ -12,7 +12,7 @@
  * [버전 및 개선 이력 (Version History)]
  * - Blake 1.0  (2026. 8. 4.)  : 홀로트레커, 안제민 개발실장(Antigravity), 임진호 수석연구원(Notebook LM) - 최초 개발
  * - Blake 1.1g (2026. 8. 22.) : 구제민 상임고문(구글 Gemini) - 플레이리스트 순차 연결 및 안정성 최적화
- * - Blake 1.2  (2026. 8. 24.) : Quine 방식 산출물 자체 재편집, 제목창 롱프레스/우클릭 Import, Bento-Blake 양방향 상호 호환 아키텍처 탑재
+ * - Blake 1.2  (2026. 8. 24.) : Quine 방식 산출물 자체 재편집, 최소 재생 보장 가드, 클린 리셋 임포트, Bento-Blake 양방향 상호 호환 아키텍처
  * ============================================================================
 -->
 <html lang="ko">
@@ -593,9 +593,9 @@
 </head>
 <body>
 
-    <!-- Embedded Initial Data Container for Standalone Quine Storage -->
+    <!-- Embedded Initial Data Containers for Standalone Quine & Bento Dual-Storage -->
     <script id="blake-initial-data" type="application/json">{}</script>
-    <script id="bento-payload" type="application/json">{}</script>
+    <script id="bento-doc" type="application/bento+json">{}</script>
 
     <div id="blake-editor-view">
         <!-- Harmonized Uniform Top Control Header -->
@@ -712,7 +712,31 @@ const narrationStore = {};
 const bentoRawElementsStore = {}; // Bento layout pass-through store
 let lastGeneratedHtml = '';
 
-let slideCounter = 2;
+let slideCounter = 1;
+
+// Clean State Reset on Import (Constraint 3)
+function resetAppStateForImport() {
+    if (window.speechSynthesis) {
+        try { window.speechSynthesis.cancel(); } catch(e) {}
+    }
+    for (const k in fileStore) delete fileStore[k];
+    for (const k in scriptStore) delete scriptStore[k];
+    for (const k in memoStore) delete memoStore[k];
+    for (const k in narrationStore) delete narrationStore[k];
+    for (const k in bentoRawElementsStore) delete bentoRawElementsStore[k];
+    
+    if (typeof MediaStore !== 'undefined' && MediaStore.virtualFiles) {
+        MediaStore.virtualFiles.forEach(v => {
+            try { URL.revokeObjectURL(v.previewUrl); } catch(e) {}
+        });
+        MediaStore.virtualFiles.clear();
+    }
+    
+    const container = document.getElementById('slides-container');
+    if (container) container.innerHTML = '';
+    slideCounter = 0;
+    lastGeneratedHtml = '';
+}
 
 // Mobile Audio & TTS Gesture Priming
 function primeMobileSpeech() {
@@ -1053,7 +1077,7 @@ function handleImportHtmlFile(event) {
     reader.readAsText(file);
 }
 
-// Universal High-Performance Script Tag Extractor (Immune to Comments and File Sizes up to 100MB)
+// Universal Robust Script Tag JSON Extractor (Safe against Entity Escaping & Literal Escapes)
 function extractScriptTagJson(htmlText, tagIdentifier) {
     let searchPos = 0;
     while (searchPos < htmlText.length) {
@@ -1064,34 +1088,90 @@ function extractScriptTagJson(htmlText, tagIdentifier) {
         if (tagEnd === -1) break;
 
         const tagHeader = htmlText.substring(scriptIdx, tagEnd + 1);
+        const scriptClose = htmlText.indexOf('<' + '/script>', tagEnd);
+        
         if (tagHeader.includes(tagIdentifier)) {
-            const scriptClose = htmlText.indexOf('<' + '/script>', tagEnd);
             if (scriptClose !== -1) {
-                const content = htmlText.substring(tagEnd + 1, scriptClose).trim();
-                if (!content) return null;
-                try {
-                    return JSON.parse(content);
-                } catch(e1) {
+                let content = htmlText.substring(tagEnd + 1, scriptClose).trim();
+                // Strip literal backslash-n sequences if present
+                if (content.startsWith('\\\\n')) content = content.substring(2).trim();
+                if (content.endsWith('\\\\n')) content = content.substring(0, content.length - 2).trim();
+                
+                if (content && content !== '{}') {
                     try {
-                        const unescaped = content.replace(/\\u003c/g, '<').replace(/\\u003e/g, '>');
-                        return JSON.parse(unescaped);
-                    } catch(e2) {
-                        return null;
+                        const parsed = JSON.parse(content);
+                        if (parsed && (parsed.slides || parsed.title || parsed.docId)) return parsed;
+                    } catch(e1) {
+                        try {
+                            const unescaped = content
+                                .replace(/\\\\u003c/g, '<')
+                                .replace(/\\\\u003e/g, '>')
+                                .replace(/&quot;/g, '"')
+                                .replace(/&amp;/g, '&')
+                                .replace(/&lt;/g, '<')
+                                .replace(/&gt;/g, '>')
+                                .replace(/\\\\\\\\/g, '\\\\');
+                            const parsed = JSON.parse(unescaped);
+                            if (parsed && (parsed.slides || parsed.title || parsed.docId)) return parsed;
+                        } catch(e2) {}
                     }
                 }
             }
         }
-        searchPos = tagEnd + 1;
+        searchPos = (scriptClose !== -1) ? scriptClose + 9 : tagEnd + 1;
     }
     return null;
 }
 
-// Universal Robust Parser for Blake & Bento Files
+// Fallback search for any embedded JSON containing "slides"
+function extractAnySlidesJson(htmlText) {
+    let searchPos = 0;
+    while (searchPos < htmlText.length) {
+        const scriptIdx = htmlText.indexOf('<' + 'script', searchPos);
+        if (scriptIdx === -1) break;
+
+        const tagEnd = htmlText.indexOf('>', scriptIdx);
+        if (tagEnd === -1) break;
+
+        const scriptClose = htmlText.indexOf('<' + '/script>', tagEnd);
+        if (scriptClose !== -1) {
+            const content = htmlText.substring(tagEnd + 1, scriptClose).trim();
+            if (content.includes('"slides"') || content.includes('\"slides\"')) {
+                try {
+                    const parsed = JSON.parse(content);
+                    if (parsed && Array.isArray(parsed.slides) && parsed.slides.length > 0) {
+                        return parsed;
+                    }
+                } catch(e1) {
+                    try {
+                        const unescaped = content
+                            .replace(/\\u003c/g, '<')
+                            .replace(/\\u003e/g, '>')
+                            .replace(/&quot;/g, '"')
+                            .replace(/&amp;/g, '&')
+                            .replace(/&lt;/g, '<')
+                            .replace(/&gt;/g, '>');
+                        const parsed = JSON.parse(unescaped);
+                        if (parsed && Array.isArray(parsed.slides) && parsed.slides.length > 0) {
+                            return parsed;
+                        }
+                    } catch(e2) {}
+                }
+            }
+        }
+        searchPos = (scriptClose !== -1) ? scriptClose + 9 : tagEnd + 1;
+    }
+    return null;
+}
+
+// Universal Robust Parser for Blake & Bento Files (Clean Reset + Dual Fallback)
 function parseBlakeOrBentoHtml(htmlText, fileName) {
     try {
+        // 1. Complete Memory & DOM Clean Reset (Constraint 3)
+        resetAppStateForImport();
         pushUndoState();
 
-        // 1. Extract Blake Quine Draft Data
+        // 2. Extract Blake Quine Draft Data
         let blakeData = extractScriptTagJson(htmlText, 'id="blake-initial-data"') ||
                         extractScriptTagJson(htmlText, 'blake-initial-data');
 
@@ -1104,7 +1184,7 @@ function parseBlakeOrBentoHtml(htmlText, fileName) {
             return;
         }
 
-        // 2. Extract Bento Document Data (Handles pure Bento Decks & Previous Blake Exports)
+        // 3. Extract Bento Document Data (Handles pure Bento Decks & Previous Blake Exports)
         let bentoDoc = extractScriptTagJson(htmlText, 'id="bento-doc"') ||
                        extractScriptTagJson(htmlText, 'type="application/bento+json"') ||
                        extractScriptTagJson(htmlText, 'id="bento-payload"') ||
@@ -1116,6 +1196,21 @@ function parseBlakeOrBentoHtml(htmlText, fileName) {
             pushUndoState();
             closeBentoView();
             showToast(`📂 [${fileName}] Bento 프로젝트(${bentoDoc.slides.length}개 슬라이드)를 완벽 호환 복원했습니다!`);
+            return;
+        }
+
+        // 4. Broad Fallback Search
+        let anyData = extractAnySlidesJson(htmlText);
+        if (anyData) {
+            if (anyData.format === 'bento/slides' || anyData.docId || (anyData.theme && anyData.assets)) {
+                restoreFromBentoDoc(anyData, fileName);
+            } else {
+                restoreBlakeDraftState(anyData);
+            }
+            saveDraft();
+            pushUndoState();
+            closeBentoView();
+            showToast(`📂 [${fileName}] 프로젝트를 복원했습니다!`);
             return;
         }
 
@@ -1166,7 +1261,6 @@ function restoreBlakeDraftState(data) {
         });
         slideCounter = maxId;
     } else {
-        // Guaranteed fallback so editor is never blank
         const defaultSlide = {
             id: '1',
             title: '장면 1',
@@ -1200,14 +1294,12 @@ function restoreFromBentoDoc(docObj, fileName) {
         maxId = sId;
         const elements = slide.elements || [];
         
-        bentoRawElementsStore[sId] = elements;
-
         let primaryFile = null;
         let scriptText = '';
         let memoText = '';
         let recAudioUri = null;
 
-        // 1. Search for primary image or video
+        // 1. Search for primary image or video with direct asset key resolution
         elements.forEach(el => {
             if (el.type === 'image' || (el.type === 'media' && el.kind === 'video')) {
                 let src = el.src || '';
@@ -1256,7 +1348,7 @@ function restoreFromBentoDoc(docObj, fileName) {
                         const divTemp = document.createElement('div');
                         divTemp.innerHTML = html;
                         const plain = (divTemp.textContent || divTemp.innerText || '').trim();
-                        if (plain && plain !== title && plain.length > 5) {
+                        if (plain && plain !== title && plain.length > 3) {
                             scriptText = plain;
                         }
                     }
@@ -1281,6 +1373,8 @@ function restoreFromBentoDoc(docObj, fileName) {
         narrationStore[sId] = narr;
         if (primaryFile) fileStore[sId] = primaryFile;
 
+        bentoRawElementsStore[sId] = elements;
+
         createSlideCard(sId, {
             script: scriptText,
             memo: memoText,
@@ -1293,7 +1387,7 @@ function restoreFromBentoDoc(docObj, fileName) {
 }
 
 // ==========================================
-// 3. Quine Standalone HTML Generator
+// 3. Clean Dual-Embedding Quine & Bento Generator (Constraint 2)
 // ==========================================
 function generateBlakeQuineHtml() {
     try {
@@ -1340,29 +1434,138 @@ function generateBlakeQuineHtml() {
             isExportedQuine: true
         };
 
-        const draftJsonStr = JSON.stringify(draftObj).replace(new RegExp('<' + '/(script)', 'gi'), '<\\/$1>');
-        
-        // Update DOM element directly
-        const initScript = document.getElementById('blake-initial-data');
-        if (initScript) {
-            initScript.textContent = '\\n' + draftJsonStr + '\\n';
-        }
+        // Dual Embedding: Generate Bento Doc representation as well
+        const rawB64 = getBentoTemplate();
+        const rawTemplate = atob(rawB64);
+        const assetsDict = {};
+        const bentoSlides = [];
 
+        slides.forEach((s, idx) => {
+            const slideNum = idx + 1;
+            const mediaKey = `photo_${slideNum}`;
+            const audioKey = `audio_${slideNum}`;
+            const f = s.file;
+            const isVideo = f && f.type === 'video';
+
+            if (f && f.dataUri) {
+                assetsDict[mediaKey] = f.dataUri;
+            } else {
+                const svgPlaceholder = `<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720"><rect width="1280" height="720" fill="#1E293B"/><text x="640" y="360" font-family="sans-serif" font-size="40" fill="#94A3B8" text-anchor="middle" dominant-baseline="middle">장면 ${slideNum}</text></svg>`;
+                assetsDict[mediaKey] = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgPlaceholder)))}`;
+            }
+
+            if (s.narration && s.narration.mode === 'record' && s.narration.recAudioDataUri) {
+                assetsDict[audioKey] = s.narration.recAudioDataUri;
+            }
+
+            let elements = [];
+            if (s._rawElements && Array.isArray(s._rawElements) && s._rawElements.length > 0) {
+                elements = JSON.parse(JSON.stringify(s._rawElements));
+                elements = elements.filter(el => !(el.type === 'media' && el.kind === 'audio') && el.id !== `caption-text-${slideNum}`);
+                const titleCapsuleHtml = `<div style="display:inline-block; background:rgba(255,255,255,0.50); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); padding:8px 22px; border-radius:14px; border:1px solid rgba(255,255,255,0.60); box-shadow:0 6px 20px rgba(0,0,0,0.35); font-size:26px; font-weight:900; color:#0F172A; letter-spacing:-0.5px; text-shadow:0 1px 2px rgba(255,255,255,0.8);">${title}</div>`;
+                elements.forEach(el => {
+                    if (el.id === 'shared-kicker' || (el.type === 'text' && el.html && el.html.includes('titleCapsuleHtml'))) {
+                        el.html = titleCapsuleHtml;
+                    }
+                    if ((el.type === 'image' || (el.type === 'media' && el.kind === 'video')) && f && f.dataUri) {
+                        el.src = `asset:${mediaKey}`;
+                    }
+                });
+            } else {
+                elements = [
+                    isVideo ? {
+                        "id": `shared-hero-media-${slideNum}`,
+                        "type": "media", "kind": "video",
+                        "src": `asset:${mediaKey}`,
+                        "x": 0, "y": 0, "w": 1280, "h": 720,
+                        "rotation": 0, "opacity": 1, "fit": "cover",
+                        "controls": false, "autoplay": true, "loop": true, "muted": false, "playsinline": true
+                    } : {
+                        "id": `shared-hero-media-${slideNum}`,
+                        "type": "image",
+                        "src": `asset:${mediaKey}`,
+                        "x": 0, "y": 0, "w": 1280, "h": 720,
+                        "rotation": 0, "opacity": 1, "fit": "cover",
+                        "fx": { "ambient": "kenburns", "ken": { "dir": "in", "scale": 1.30, "duration": 14 } }
+                    },
+                    {
+                        "id": "shared-kicker",
+                        "type": "text",
+                        "x": 64, "y": 44, "w": 850, "h": 60,
+                        "rotation": 0, "opacity": 1,
+                        "html": `<div style="display:inline-block; background:rgba(255,255,255,0.50); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); padding:8px 22px; border-radius:14px; border:1px solid rgba(255,255,255,0.60); box-shadow:0 6px 20px rgba(0,0,0,0.35); font-size:26px; font-weight:900; color:#0F172A; letter-spacing:-0.5px; text-shadow:0 1px 2px rgba(255,255,255,0.8);">${title}</div>`,
+                        "fontSize": 26, "fontFamily": "'Noto Sans KR', sans-serif", "fontWeight": 800, "color": "#FF9E8A",
+                        "align": "left", "valign": "top", "lineHeight": 1.2, "fx": {"enter": "fade-up", "order": 0}
+                    }
+                ];
+            }
+
+            if (showSubtitle && s.script) {
+                elements.push({
+                    "id": `caption-text-${slideNum}`,
+                    "type": "text",
+                    "x": 64, "y": 480, "w": 1152, "h": 180,
+                    "rotation": 0, "opacity": 1,
+                    "html": `<div id="sub-box-${slideNum}" class="blake-sub-box" style="text-align: center; max-width: 92%; margin: 0 auto; background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 18px 30px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.16); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);"><div style="font-size: 24px; font-weight: 500; color: #F8FAFC; line-height: 1.55; text-shadow: 0 2px 4px rgba(0,0,0,0.9); word-break: keep-all;">${s.script}</div></div>`,
+                    "fontSize": 24, "fontFamily": "'Noto Sans KR', sans-serif", "fontWeight": 400, "color": "#FFFFFF",
+                    "align": "center", "valign": "bottom", "lineHeight": 1.4, "fx": {"enter": "fade-up", "order": 1}
+                });
+            }
+
+            bentoSlides.push({
+                "id": `slide-doc-${slideNum}`,
+                "background": "#0D1B2E",
+                "transition": slideNum > 1 ? "morph" : "fade",
+                "notes": s.memo || s.script,
+                "elements": elements
+            });
+        });
+
+        const bentoDocObj = {
+            "format": "bento/slides",
+            "version": 1,
+            "docId": "blake-doc-" + Date.now(),
+            "title": title,
+            "readonly": false,
+            "size": { "width": 1280, "height": 720 },
+            "theme": { "background": "#0D1B2E", "color": "#F2F0EA", "accent": "#FF9E8A", "fontFamily": "'Noto Sans KR', sans-serif" },
+            "assets": assetsDict,
+            "slides": bentoSlides
+        };
+
+        // Safe JSON Encoding
+        const draftJsonStr = JSON.stringify(draftObj).replace(/<\/(script)/gi, '<\\/$1>');
+        const bentoJsonStr = JSON.stringify(bentoDocObj).replace(/<\/(script)/gi, '<\\/$1>');
+
+        // Temporarily reset view styles for pristine serialization
+        const bentoView = document.getElementById('blake-bento-view');
+        const editorView = document.getElementById('blake-editor-view');
         const bentoFrame = document.getElementById('bento-frame');
-        if (bentoFrame) {
-            bentoFrame.removeAttribute('srcdoc');
+        
+        if (bentoView) bentoView.style.display = 'none';
+        if (editorView) editorView.style.display = 'block';
+        if (bentoFrame) bentoFrame.removeAttribute('srcdoc');
+
+        let fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
+        // Replace <script id="blake-initial-data"> safely with function replacer (avoiding $ substitution bugs)
+        const blakeTagRegex = new RegExp('<script[^>]*id=[\"\\\']blake-initial-data[\"\\\'][^>]*>[\\\\s\\\\S]*?<' + '/script>', 'i');
+        const cleanBlakeTag = '<' + 'script id="blake-initial-data" type="application/json">\n' + draftJsonStr + '\n<' + '/script>';
+        
+        if (blakeTagRegex.test(fullHtml)) {
+            fullHtml = fullHtml.replace(blakeTagRegex, () => cleanBlakeTag);
+        } else {
+            fullHtml = fullHtml.replace('</head>', cleanBlakeTag + '\n</head>');
         }
 
-        let fullHtml = '<!DOCTYPE html>\\n' + document.documentElement.outerHTML;
-
-        // Ensure <script id="blake-initial-data"> is accurately replaced in outerHTML string
-        const quineTagRegex = new RegExp('<script[^>]*id=[\"\\\']blake-initial-data[\"\\\'][^>]*>[\\\\s\\\\S]*?<' + '/script>', 'i');
-        const cleanTag = '<' + 'script id="blake-initial-data" type="application/json">\\n' + draftJsonStr + '\\n<' + '/script>';
+        // Replace/Insert <script id="bento-doc"> safely
+        const bentoTagRegex = new RegExp('<script[^>]*id=[\"\\\']bento-doc[\"\\\'][^>]*>[\\\\s\\\\S]*?<' + '/script>', 'i');
+        const cleanBentoTag = '<' + 'script id="bento-doc" type="application/bento+json">\n' + bentoJsonStr + '\n<' + '/script>';
         
-        if (quineTagRegex.test(fullHtml)) {
-            fullHtml = fullHtml.replace(quineTagRegex, cleanTag);
+        if (bentoTagRegex.test(fullHtml)) {
+            fullHtml = fullHtml.replace(bentoTagRegex, () => cleanBentoTag);
         } else {
-            fullHtml = fullHtml.replace('</head>', cleanTag + '\\n</head>');
+            fullHtml = fullHtml.replace('</head>', cleanBentoTag + '\n</head>');
         }
 
         return fullHtml;
@@ -2066,6 +2269,17 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             if (bentoRawElementsStore[cardId] && Array.isArray(bentoRawElementsStore[cardId]) && bentoRawElementsStore[cardId].length > 0) {
                 elements = JSON.parse(JSON.stringify(bentoRawElementsStore[cardId]));
                 elements = elements.filter(el => !(el.type === 'media' && el.kind === 'audio') && el.id !== `caption-text-${targetIdx}`);
+                
+                // Synchronize dynamic title capsule into shared-kicker
+                const titleCapsuleHtml = `<div style="display:inline-block; background:rgba(255,255,255,0.50); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); padding:8px 22px; border-radius:14px; border:1px solid rgba(255,255,255,0.60); box-shadow:0 6px 20px rgba(0,0,0,0.35); font-size:26px; font-weight:900; color:#0F172A; letter-spacing:-0.5px; text-shadow:0 1px 2px rgba(255,255,255,0.8);">${title}</div>`;
+                elements.forEach(el => {
+                    if (el.id === 'shared-kicker' || (el.type === 'text' && el.html && el.html.includes('titleCapsuleHtml'))) {
+                        el.html = titleCapsuleHtml;
+                    }
+                    if ((el.type === 'image' || (el.type === 'media' && el.kind === 'video')) && mediaFile && mediaFile.dataUri) {
+                        el.src = `asset:${mediaKey}`;
+                    }
+                });
             } else {
                 const uniqueHeroId = `shared-hero-media-${slideNum}`;
                 let heroElement;
@@ -2216,7 +2430,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
         const nextFileEl = document.getElementById('next-file-input');
         const nextFile = nextFileEl ? nextFileEl.value.trim() : '';
 
-        // Blake 1.2 Enhanced Audio & Slide Narration Engine
+        // Blake 1.2 Enhanced Audio & Slide Narration Engine with Minimum Playback Guarantee
         const audioEngineScript = "\n<" + "script>\n" +
             "(function() {" +
             "  const TARGET_SPEED = 1.25;" +
@@ -2300,25 +2514,34 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      if (vp.voice) { u.voice = vp.voice; }" +
             "      u.pitch = 0.95;" +
             "      u.rate = TARGET_SPEED;" +
-            "      let isFinished = false;" +
-            "      function finish() {" +
-            "        if (isFinished) return;" +
-            "        isFinished = true;" +
+            "      const startTime = Date.now();" +
+            "      const minPlayMs = Math.max(2200, cleanText.length * 260);" +
+            "      const maxSafeMs = Math.max(4500, cleanText.length * 450);" +
+            "      let onEndCalled = false;" +
+            "      function attemptFinish() {" +
+            "        if (onEndCalled) return;" +
+            "        const elapsed = Date.now() - startTime;" +
+            "        if (elapsed < minPlayMs) {" +
+            "          setTimeout(attemptFinish, minPlayMs - elapsed);" +
+            "          return;" +
+            "        }" +
+            "        onEndCalled = true;" +
             "        window._blakeActiveUtterance = null;" +
             "        if (onEnd) onEnd();" +
             "      }" +
-            "      u.onend = finish;" +
-            "      u.onerror = finish;" +
+            "      u.onend = function() { attemptFinish(); };" +
+            "      u.onerror = function() { attemptFinish(); };" +
             "      window.speechSynthesis.speak(u);" +
-            "      const safeDuration = Math.max(3500, cleanText.length * 380);" +
-            "      setTimeout(function() {" +
-            "        if (!isFinished && window.speechSynthesis && window.speechSynthesis.speaking) {" +
+            "      const pauseFixTimer = setInterval(function() {" +
+            "        if (onEndCalled) { clearInterval(pauseFixTimer); return; }" +
+            "        if (window.speechSynthesis && window.speechSynthesis.speaking) {" +
             "          try { window.speechSynthesis.pause(); window.speechSynthesis.resume(); } catch(err) {}" +
             "        }" +
-            "      }, 5000);" +
+            "      }, 4000);" +
             "      setTimeout(function() {" +
-            "        if (!isFinished) { finish(); }" +
-            "      }, safeDuration);" +
+            "        clearInterval(pauseFixTimer);" +
+            "        if (!onEndCalled) { attemptFinish(); }" +
+            "      }, maxSafeMs);" +
             "    } catch(e) { if (onEnd) onEnd(); }" +
             "  }" +
             "  function handleSlideChange() {" +
@@ -2349,7 +2572,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    function onNarrationComplete() {" +
             "      if (video) { try { video.volume = 1.0; } catch(e) {} }" +
             "      if (!IS_SINGLE_PREVIEW && slideNum < allSections.length) {" +
-            "        setTimeout(advanceToNextSlide, 700);" +
+            "        setTimeout(advanceToNextSlide, 800);" +
             "      }" +
             "    }" +
             "    const audio = activeSection.querySelector('audio');" +
