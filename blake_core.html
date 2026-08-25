@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
- * ============================================================================
- * Blake Core Engine (v1.2 Quine, Lean Storage & Cinematic Edition)
+/*
+ * Blake Core Engine (v1.2a Quine, Lean Storage & Cinematic Edition)
  * Copyright (c) 2026 홀로트레커. All rights reserved.
  * 
  * Licensed under CC BY-NC-SA 4.0 (Creative Commons Attribution-NonCommercial-ShareAlike 4.0)
@@ -12,14 +12,14 @@
  * [버전 및 개선 이력 (Version History)]
  * - Blake 1.0  (2026. 8. 4.)  : 홀로트레커, 안제민 개발실장(Antigravity), 임진호 수석연구원(Notebook LM) - 최초 개발
  * - Blake 1.1g (2026. 8. 22.) : 구제민 상임고문(구글 Gemini) - 플레이리스트 순차 연결 및 안정성 최적화
- * - Blake 1.2  (2026. 8. 24.) : Quine 자립성, 미디어 단일화 50% 다이어트, 네이티브 전체화면, 정밀 타이밍 엔진
- * ============================================================================
+ * - Blake 1.2a (2026. 8. 25.) : 안제민 개발실장(Antigravity) - Quine 자립성, 미디어 단일화 50% 다이어트, 네이티브 전체화면(박격포 사격), 쌍둥이 대문(열려라 참깨·들깨) 및 7.5s 정밀 타이밍 엔진 탑재
+ */
 -->
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>📱 Blake 1.2 — 영상메모장 & Bento 상호 호환</title>
+    <title>📱 Blake 1.2a — 영상메모장 & Bento 상호 호환</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -1846,7 +1846,7 @@ function generateBlakeQuineHtml() {
             const mediaKey = `photo_${slideNum}`;
             const audioKey = `audio_${slideNum}`;
             const f = fileStore[cardId];
-            const isVideo = f && f.type === 'video';
+            const isVideo = f && (f.type === 'video' || (typeof f.type === 'string' && f.type.startsWith('video')) || (f.name && /\.(mp4|webm|mov|m4v|ogv)$/i.test(f.name)) || (f.dataUri && typeof f.dataUri === 'string' && f.dataUri.startsWith('data:video/')));
 
             // Store full binary ONLY ONCE inside assetsDict
             if (f && f.dataUri) {
@@ -2787,7 +2787,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             
             if (mediaFile && mediaFile.dataUri) {
                 assetsDict[mediaKey] = mediaFile.dataUri;
-                isVideo = (mediaFile.type === 'video');
+                isVideo = (mediaFile.type === 'video' || (typeof mediaFile.type === 'string' && mediaFile.type.startsWith('video')) || (mediaFile.name && /\.(mp4|webm|mov|m4v|ogv)$/i.test(mediaFile.name)) || (mediaFile.dataUri && typeof mediaFile.dataUri === 'string' && mediaFile.dataUri.startsWith('data:video/')));
             } else {
                 const svgPlaceholder = `<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720"><rect width="1280" height="720" fill="#1E293B"/><text x="640" y="360" font-family="sans-serif" font-size="40" fill="#94A3B8" text-anchor="middle" dominant-baseline="middle">장면 ${slideNum}</text></svg>`;
                 assetsDict[mediaKey] = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgPlaceholder)))}`;
@@ -3008,10 +3008,22 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "  const SLIDE_TEXTS = " + JSON.stringify(slideTextMap) + ";" +
             "  let currentSlideNum = 0;" +
             "  let speechDelayTimer = null;" +
+            "  let autoAdvanceTimer = null;" +
             "  try { const st = document.createElement('style'); st.textContent = '.bento-present-overlay, .slides, section, body, html { background-color: #0D1B2E !important; } .bento-present-overlay section { transition: opacity 0.35s ease-in-out !important; }'; document.head.appendChild(st); } catch(e) {}" +
             "  function getVoicesSafe() {" +
             "    if (!window.speechSynthesis) return [];" +
             "    return window.speechSynthesis.getVoices() || [];" +
+            "  }" +
+            "  function triggerNextSlide() {" +
+            "    try {" +
+            "      const overlay = document.querySelector('.bento-present-overlay');" +
+            "      if (!overlay || overlay.style.display === 'none') {" +
+            "        if (autoAdvanceTimer) { clearInterval(autoAdvanceTimer); autoAdvanceTimer = null; }" +
+            "        return;" +
+            "      }" +
+            "      const evt = new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39, bubbles: true, cancelable: true });" +
+            "      overlay.dispatchEvent(evt);" +
+            "    } catch(e) {}" +
             "  }" +
             "  if (window.speechSynthesis) {" +
             "    window.speechSynthesis.onvoiceschanged = function() { getVoicesSafe(); };" +
@@ -3029,13 +3041,13 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    if (ko.length === 0) return { voice: null, pitch: 0.95, rate: TARGET_SPEED };" +
             "    return { voice: ko[0], pitch: 0.95, rate: TARGET_SPEED };" +
             "  }" +
-            "  function stopAllAudio() {" +
+            "  function stopOtherAudios(exceptEl) {" +
             "    if (window.speechSynthesis) {" +
             "      try { window.speechSynthesis.cancel(); } catch(e) {}" +
             "      try { if (window.speechSynthesis.paused) window.speechSynthesis.resume(); } catch(e) {}" +
             "    }" +
-            "    document.querySelectorAll('audio').forEach(function(a) { try { a.pause(); a.currentTime = 0; } catch(e) {} });" +
-            "    document.querySelectorAll('video').forEach(function(v) { try { v.pause(); v.currentTime = 0; v.muted = true; } catch(e) {} });" +
+            "    document.querySelectorAll('audio').forEach(function(a) { if (a !== exceptEl) { try { a.pause(); a.currentTime = 0; } catch(e) {} } });" +
+            "    document.querySelectorAll('video').forEach(function(v) { if (v !== exceptEl) { try { v.pause(); v.currentTime = 0; } catch(e) {} } });" +
             "  }" +
             "  function getSlideText(slideNum, activeSection) {" +
             "    if (SLIDE_TEXTS[slideNum] && SLIDE_TEXTS[slideNum].trim()) {" +
@@ -3063,9 +3075,23 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      window.speechSynthesis.speak(u);" +
             "    } catch(e) {}" +
             "  }" +
+            "  function restartAutoAdvance() {" +
+            "    if (autoAdvanceTimer) clearInterval(autoAdvanceTimer);" +
+            "    autoAdvanceTimer = setInterval(function() {" +
+            "      const overlay = document.querySelector('.bento-present-overlay');" +
+            "      if (!overlay || overlay.style.display === 'none') {" +
+            "        clearInterval(autoAdvanceTimer);" +
+            "        autoAdvanceTimer = null;" +
+            "        return;" +
+            "      }" +
+            "      triggerNextSlide();" +
+            "    }, 7500);" +
+            "  }" +
             "  function handleSlideChange() {" +
-            "    const allSections = Array.from(document.querySelectorAll('.bento-present-overlay .slides > section, .slides > section, section'));" +
-            "    const activeSection = document.querySelector('.bento-present-overlay section.present, .slides > section.present, section.present') || document.querySelector('section.active');" +
+            "    const overlay = document.querySelector('.bento-present-overlay');" +
+            "    if (!overlay || overlay.style.display === 'none') return;" +
+            "    const allSections = Array.from(overlay.querySelectorAll('.slides > section, section'));" +
+            "    const activeSection = overlay.querySelector('section.present') || overlay.querySelector('section.active') || allSections[0];" +
             "    if (!activeSection || allSections.length === 0) return;" +
             "    let slideNum = 1;" +
             "    const idx = allSections.indexOf(activeSection);" +
@@ -3077,17 +3103,20 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    }" +
             "    if (slideNum === currentSlideNum) return;" +
             "    currentSlideNum = slideNum;" +
-            "    stopAllAudio();" +
-            "    if (speechDelayTimer) { clearTimeout(speechDelayTimer); speechDelayTimer = null; }" +
+            "    restartAutoAdvance();" +
             "    const video = activeSection.querySelector('video');" +
+            "    stopOtherAudios(video);" +
+            "    if (speechDelayTimer) { clearTimeout(speechDelayTimer); speechDelayTimer = null; }" +
             "    if (video) {" +
             "      try {" +
-            "        video.muted = false;" +
-            "        video.volume = 0.3;" +
-            "        video.currentTime = 0;" +
+            "        video.muted = true;" +
+            "        video.playsInline = true;" +
             "        const p = video.play();" +
-            "        if (p && typeof p.catch === 'function') {" +
-            "          p.catch(function() {" +
+            "        if (p && typeof p.then === 'function') {" +
+            "          p.then(function() {" +
+            "            video.muted = false;" +
+            "            video.volume = 0.3;" +
+            "          }).catch(function() {" +
             "            video.muted = true;" +
             "            video.play().catch(function(){});" +
             "          });" +
@@ -3104,7 +3133,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      } else if (targetText) {" +
             "        speakText(targetText);" +
             "      }" +
-            "    }, 1500);" +
+            "    }, 1200);" +
             "  }" +
             "  function updateParentBackButtonVisibility() {" +
             "    try {" +
@@ -3119,6 +3148,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    } catch(e) {}" +
             "  }" +
             "  function unlockIframeTouchAudio() {" +
+            "    restartAutoAdvance();" +
             "    if (window.speechSynthesis) {" +
             "      try {" +
             "        const u = new SpeechSynthesisUtterance(' ');" +
@@ -3134,11 +3164,12 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    const overlay = document.querySelector('.bento-present-overlay');" +
             "    if (overlay && overlay.style.display !== 'none') {" +
             "      hasAutoStartedSlideshow = true;" +
+            "      restartAutoAdvance();" +
             "      return true;" +
             "    }" +
             "    const btn = document.querySelector('.ed-pill-main, [title*=\"Start the slideshow\"], [title*=\"Slideshow\"], button.ed-present-pill, [title*=\"slideshow\"]');" +
             "    if (btn) {" +
-            "      try { btn.click(); hasAutoStartedSlideshow = true; } catch(e) {}" +
+            "      try { btn.click(); hasAutoStartedSlideshow = true; restartAutoAdvance(); } catch(e) {}" +
             "      return true;" +
             "    }" +
             "    try {" +
@@ -3156,8 +3187,10 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      clearInterval(presentPollTimer);" +
             "    }" +
             "  }, 80);" +
-            "  document.addEventListener('touchstart', unlockIframeTouchAudio, { once: true, capture: true });" +
-            "  document.addEventListener('click', unlockIframeTouchAudio, { once: true, capture: true });" +
+            "  document.addEventListener('touchstart', unlockIframeTouchAudio, { passive: true, capture: true });" +
+            "  document.addEventListener('click', unlockIframeTouchAudio, { passive: true, capture: true });" +
+            "  document.addEventListener('keydown', function(e) { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft' || e.key === ' ') restartAutoAdvance(); }, { passive: true, capture: true });" +
+            "  document.addEventListener('slidechanged', function() { handleSlideChange(); updateParentBackButtonVisibility(); });" +
             "  const observer = new MutationObserver(function() {" +
             "    handleSlideChange();" +
             "    updateParentBackButtonVisibility();" +
@@ -3173,7 +3206,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "  setInterval(function() {" +
             "    handleSlideChange();" +
             "    updateParentBackButtonVisibility();" +
-            "  }, 150);" +
+            "  }, 200);" +
             "})();\n" +
             "<" + "/script>";
         
