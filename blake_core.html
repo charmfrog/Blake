@@ -715,6 +715,7 @@
 
     <!-- Embedded Initial Data Containers for Standalone Quine & Bento Dual-Storage -->
     <script id="blake-initial-data" type="application/json">{}</script>
+    <script id="bento-payload" type="application/bento+json">{}</script>
     <script id="bento-doc" type="application/bento+json">{}</script>
 
     <!-- 1. Cinematic Splash Screen (Hero Play Screen for Direct File Opening) -->
@@ -907,10 +908,11 @@ function startCinematicFromSplash() {
 
     if (currentInitialData) {
         restoreBlakeDraftState(currentInitialData);
-        generateMobileBento(1, false, false);
+        generateMobileBento(1, false, false, true);
         playInApp(1);
     } else {
-        generateAndPlayDirectly();
+        generateMobileBento(1, false, false, true);
+        playInApp(1);
     }
 }
 
@@ -1822,6 +1824,15 @@ function generateBlakeQuineHtml() {
             fullHtml = fullHtml.replace('</head>', cleanBlakeTag + '\n</head>');
         }
 
+        // Replace/Insert <script id="bento-payload"> safely
+        const payloadTagRegex = new RegExp('<script[^>]*id=[\"\\\']bento-payload[\"\\\'][^>]*>[\\\\s\\\\S]*?<' + '/script>', 'i');
+        const cleanPayloadTag = '<' + 'script id="bento-payload" type="application/bento+json">\n' + bentoJsonStr + '\n<' + '/script>';
+        if (payloadTagRegex.test(fullHtml)) {
+            fullHtml = fullHtml.replace(payloadTagRegex, () => cleanPayloadTag);
+        } else {
+            fullHtml = fullHtml.replace('</head>', cleanPayloadTag + '\n</head>');
+        }
+
         // Replace/Insert <script id="bento-doc"> safely
         const bentoTagRegex = new RegExp('<script[^>]*id=[\"\\\']bento-doc[\"\\\'][^>]*>[\\\\s\\\\S]*?<' + '/script>', 'i');
         const cleanBentoTag = '<' + 'script id="bento-doc" type="application/bento+json">\n' + bentoJsonStr + '\n<' + '/script>';
@@ -1939,11 +1950,36 @@ function getGuideImageSvgDataUri() {
 }
 
 function loadDraft() {
-    const initScript = document.getElementById('blake-initial-data');
+    // 1. [캐시 유령 차단]: Always check embedded payload first and bypass IndexedDB/localStorage!
+    const bentoPayloadScript = document.getElementById('bento-payload') || document.getElementById('bento-doc');
+    const blakeInitScript = document.getElementById('blake-initial-data');
+
     let initData = null;
-    if (initScript && initScript.textContent && initScript.textContent.trim()) {
+    if (blakeInitScript && blakeInitScript.textContent && blakeInitScript.textContent.trim() && blakeInitScript.textContent.trim() !== '{}') {
         try {
-            initData = JSON.parse(initScript.textContent.trim());
+            initData = JSON.parse(blakeInitScript.textContent.trim());
+        } catch(e) {}
+    }
+
+    // If blake-initial-data is not found or empty, parse bento-payload / bento-doc directly
+    if ((!initData || !initData.slides || initData.slides.length === 0) && bentoPayloadScript && bentoPayloadScript.textContent && bentoPayloadScript.textContent.trim() && bentoPayloadScript.textContent.trim() !== '{}') {
+        try {
+            const bDoc = JSON.parse(bentoPayloadScript.textContent.trim());
+            if (bDoc && bDoc.slides && bDoc.slides.length > 0) {
+                restoreFromBentoDoc(bDoc, bDoc.title);
+                pushUndoState();
+                const splash = document.getElementById('blake-cinematic-splash');
+                const splashTitle = document.getElementById('splash-title');
+                const splashCount = document.getElementById('splash-scene-count');
+                const editor = document.getElementById('blake-editor-view');
+                if (editor) editor.style.display = 'none';
+                if (splash) {
+                    if (splashTitle) splashTitle.innerText = bDoc.title || '나의 배낭여행 기록';
+                    if (splashCount) splashCount.innerText = `📷 ${bDoc.slides.length}개의 장면이 준비되어 있습니다`;
+                    splash.style.display = 'flex';
+                }
+                return; // NEVER READ LOCALSTORAGE OR INDEXEDDB!
+            }
         } catch(e) {}
     }
 
@@ -1962,7 +1998,7 @@ function loadDraft() {
                 if (splashCount) splashCount.innerText = `📷 ${initData.slides.length}개의 장면이 준비되어 있습니다`;
                 splash.style.display = 'flex';
             }
-            return;
+            return; // NEVER READ LOCALSTORAGE OR INDEXEDDB!
         }
         return;
     }
@@ -2460,24 +2496,22 @@ function generateVideoThumbnail(videoDataUri, callback) {
 
 function generateAndPlayDirectly() {
     primeMobileSpeech();
-    requestFullscreenSafe();
     mountEditor();
     saveDraft();
-    generateMobileBento(1, false, false);
+    generateMobileBento(1, false, false, false);
     playInApp(1);
 }
 
 function previewSingleSlide(targetSlideNum, event) {
     if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
     primeMobileSpeech();
-    requestFullscreenSafe();
     mountEditor();
     saveDraft();
-    generateMobileBento(targetSlideNum, true, true);
+    generateMobileBento(targetSlideNum, true, true, false);
     playInApp(1);
 }
 
-function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleScene = false) {
+function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleScene = false, autoPresent = false) {
     try {
         mountEditor();
         const title = (document.getElementById('doc-title') && document.getElementById('doc-title').value) || (currentInitialData && currentInitialData.title) || '나의 배낭여행 기록';
@@ -2678,7 +2712,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             bentoSlides.push({
                 "id": `slide-doc-${targetIdx}`,
                 "background": "#0D1B2E",
-                "transition": targetIdx > 1 ? "morph" : "fade",
+                "transition": "fade",
                 "notes": memoText || scriptText,
                 "elements": elements
             });
@@ -2721,6 +2755,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
         const audioEngineScript = "\n<" + "script>\n" +
             "(function() {" +
             "  const TARGET_SPEED = 1.25;" +
+            "  const AUTO_PRESENT = " + JSON.stringify(autoPresent) + ";" +
             "  const SLIDE_TEXTS = " + JSON.stringify(slideTextMap) + ";" +
             "  const NEXT_FILE_URL = " + JSON.stringify(nextFile) + ";" +
             "  const IS_SINGLE_PREVIEW = " + JSON.stringify(onlySingleScene) + ";" +
@@ -2728,7 +2763,8 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "  let speechDelayTimer = null;" +
             "  let isPresenterStarted = false;" +
             "  let isInitialSlidePlayed = false;" +
-            "  try { if (!window.location.hash || window.location.hash === '' || window.location.hash === '#') { window.location.hash = 'present'; } } catch(e) {}" +
+            "  try { const st = document.createElement('style'); st.textContent = '.bento-present-overlay, .slides, section, body, html { background-color: #0D1B2E !important; } .bento-present-overlay section { transition: opacity 0.35s ease-in-out !important; }'; document.head.appendChild(st); } catch(e) {}" +
+            "  try { if (AUTO_PRESENT && (!window.location.hash || window.location.hash === '' || window.location.hash === '#')) { window.location.hash = 'present'; } } catch(e) {}" +
             "  function getVoicesSafe() {" +
             "    if (!window.speechSynthesis) return [];" +
             "    return window.speechSynthesis.getVoices() || [];" +
@@ -2801,10 +2837,6 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      if (vp.voice) { u.voice = vp.voice; }" +
             "      u.pitch = 0.95;" +
             "      u.rate = TARGET_SPEED;" +
-            "      const startTime = Date.now();" +
-            "      const pausesCount = (cleanText.match(/[,.!?~…\\n]/g) || []).length;" +
-            "      const estDurationMs = Math.max(2200, (cleanText.length * 260) + (pausesCount * 350) + 600);" +
-            "      const maxTimeoutMs = Math.round(estDurationMs + 1800);" +
             "      let isDone = false;" +
             "      function completePlayback() {" +
             "        if (isDone) return;" +
@@ -2813,20 +2845,16 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "        if (onEnd) onEnd();" +
             "      }" +
             "      u.onend = function() {" +
-            "        const elapsed = Date.now() - startTime;" +
-            "        if (elapsed >= (estDurationMs * 0.65)) {" +
-            "          setTimeout(completePlayback, 600);" +
-            "        } else {" +
-            "          setTimeout(completePlayback, Math.max(300, estDurationMs * 0.65 - elapsed));" +
-            "        }" +
+            "        setTimeout(completePlayback, 800);" +
             "      };" +
             "      u.onerror = function() {" +
             "        setTimeout(completePlayback, 400);" +
             "      };" +
             "      window.speechSynthesis.speak(u);" +
+            "      const maxSafetyTimeoutMs = Math.max(6000, Math.round((cleanText.length * 350) + 4000));" +
             "      setTimeout(function() {" +
             "        if (!isDone) { completePlayback(); }" +
-            "      }, maxTimeoutMs);" +
+            "      }, maxSafetyTimeoutMs);" +
             "    } catch(e) { if (onEnd) onEnd(); }" +
             "  }" +
             "  function handleSlideChange() {" +
@@ -2857,7 +2885,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    function onNarrationComplete() {" +
             "      if (video) { try { video.volume = 1.0; } catch(e) {} }" +
             "      if (!IS_SINGLE_PREVIEW && slideNum < allSections.length) {" +
-            "        setTimeout(advanceToNextSlide, 600);" +
+            "        advanceToNextSlide();" +
             "      }" +
             "    }" +
             "    const audio = activeSection.querySelector('audio');" +
@@ -2878,6 +2906,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    }, delayMs);" +
             "  }" +
             "  function tryEnterPresenter() {" +
+            "    if (!AUTO_PRESENT) return;" +
             "    if (isPresenterStarted) return;" +
             "    const overlay = document.querySelector('.bento-present-overlay') || document.querySelector('.present') || document.querySelector('section.present');" +
             "    if (overlay && overlay.style.display !== 'none') {" +
@@ -2923,17 +2952,19 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    updateParentBackButtonVisibility();" +
             "  });" +
             "  window.addEventListener('load', function() {" +
-            "    tryEnterPresenter();" +
+            "    if (AUTO_PRESENT) {" +
+            "      tryEnterPresenter();" +
+            "      setTimeout(tryEnterPresenter, 50);" +
+            "      setTimeout(tryEnterPresenter, 150);" +
+            "      setTimeout(tryEnterPresenter, 300);" +
+            "      setTimeout(tryEnterPresenter, 600);" +
+            "    }" +
             "    updateParentBackButtonVisibility();" +
             "    observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });" +
-            "    setTimeout(tryEnterPresenter, 50);" +
-            "    setTimeout(tryEnterPresenter, 150);" +
-            "    setTimeout(tryEnterPresenter, 300);" +
-            "    setTimeout(tryEnterPresenter, 600);" +
             "    setTimeout(function() { handleSlideChange(); updateParentBackButtonVisibility(); }, 200);" +
             "  });" +
             "  setInterval(function() {" +
-            "    tryEnterPresenter();" +
+            "    if (AUTO_PRESENT) tryEnterPresenter();" +
             "    handleSlideChange();" +
             "    updateParentBackButtonVisibility();" +
             "    document.querySelectorAll('audio').forEach(function(a) { enforceSpeedOnAudio(a); });" +
