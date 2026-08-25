@@ -82,14 +82,17 @@
         }
 
         .splash-flower-svg {
-            width: 44px;
-            height: 55px;
+            width: 40px;
+            height: 50px;
+            transform: rotate(27.5deg);
+            transform-origin: bottom center;
             filter: drop-shadow(0 4px 14px rgba(255, 112, 67, 0.45));
-            transition: transform 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            margin-right: 4px;
         }
 
         .splash-flower-svg:hover {
-            transform: scale(1.08) rotate(3deg);
+            transform: rotate(35deg) scale(1.1);
         }
 
         .splash-slogan-text {
@@ -142,59 +145,55 @@
             margin-bottom: 18px;
         }
 
-        /* 듀얼 액션 버튼 그룹 (좌우 균형 콤팩트 2줄 배치) */
+        /* 듀얼 액션 버튼 그룹 (한 줄 60:40 비율 & 하단 카드와 너비 일치) */
         .splash-btn-group {
             display: flex;
             gap: 10px;
             justify-content: center;
-            align-items: stretch;
+            align-items: center;
             width: 100%;
-            max-width: 360px;
+            max-width: 480px;
             margin-bottom: 20px;
+            box-sizing: border-box;
         }
 
         .btn-splash-play {
-            flex: 1 1 0;
+            flex: 6 1 0;
             background: linear-gradient(135deg, #FF9E8A 0%, #FF6B4A 100%);
             color: #0F172A;
             border: none;
-            padding: 9px 12px;
-            border-radius: 18px;
-            font-size: 0.88rem;
-            font-weight: 800;
-            line-height: 1.35;
+            padding: 12px 14px;
+            border-radius: 24px;
+            font-size: 0.96rem;
+            font-weight: 900;
             cursor: pointer;
-            box-shadow: 0 6px 20px rgba(255, 107, 74, 0.40);
-            display: flex;
-            flex-direction: column;
+            box-shadow: 0 6px 22px rgba(255, 107, 74, 0.40);
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 2px;
             transition: transform 0.15s ease, box-shadow 0.15s ease;
             white-space: nowrap;
         }
 
         .btn-splash-play:active {
-            transform: scale(0.96) !important;
+            transform: scale(0.97) !important;
         }
 
         .btn-splash-editor-main {
-            flex: 1 1 0;
+            flex: 4 1 0;
             background: rgba(30, 41, 59, 0.85);
             color: #F1F5F9;
             border: 1.5px solid var(--accent);
-            padding: 9px 12px;
-            border-radius: 18px;
-            font-size: 0.88rem;
+            padding: 12px 14px;
+            border-radius: 24px;
+            font-size: 0.94rem;
             font-weight: 800;
-            line-height: 1.35;
             cursor: pointer;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
-            display: flex;
-            flex-direction: column;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 2px;
+            gap: 6px;
             transition: transform 0.15s ease, background 0.15s ease;
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
@@ -202,7 +201,7 @@
         }
 
         .btn-splash-editor-main:active {
-            transform: scale(0.96) !important;
+            transform: scale(0.97) !important;
             background: #334155;
         }
 
@@ -862,15 +861,13 @@
         <h1 class="splash-title" id="splash-title">제목이 곧 파일명입니다.</h1>
         <div class="splash-scene-count" id="splash-scene-count">📷 3개의 장면이 준비되어 있습니다</div>
 
-        <!-- 2) 듀얼 액션 버튼 (가로 나란히 배치 & 2줄 콤팩트) -->
+        <!-- 2) 듀얼 액션 버튼 (한 줄 60:40 비율 & 하단 카드와 너비 일치) -->
         <div class="splash-btn-group">
             <button type="button" class="btn-splash-play" onclick="startCinematicFromSplash()">
-                <span style="font-size:0.98rem; font-weight:900;">▶ 영상메모장</span>
-                <span style="font-size:0.84rem; font-weight:700; opacity:0.95;">보기</span>
+                <span>영상메모장</span>
             </button>
             <button type="button" class="btn-splash-editor-main" onclick="openEditorFromSplash()">
-                <span style="font-size:0.95rem; font-weight:800;">✏️ 편집기</span>
-                <span style="font-size:0.84rem; font-weight:700; opacity:0.95;">바로가기</span>
+                <span>✏️ 편집기</span>
             </button>
         </div>
 
