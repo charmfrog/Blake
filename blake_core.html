@@ -1734,14 +1734,57 @@ function generateBlakeQuineHtml() {
                 elements = JSON.parse(JSON.stringify(bentoRawElementsStore[cardId]));
                 elements = elements.filter(el => !(el.type === 'media' && el.kind === 'audio') && el.id !== `caption-text-${slideNum}`);
                 const titleCapsuleHtml = `<div style="display:inline-block; background:rgba(255,255,255,0.50); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); padding:8px 22px; border-radius:14px; border:1px solid rgba(255,255,255,0.60); box-shadow:0 6px 20px rgba(0,0,0,0.35); font-size:26px; font-weight:900; color:#0F172A; letter-spacing:-0.5px; text-shadow:0 1px 2px rgba(255,255,255,0.8);">${title}</div>`;
+                let hasHeroMedia = false;
                 elements.forEach(el => {
                     if (el.id === 'shared-kicker' || (el.type === 'text' && el.html && el.html.includes('titleCapsuleHtml'))) {
                         el.html = titleCapsuleHtml;
                     }
-                    if ((el.type === 'image' || (el.type === 'media' && el.kind === 'video')) && f && f.dataUri) {
+                    if (el.type === 'image' || (el.type === 'media' && el.kind === 'video') || (el.id && el.id.startsWith('shared-hero-media'))) {
+                        hasHeroMedia = true;
                         el.src = `asset:${mediaKey}`;
+                        if (isVideo) {
+                            el.type = 'media';
+                            el.kind = 'video';
+                            el.fit = 'cover';
+                            el.controls = false;
+                            el.autoplay = true;
+                            el.loop = true;
+                            el.muted = false;
+                            el.playsinline = true;
+                            delete el.fx;
+                        } else {
+                            el.type = 'image';
+                            el.fit = 'cover';
+                            delete el.kind;
+                            delete el.controls;
+                            delete el.autoplay;
+                            delete el.loop;
+                            delete el.muted;
+                            delete el.playsinline;
+                            if (!el.fx) {
+                                el.fx = { "ambient": "kenburns", "ken": { "dir": "in", "scale": 1.30, "duration": 14 } };
+                            }
+                        }
                     }
                 });
+                if (!hasHeroMedia && f && f.dataUri) {
+                    const heroEl = isVideo ? {
+                        "id": `shared-hero-media-${slideNum}`,
+                        "type": "media", "kind": "video",
+                        "src": `asset:${mediaKey}`,
+                        "x": 0, "y": 0, "w": 1280, "h": 720,
+                        "rotation": 0, "opacity": 1, "fit": "cover",
+                        "controls": false, "autoplay": true, "loop": true, "muted": false, "playsinline": true
+                    } : {
+                        "id": `shared-hero-media-${slideNum}`,
+                        "type": "image",
+                        "src": `asset:${mediaKey}`,
+                        "x": 0, "y": 0, "w": 1280, "h": 720,
+                        "rotation": 0, "opacity": 1, "fit": "cover",
+                        "fx": { "ambient": "kenburns", "ken": { "dir": "in", "scale": 1.30, "duration": 14 } }
+                    };
+                    elements.unshift(heroEl);
+                }
             } else {
                 elements = [
                     isVideo ? {
@@ -2598,14 +2641,57 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
                 elements = elements.filter(el => !(el.type === 'media' && el.kind === 'audio') && el.id !== `caption-text-${targetIdx}`);
                 
                 const titleCapsuleHtml = `<div style="display:inline-block; background:rgba(255,255,255,0.50); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); padding:8px 22px; border-radius:14px; border:1px solid rgba(255,255,255,0.60); box-shadow:0 6px 20px rgba(0,0,0,0.35); font-size:26px; font-weight:900; color:#0F172A; letter-spacing:-0.5px; text-shadow:0 1px 2px rgba(255,255,255,0.8);">${title}</div>`;
+                let hasHeroMedia = false;
                 elements.forEach(el => {
                     if (el.id === 'shared-kicker' || (el.type === 'text' && el.html && el.html.includes('titleCapsuleHtml'))) {
                         el.html = titleCapsuleHtml;
                     }
-                    if ((el.type === 'image' || (el.type === 'media' && el.kind === 'video')) && mediaFile && mediaFile.dataUri) {
+                    if (el.type === 'image' || (el.type === 'media' && el.kind === 'video') || (el.id && el.id.startsWith('shared-hero-media'))) {
+                        hasHeroMedia = true;
                         el.src = `asset:${mediaKey}`;
+                        if (isVideo) {
+                            el.type = 'media';
+                            el.kind = 'video';
+                            el.fit = 'cover';
+                            el.controls = false;
+                            el.autoplay = true;
+                            el.loop = true;
+                            el.muted = false;
+                            el.playsinline = true;
+                            delete el.fx;
+                        } else {
+                            el.type = 'image';
+                            el.fit = 'cover';
+                            delete el.kind;
+                            delete el.controls;
+                            delete el.autoplay;
+                            delete el.loop;
+                            delete el.muted;
+                            delete el.playsinline;
+                            if (!el.fx) {
+                                el.fx = { "ambient": "kenburns", "ken": { "dir": "in", "scale": 1.30, "duration": 14 } };
+                            }
+                        }
                     }
                 });
+                if (!hasHeroMedia && mediaFile && mediaFile.dataUri) {
+                    const heroEl = isVideo ? {
+                        "id": `shared-hero-media-${slideNum}`,
+                        "type": "media", "kind": "video",
+                        "src": `asset:${mediaKey}`,
+                        "x": 0, "y": 0, "w": 1280, "h": 720,
+                        "rotation": 0, "opacity": 1, "fit": "cover",
+                        "controls": false, "autoplay": true, "loop": true, "muted": false, "playsinline": true
+                    } : {
+                        "id": `shared-hero-media-${slideNum}`,
+                        "type": "image",
+                        "src": `asset:${mediaKey}`,
+                        "x": 0, "y": 0, "w": 1280, "h": 720,
+                        "rotation": 0, "opacity": 1, "fit": "cover",
+                        "fx": { "ambient": "kenburns", "ken": { "dir": "in", "scale": 1.30, "duration": 14 } }
+                    };
+                    elements.unshift(heroEl);
+                }
             } else {
                 const uniqueHeroId = `shared-hero-media-${slideNum}`;
                 let heroElement;
@@ -2836,8 +2922,16 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "        video.muted = false;" +
             "        video.volume = 0.3;" +
             "        video.currentTime = 0;" +
-            "        video.play().catch(function(){});" +
-            "      } catch(e) {}" +
+            "        const p = video.play();" +
+            "        if (p && typeof p.catch === 'function') {" +
+            "          p.catch(function() {" +
+            "            video.muted = true;" +
+            "            video.play().catch(function(){});" +
+            "          });" +
+            "        }" +
+            "      } catch(e) {" +
+            "        try { video.muted = true; video.play().catch(function(){}); } catch(e2) {}" +
+            "      }" +
             "    }" +
             "    const audio = activeSection.querySelector('audio');" +
             "    const targetText = getSlideText(slideNum, activeSection);" +
