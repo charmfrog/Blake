@@ -2963,13 +2963,18 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      } catch(e) {}" +
             "    }" +
             "  }" +
+            "  let hasAutoStartedSlideshow = false;" +
             "  let presentTriggerAttempts = 0;" +
             "  function triggerBentoSlideshow() {" +
+            "    if (hasAutoStartedSlideshow) return true;" +
             "    const overlay = document.querySelector('.bento-present-overlay');" +
-            "    if (overlay && overlay.style.display !== 'none') return true;" +
+            "    if (overlay && overlay.style.display !== 'none') {" +
+            "      hasAutoStartedSlideshow = true;" +
+            "      return true;" +
+            "    }" +
             "    const btn = document.querySelector('.ed-pill-main, [title*=\"Start the slideshow\"], [title*=\"Slideshow\"], button.ed-present-pill, [title*=\"slideshow\"]');" +
             "    if (btn) {" +
-            "      try { btn.click(); } catch(e) {}" +
+            "      try { btn.click(); hasAutoStartedSlideshow = true; } catch(e) {}" +
             "      return true;" +
             "    }" +
             "    try {" +
@@ -2980,6 +2985,7 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "    return false;" +
             "  }" +
             "  const presentPollTimer = setInterval(function() {" +
+            "    if (hasAutoStartedSlideshow) { clearInterval(presentPollTimer); return; }" +
             "    presentTriggerAttempts++;" +
             "    const isDone = triggerBentoSlideshow();" +
             "    if (isDone || presentTriggerAttempts > 60) {" +
@@ -2991,7 +2997,6 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "  const observer = new MutationObserver(function() {" +
             "    handleSlideChange();" +
             "    updateParentBackButtonVisibility();" +
-            "    triggerBentoSlideshow();" +
             "  });" +
             "  window.addEventListener('load', function() {" +
             "    updateParentBackButtonVisibility();" +
