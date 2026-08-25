@@ -902,7 +902,6 @@ function openEditorFromSplash() {
 
 function startCinematicFromSplash() {
     primeMobileSpeech();
-    requestFullscreenSafe();
     const splash = document.getElementById('blake-cinematic-splash');
     if (splash) splash.style.display = 'none';
 
@@ -2964,27 +2963,42 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      } catch(e) {}" +
             "    }" +
             "  }" +
+            "  let presentTriggerAttempts = 0;" +
             "  function triggerBentoSlideshow() {" +
             "    const overlay = document.querySelector('.bento-present-overlay');" +
             "    if (overlay && overlay.style.display !== 'none') return true;" +
-            "    const btn = document.querySelector('.ed-pill-main, [title*=\"Start the slideshow\"], [title*=\"Slideshow\"], button.ed-present-pill');" +
-            "    if (btn) { btn.click(); return true; }" +
-            "    const f5 = new KeyboardEvent('keydown', { key: 'F5', code: 'F5', keyCode: 116, which: 116, bubbles: true, cancelable: true });" +
-            "    document.dispatchEvent(f5);" +
-            "    window.dispatchEvent(f5);" +
+            "    const btn = document.querySelector('.ed-pill-main, [title*=\"Start the slideshow\"], [title*=\"Slideshow\"], button.ed-present-pill, [title*=\"slideshow\"]');" +
+            "    if (btn) {" +
+            "      try { btn.click(); } catch(e) {}" +
+            "      return true;" +
+            "    }" +
+            "    try {" +
+            "      const f5 = new KeyboardEvent('keydown', { key: 'F5', code: 'F5', keyCode: 116, which: 116, bubbles: true, cancelable: true });" +
+            "      document.dispatchEvent(f5);" +
+            "      window.dispatchEvent(f5);" +
+            "    } catch(e) {}" +
             "    return false;" +
             "  }" +
+            "  const presentPollTimer = setInterval(function() {" +
+            "    presentTriggerAttempts++;" +
+            "    const isDone = triggerBentoSlideshow();" +
+            "    if (isDone || presentTriggerAttempts > 60) {" +
+            "      clearInterval(presentPollTimer);" +
+            "    }" +
+            "  }, 80);" +
             "  document.addEventListener('touchstart', unlockIframeTouchAudio, { once: true, capture: true });" +
             "  document.addEventListener('click', unlockIframeTouchAudio, { once: true, capture: true });" +
             "  const observer = new MutationObserver(function() {" +
             "    handleSlideChange();" +
             "    updateParentBackButtonVisibility();" +
+            "    triggerBentoSlideshow();" +
             "  });" +
             "  window.addEventListener('load', function() {" +
             "    updateParentBackButtonVisibility();" +
             "    observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });" +
-            "    setTimeout(triggerBentoSlideshow, 100);" +
-            "    setTimeout(triggerBentoSlideshow, 350);" +
+            "    setTimeout(triggerBentoSlideshow, 50);" +
+            "    setTimeout(triggerBentoSlideshow, 200);" +
+            "    setTimeout(triggerBentoSlideshow, 500);" +
             "    setTimeout(function() { handleSlideChange(); updateParentBackButtonVisibility(); }, 200);" +
             "  });" +
             "  setInterval(function() {" +
