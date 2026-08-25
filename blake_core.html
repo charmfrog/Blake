@@ -1215,17 +1215,40 @@ function setupTitleImportListeners() {
     let touchStartX = 0;
     let touchStartY = 0;
     let isLongPress = false;
+    let lastTapTime = 0;
 
-    // Mobile Long-press (800ms)
+    // 1. Desktop Double-click & Context Menu
+    titleEl.addEventListener('dblclick', function(e) {
+        e.preventDefault();
+        triggerHtmlImport();
+    });
+
+    titleEl.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        triggerHtmlImport();
+    });
+
+    // 2. Mobile Long-press (600ms) & Double Tap
     titleEl.addEventListener('touchstart', function(e) {
         isLongPress = false;
+        const now = Date.now();
+        if (now - lastTapTime < 350) {
+            // Double tap on mobile!
+            if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+            triggerHtmlImport();
+            lastTapTime = 0;
+            return;
+        }
+        lastTapTime = now;
+
         if (e.touches.length === 1) {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
             longPressTimer = setTimeout(function() {
                 isLongPress = true;
+                if (titleEl) titleEl.blur();
                 triggerHtmlImport();
-            }, 800);
+            }, 600);
         }
     }, { passive: true });
 
@@ -1233,7 +1256,7 @@ function setupTitleImportListeners() {
         if (longPressTimer && e.touches.length === 1) {
             const dx = Math.abs(e.touches[0].clientX - touchStartX);
             const dy = Math.abs(e.touches[0].clientY - touchStartY);
-            if (dx > 10 || dy > 10) {
+            if (dx > 12 || dy > 12) {
                 clearTimeout(longPressTimer);
                 longPressTimer = null;
             }
@@ -1246,7 +1269,7 @@ function setupTitleImportListeners() {
             longPressTimer = null;
         }
         if (isLongPress) {
-            e.preventDefault();
+            try { e.preventDefault(); } catch(err) {}
         }
     });
 
@@ -1255,12 +1278,6 @@ function setupTitleImportListeners() {
             clearTimeout(longPressTimer);
             longPressTimer = null;
         }
-    });
-
-    // Desktop Right-click (Context Menu)
-    titleEl.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        triggerHtmlImport();
     });
 }
 
@@ -2738,7 +2755,100 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
         
         const lightweightBentoScript = "\n<" + "script>\n" +
             "(function() {" +
+            "  const TARGET_SPEED = 1.25;" +
+            "  const SLIDE_TEXTS = " + JSON.stringify(slideTextMap) + ";" +
+            "  let currentSlideNum = 0;" +
+            "  let speechDelayTimer = null;" +
             "  try { const st = document.createElement('style'); st.textContent = '.bento-present-overlay, .slides, section, body, html { background-color: #0D1B2E !important; } .bento-present-overlay section { transition: opacity 0.35s ease-in-out !important; }'; document.head.appendChild(st); } catch(e) {}" +
+            "  function getVoicesSafe() {" +
+            "    if (!window.speechSynthesis) return [];" +
+            "    return window.speechSynthesis.getVoices() || [];" +
+            "  }" +
+            "  if (window.speechSynthesis) {" +
+            "    window.speechSynthesis.onvoiceschanged = function() { getVoicesSafe(); };" +
+            "  }" +
+            "  function selectVoiceAndPitch(voices) {" +
+            "    if (!voices || voices.length === 0) return { voice: null, pitch: 0.95, rate: TARGET_SPEED };" +
+            "    const ko = voices.filter(function(v) {" +
+            "      const l = (v.lang || '').toLowerCase().replace(/_/g, '-');" +
+            "      const n = (v.name || '').toLowerCase();" +
+            "      const u = (v.voiceURI || '').toLowerCase();" +
+            "      return l.startsWith('ko') || l.includes('kr') || l.includes('kor') ||" +
+            "             n.includes('korean') || n.includes('한국어') || n.includes('korea') ||" +
+            "             u.includes('ko-kr') || u.includes('ko_kr');" +
+            "    });" +
+            "    if (ko.length === 0) return { voice: null, pitch: 0.95, rate: TARGET_SPEED };" +
+            "    return { voice: ko[0], pitch: 0.95, rate: TARGET_SPEED };" +
+            "  }" +
+            "  function stopAllAudio() {" +
+            "    if (window.speechSynthesis) {" +
+            "      try { window.speechSynthesis.cancel(); } catch(e) {}" +
+            "      try { if (window.speechSynthesis.paused) window.speechSynthesis.resume(); } catch(e) {}" +
+            "    }" +
+            "    document.querySelectorAll('audio').forEach(function(a) { try { a.pause(); a.currentTime = 0; } catch(e) {} });" +
+            "    document.querySelectorAll('video').forEach(function(v) { try { v.pause(); v.currentTime = 0; v.muted = true; } catch(e) {} });" +
+            "  }" +
+            "  function getSlideText(slideNum, activeSection) {" +
+            "    if (SLIDE_TEXTS[slideNum] && SLIDE_TEXTS[slideNum].trim()) {" +
+            "      return SLIDE_TEXTS[slideNum].trim();" +
+            "    }" +
+            "    if (activeSection) {" +
+            "      const subEl = activeSection.querySelector('.blake-sub-box') || activeSection.querySelector('[id^=\"caption-text\"]');" +
+            "      if (subEl) return (subEl.textContent || subEl.innerText || '').trim();" +
+            "    }" +
+            "    return '';" +
+            "  }" +
+            "  function speakText(txt) {" +
+            "    if (!txt || !txt.trim()) return;" +
+            "    if (!window.speechSynthesis) return;" +
+            "    try {" +
+            "      window.speechSynthesis.cancel();" +
+            "      if (window.speechSynthesis.paused) { try { window.speechSynthesis.resume(); } catch(e) {} }" +
+            "      const voices = getVoicesSafe();" +
+            "      const u = new SpeechSynthesisUtterance(txt.trim());" +
+            "      u.lang = 'ko-KR';" +
+            "      const vp = selectVoiceAndPitch(voices);" +
+            "      if (vp.voice) u.voice = vp.voice;" +
+            "      u.pitch = 0.95;" +
+            "      u.rate = TARGET_SPEED;" +
+            "      window.speechSynthesis.speak(u);" +
+            "    } catch(e) {}" +
+            "  }" +
+            "  function handleSlideChange() {" +
+            "    const allSections = Array.from(document.querySelectorAll('.bento-present-overlay .slides > section, .slides > section, section'));" +
+            "    const activeSection = document.querySelector('.bento-present-overlay section.present, .slides > section.present, section.present') || document.querySelector('section.active');" +
+            "    if (!activeSection || allSections.length === 0) return;" +
+            "    let slideNum = 1;" +
+            "    const idx = allSections.indexOf(activeSection);" +
+            "    if (idx >= 0) {" +
+            "      slideNum = idx + 1;" +
+            "    } else if (activeSection.id) {" +
+            "      const m = activeSection.id.match(/\\d+/);" +
+            "      if (m) slideNum = parseInt(m[0]);" +
+            "    }" +
+            "    if (slideNum === currentSlideNum) return;" +
+            "    currentSlideNum = slideNum;" +
+            "    stopAllAudio();" +
+            "    if (speechDelayTimer) { clearTimeout(speechDelayTimer); speechDelayTimer = null; }" +
+            "    const video = activeSection.querySelector('video');" +
+            "    if (video) {" +
+            "      try {" +
+            "        video.muted = false;" +
+            "        video.volume = 0.3;" +
+            "        video.currentTime = 0;" +
+            "        video.play().catch(function(){});" +
+            "      } catch(e) {}" +
+            "    }" +
+            "    const audio = activeSection.querySelector('audio');" +
+            "    const targetText = getSlideText(slideNum, activeSection);" +
+            "    speechDelayTimer = setTimeout(function() {" +
+            "      if (audio) {" +
+            "        try { audio.playbackRate = TARGET_SPEED; audio.currentTime = 0; audio.play().catch(function(){ speakText(targetText); }); } catch(e) { speakText(targetText); }" +
+            "      } else if (targetText) {" +
+            "        speakText(targetText);" +
+            "      }" +
+            "    }, 1500);" +
+            "  }" +
             "  function updateParentBackButtonVisibility() {" +
             "    try {" +
             "      const overlay = document.querySelector('.bento-present-overlay');" +
@@ -2751,12 +2861,30 @@ function generateMobileBento(startSlideNum, isPreviewMode = false, onlySingleSce
             "      }" +
             "    } catch(e) {}" +
             "  }" +
-            "  const observer = new MutationObserver(updateParentBackButtonVisibility);" +
+            "  function unlockIframeTouchAudio() {" +
+            "    if (window.speechSynthesis) {" +
+            "      try {" +
+            "        const u = new SpeechSynthesisUtterance(' ');" +
+            "        u.volume = 0.01;" +
+            "        window.speechSynthesis.speak(u);" +
+            "      } catch(e) {}" +
+            "    }" +
+            "  }" +
+            "  document.addEventListener('touchstart', unlockIframeTouchAudio, { once: true, capture: true });" +
+            "  document.addEventListener('click', unlockIframeTouchAudio, { once: true, capture: true });" +
+            "  const observer = new MutationObserver(function() {" +
+            "    handleSlideChange();" +
+            "    updateParentBackButtonVisibility();" +
+            "  });" +
             "  window.addEventListener('load', function() {" +
             "    updateParentBackButtonVisibility();" +
             "    observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });" +
+            "    setTimeout(function() { handleSlideChange(); updateParentBackButtonVisibility(); }, 200);" +
             "  });" +
-            "  setInterval(updateParentBackButtonVisibility, 150);" +
+            "  setInterval(function() {" +
+            "    handleSlideChange();" +
+            "    updateParentBackButtonVisibility();" +
+            "  }, 150);" +
             "})();\n" +
             "<" + "/script>";
         
