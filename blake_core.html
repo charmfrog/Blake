@@ -117,55 +117,59 @@
         }
 
         .splash-title {
-            font-size: 1.65rem;
+            font-size: 1.30rem;
             font-weight: 900;
-            color: #FFFFFF;
-            margin-bottom: 10px;
+            color: #FDE047;
+            margin-bottom: 8px;
             line-height: 1.35;
-            text-shadow: 0 4px 16px rgba(0,0,0,0.6);
+            text-shadow: 0 2px 10px rgba(250, 204, 21, 0.35);
             word-break: keep-all;
-            max-width: 540px;
+            max-width: 92%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .splash-scene-count {
-            font-size: 0.88rem;
+            font-size: 0.84rem;
             color: #94A3B8;
             font-weight: 600;
             background: rgba(15, 23, 42, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 4px 14px;
-            border-radius: 16px;
+            padding: 3px 12px;
+            border-radius: 14px;
             display: inline-block;
+            margin-bottom: 18px;
+        }
+
+        /* 듀얼 액션 버튼 그룹 (좌우 균형 콤팩트 2줄 배치) */
+        .splash-btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: stretch;
+            width: 100%;
+            max-width: 360px;
             margin-bottom: 20px;
         }
 
-        /* 듀얼 액션 버튼 그룹 */
-        .splash-btn-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            max-width: 480px;
-            margin-bottom: 22px;
-        }
-
         .btn-splash-play {
-            flex: 1 1 200px;
+            flex: 1 1 0;
             background: linear-gradient(135deg, #FF9E8A 0%, #FF6B4A 100%);
             color: #0F172A;
             border: none;
-            padding: 14px 20px;
-            border-radius: 30px;
-            font-size: 1.05rem;
-            font-weight: 900;
+            padding: 9px 12px;
+            border-radius: 18px;
+            font-size: 0.88rem;
+            font-weight: 800;
+            line-height: 1.35;
             cursor: pointer;
-            box-shadow: 0 8px 28px rgba(255, 107, 74, 0.45);
-            display: inline-flex;
+            box-shadow: 0 6px 20px rgba(255, 107, 74, 0.40);
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 2px;
             transition: transform 0.15s ease, box-shadow 0.15s ease;
             white-space: nowrap;
         }
@@ -175,20 +179,22 @@
         }
 
         .btn-splash-editor-main {
-            flex: 1 1 200px;
+            flex: 1 1 0;
             background: rgba(30, 41, 59, 0.85);
             color: #F1F5F9;
             border: 1.5px solid var(--accent);
-            padding: 14px 20px;
-            border-radius: 30px;
-            font-size: 1.05rem;
+            padding: 9px 12px;
+            border-radius: 18px;
+            font-size: 0.88rem;
             font-weight: 800;
+            line-height: 1.35;
             cursor: pointer;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-            display: inline-flex;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 2px;
             transition: transform 0.15s ease, background 0.15s ease;
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
@@ -856,15 +862,15 @@
         <h1 class="splash-title" id="splash-title">제목이 곧 파일명입니다.</h1>
         <div class="splash-scene-count" id="splash-scene-count">📷 3개의 장면이 준비되어 있습니다</div>
 
-        <!-- 2) 듀얼 액션 버튼 (가로 나란히 배치) -->
+        <!-- 2) 듀얼 액션 버튼 (가로 나란히 배치 & 2줄 콤팩트) -->
         <div class="splash-btn-group">
             <button type="button" class="btn-splash-play" onclick="startCinematicFromSplash()">
-                <span style="font-size:1.2rem;">▶</span>
-                <span>영상메모장 보기</span>
+                <span style="font-size:0.98rem; font-weight:900;">▶ 영상메모장</span>
+                <span style="font-size:0.84rem; font-weight:700; opacity:0.95;">보기</span>
             </button>
             <button type="button" class="btn-splash-editor-main" onclick="openEditorFromSplash()">
-                <span style="font-size:1.15rem;">✏️</span>
-                <span>편집기 바로가기</span>
+                <span style="font-size:0.95rem; font-weight:800;">✏️ 편집기</span>
+                <span style="font-size:0.84rem; font-weight:700; opacity:0.95;">바로가기</span>
             </button>
         </div>
 
@@ -873,7 +879,7 @@
             <div class="splash-guide-title">📖 [ 영상메모장 보는 법 ]</div>
             <ul class="splash-guide-list">
                 <li><strong>1)</strong> 여유로운 감상을 위해 당신의 손을 사용하세요. 화면을 누르고 왼쪽으로 밀면(Swipe) 다음 장면으로 이동합니다.</li>
-                <li><strong>2)</strong> 메모장의 시작과 끝에서 Swipe하거나, 슬라이드쇼 중에 하단의 '뒤로버튼'을 누르면 보이는 "Blake편집기로 돌아가기"가 가능합니다.</li>
+                <li><strong>2)</strong> 메모장의 시작과 끝에서 Swipe하거나 쇼 도중에 하단의 '뒤로버튼'을 누르면 "Blake 편집기"로 연결됩니다.</li>
             </ul>
         </div>
 
@@ -883,7 +889,7 @@
                 <span style="font-size: 1.15rem; line-height: 1.2;">🛡️</span>
                 <div>
                     <strong style="color: #FACC15; text-decoration: underline; text-underline-offset: 3px;">[보안 권고] 공식 검증창 바로가기 ↗</strong>
-                    <div style="margin-top: 4px; color: #FEF08A; font-weight: 500; font-size: 0.80rem; line-height: 1.5;">공유받은 파일의 악성코드 및 모기 바이러스 감염/변조가 우려되실 경우, 공식 홈페이지의 파일 검증창을 통해 무결성을 확인 후 실행하시기 바랍니다.</div>
+                    <div style="margin-top: 4px; color: #FEF08A; font-weight: 500; font-size: 0.80rem; line-height: 1.5;">공유받은 파일의 악성코드 감염/변조가 우려되는 경우 공식 홈페이지의 검증창을 통해 무결성 확인 후 사용하시기 바랍니다.</div>
                 </div>
             </div>
         </a>
