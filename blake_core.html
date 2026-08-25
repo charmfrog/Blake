@@ -146,7 +146,7 @@
             margin-top: 2px;
         }
 
-        /* 듀얼 액션 버튼 그룹 (한 줄 60:40 비율 & [ 영상메모장 보는 법 ] 인셋 정렬) */
+        /* 듀얼 액션 버튼 그룹 (1:1 동등 비율 & 소프트 코랄 톤 & 인셋 정렬) */
         .splash-btn-group {
             display: flex;
             gap: 10px;
@@ -154,14 +154,14 @@
             align-items: center;
             width: 100%;
             max-width: 480px;
-            padding: 0 20px; /* 가이드 카드 패딩과 완벽 일치하는 인셋 정렬 */
+            padding: 0 20px;
             margin-bottom: 16px;
             box-sizing: border-box;
         }
 
         .btn-splash-play {
-            flex: 6 1 0;
-            background: linear-gradient(135deg, #FF9E8A 0%, #FF6B4A 100%);
+            flex: 1 1 0;
+            background: linear-gradient(135deg, #E8907E 0%, #D46B52 100%);
             color: #0F172A;
             border: none;
             padding: 8px 12px;
@@ -170,21 +170,22 @@
             font-size: 0.94rem;
             font-weight: 900;
             cursor: pointer;
-            box-shadow: 0 4px 14px rgba(255, 107, 74, 0.35);
+            box-shadow: 0 4px 14px rgba(212, 107, 82, 0.22);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
             white-space: nowrap;
             box-sizing: border-box;
         }
 
         .btn-splash-play:active {
             transform: scale(0.97) !important;
+            opacity: 0.92;
         }
 
         .btn-splash-editor-main {
-            flex: 4 1 0;
+            flex: 1 1 0;
             background: rgba(30, 41, 59, 0.85);
             color: #F1F5F9;
             border: 1.5px solid var(--accent);
