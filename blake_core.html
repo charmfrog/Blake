@@ -65,17 +65,25 @@
             -webkit-user-select: none;
         }
 
-        .splash-flower-container {
-            margin-top: 6px;
-            margin-bottom: 12px;
+        .splash-header-brand {
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 10px;
+            margin-bottom: 28px; /* 여유로운 상하 여백 */
+        }
+
+        .splash-flower-wrap {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .splash-flower-svg {
-            width: 48px;
-            height: 60px;
+            width: 44px;
+            height: 55px;
             filter: drop-shadow(0 4px 14px rgba(255, 112, 67, 0.45));
             transition: transform 0.3s ease;
         }
@@ -84,15 +92,28 @@
             transform: scale(1.08) rotate(3deg);
         }
 
-        .splash-slogan {
-            font-size: 0.95rem;
-            font-weight: 800;
-            color: #FF9E8A;
+        .splash-slogan-text {
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slogan-line1 {
+            font-size: 1.0rem;
+            font-weight: 700;
+            color: #CBD5E1;
+            line-height: 1.35;
             letter-spacing: -0.3px;
-            margin-bottom: 14px;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-            word-break: keep-all;
-            max-width: 520px;
+        }
+
+        .slogan-line2 {
+            font-size: 1.38rem;
+            font-weight: 900;
+            color: #FF9E8A;
+            line-height: 1.25;
+            letter-spacing: -0.2px;
+            text-shadow: 0 2px 10px rgba(255, 158, 138, 0.3);
         }
 
         .splash-title {
@@ -247,6 +268,16 @@
             word-break: keep-all;
             text-align: left;
             box-sizing: border-box;
+            text-decoration: none;
+            display: block;
+            transition: all 0.2s ease;
+        }
+
+        .splash-security-box:hover {
+            background: rgba(234, 179, 8, 0.15);
+            border-color: rgba(234, 179, 8, 0.60);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
         }
 
         /* 2. Bento Presentation View */
@@ -804,18 +835,24 @@
 
     <!-- 1. Cinematic Splash Screen (Hero Play Screen for Direct File Opening) -->
     <div id="blake-cinematic-splash" style="display: none;">
-        <!-- 1) 상단 비주얼 & 슬로건 -->
-        <div class="splash-flower-container">
-            <svg class="splash-flower-svg" viewBox="0 0 40 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 48V18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
-                <path d="M20 32C14 28 8 30 6 34" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round"/>
-                <circle cx="20" cy="12" r="6" fill="#FF7043"/>
-                <circle cx="14" cy="10" r="4.5" fill="#FF8A65"/>
-                <circle cx="26" cy="10" r="4.5" fill="#FF8A65"/>
-                <circle cx="20" cy="11" r="2.5" fill="#FDE047"/>
-            </svg>
+        <!-- 1) 상단 비주얼 & 슬로건 (가로 정렬 Flex) -->
+        <div class="splash-header-brand">
+            <div class="splash-flower-wrap">
+                <svg class="splash-flower-svg" viewBox="0 0 40 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 48V18" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M20 32C14 28 8 30 6 34" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round"/>
+                    <circle cx="20" cy="12" r="6" fill="#FF7043"/>
+                    <circle cx="14" cy="10" r="4.5" fill="#FF8A65"/>
+                    <circle cx="26" cy="10" r="4.5" fill="#FF8A65"/>
+                    <circle cx="20" cy="11" r="2.5" fill="#FDE047"/>
+                </svg>
+            </div>
+            <div class="splash-slogan-text">
+                <div class="slogan-line1">IDEA와 상상이 꽃피는 공간,</div>
+                <div class="slogan-line2">Blake!</div>
+            </div>
         </div>
-        <div class="splash-slogan">당신의 아이디어와 상상력을 꽃피우는 공간, Blake!</div>
+
         <h1 class="splash-title" id="splash-title">제목이 곧 파일명입니다.</h1>
         <div class="splash-scene-count" id="splash-scene-count">📷 3개의 장면이 준비되어 있습니다</div>
 
@@ -840,10 +877,16 @@
             </ul>
         </div>
 
-        <!-- 4) 하단 보안 권고 박스 (Callout Box) -->
-        <div class="splash-security-box">
-            <span>🛡️ <strong>[보안 권고]</strong> 공유받은 파일의 악성코드 및 모기 바이러스 감염/변조가 우려되실 경우, 공식 홈페이지의 파일 검증창을 통해 무결성을 확인 후 실행하시기 바랍니다.</span>
-        </div>
+        <!-- 4) 하단 보안 권고 박스 (Callout Box with External Verification Link) -->
+        <a href="https://blackeboard.github.io/blake/#guide" target="_blank" rel="noopener noreferrer" class="splash-security-box" title="공식 홈페이지 검증창 바로가기 (새 창)">
+            <div style="display: flex; align-items: flex-start; gap: 8px;">
+                <span style="font-size: 1.15rem; line-height: 1.2;">🛡️</span>
+                <div>
+                    <strong style="color: #FACC15; text-decoration: underline; text-underline-offset: 3px;">[보안 권고] 공식 검증창 바로가기 ↗</strong>
+                    <div style="margin-top: 4px; color: #FEF08A; font-weight: 500; font-size: 0.80rem; line-height: 1.5;">공유받은 파일의 악성코드 및 모기 바이러스 감염/변조가 우려되실 경우, 공식 홈페이지의 파일 검증창을 통해 무결성을 확인 후 실행하시기 바랍니다.</div>
+                </div>
+            </div>
+        </a>
     </div>
 
     <!-- 2. Bento Presentation View (Active during Slideshow) -->
